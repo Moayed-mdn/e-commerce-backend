@@ -62,9 +62,10 @@ RUN chown -R www-data:www-data /var/www \
 # Copy Nginx template
 COPY docker/nginx/railway.conf /etc/nginx/templates/default.conf.template
 
-# Remove default nginx config
-RUN rm -f /etc/nginx/sites-enabled/default \
-    && rm -f /etc/nginx/sites-available/default
+# Remove ALL default nginx configs
+RUN rm -f /etc/nginx/sites-enabled/* \
+    && rm -f /etc/nginx/sites-available/* \
+    && rm -f /etc/nginx/conf.d/default.conf
 
 # Copy Supervisor config
 COPY docker/supervisord-railway.conf /etc/supervisor/conf.d/supervisord.conf
