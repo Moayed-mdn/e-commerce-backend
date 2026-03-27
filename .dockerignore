@@ -1,10 +1,10 @@
 .git
 node_modules
-vendor
 .env
 .env.backup
+.env.docker
 storage/logs/*.log
 tests
-docker-compose.override.yml
 .idea
 .vscode
+docker-compose.yml
