@@ -1,0 +1,82 @@
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+# ──────────────────────────────────────────────────
+# Queries
+# ──────────────────────────────────────────────────
+
+type Query {
+    "Full search across products, categories, and brands."
+    search(
+        query: String!
+        locale: String = "en"
+        limit: Int = 20
+    ): SearchResult! @field(resolver: "App\\GraphQL\\Queries\\Search")
+
+    "Fast autocomplete suggestions as user types."
+    autocomplete(
+        query: String!
+        locale: String = "en"
+        limit: Int = 10
+    ): [Suggestion!]! @field(resolver: "App\\GraphQL\\Queries\\Autocomplete")
+}
+
+# ──────────────────────────────────────────────────
+# Search Result Types
+# ──────────────────────────────────────────────────
+
+type SearchResult {
+    products: [ProductSearchResult!]!
+    categories: [CategorySearchResult!]!
+    brands: [BrandSearchResult!]!
+    total_count: Int!
+}
+
+type ProductSearchResult {
+    id: ID!
+    name: String!
+    slug: String!
+    description: String
+    price: Float
+    image_url: String
+    avg_rating: Float
+    reviews_count: Int!
+    category_name: String
+    brand_name: String
+}
+
+type CategorySearchResult {
+    id: ID!
+    name: String!
+    slug: String!
+    products_count: Int!
+}
+
+type BrandSearchResult {
+    id: ID!
+    name: String!
+    slug: String!
+    logo_url: String
+    products_count: Int!
+}
+
+# ──────────────────────────────────────────────────
+# Autocomplete
+# ──────────────────────────────────────────────────
+
+type Suggestion {
+    id: ID!
+    text: String!
+    type: SuggestionType!
+    slug: String!
+    image_url: String
+    price: Float
+    avg_rating: Float
+    reviews_count: Int
+}
+
+enum SuggestionType {
+    PRODUCT
+    CATEGORY
+    BRAND
+}

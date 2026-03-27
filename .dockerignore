@@ -1,0 +1,10 @@
+.git
+node_modules
+vendor
+.env
+.env.backup
+storage/logs/*.log
+tests
+docker-compose.override.yml
+.idea
+.vscode
