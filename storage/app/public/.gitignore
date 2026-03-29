@@ -1,5 +1,7 @@
 *
 !hero
 !products
-!variants
+!hero/
+!products/
+!variants/
 !.gitignore
