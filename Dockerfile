@@ -74,6 +74,9 @@ COPY docker/supervisord-railway.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
+# Copy default storage files to a staging directory (NOT inside the volume mount)
+RUN cp -r /var/www/storage/app/public /var/www/storage/app/public-defaults
+
 EXPOSE 80
 
 # Run as root (needed for nginx + supervisor)

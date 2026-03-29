@@ -16,6 +16,35 @@ chown -R www-data:www-data /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage
 chmod -R 775 /var/www/bootstrap/cache
 
+# ══════════════════════════════════════════════════════════════
+# Copy default files into the volume (only if they don't exist)
+# The volume is mounted at /var/www/storage/app/public
+# so build-time files are wiped. This restores them.
+# ══════════════════════════════════════════════════════════════
+if [ -d /var/www/storage/app/public-defaults ]; then
+    for dir in /var/www/storage/app/public-defaults/*/; do
+        dirname=$(basename "$dir")
+        if [ ! -d "/var/www/storage/app/public/$dirname" ]; then
+            echo "Copying default files: $dirname"
+            cp -r "$dir" "/var/www/storage/app/public/$dirname"
+        fi
+    done
+
+    # Copy root-level files (not in subdirectories)
+    for file in /var/www/storage/app/public-defaults/*; do
+        if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            if [ ! -f "/var/www/storage/app/public/$filename" ]; then
+                echo "Copying default file: $filename"
+                cp "$file" "/var/www/storage/app/public/$filename"
+            fi
+        fi
+    done
+
+    # Fix ownership of copied files
+    chown -R www-data:www-data /var/www/storage/app/public
+fi
+
 # Run migrations
 php artisan migrate --force
 
