@@ -38,7 +38,7 @@ class AuthController extends Controller
         return ApiResponse::success([
             'user' => new UserResource($user),
             'token' => $token
-        ], 'User registered successfully. Please check your email for verification.', 201);
+        ], __('auth.register_success'), 201);
     }
 
     public function login(LoginUserRequest $request): JsonResponse
@@ -50,7 +50,7 @@ class AuthController extends Controller
         }
 
         if (!$user->hasVerifiedEmail()) {
-            throw new UnauthorizedException('Please verify your email address before logging in.');
+            throw new UnauthorizedException(__('auth.verify_email_before_login'));
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -58,7 +58,7 @@ class AuthController extends Controller
         return ApiResponse::success([
             'user' => new UserResource($user),
             'token' => $token
-        ], 'Login successful');
+        ], __('auth.login_successful'));
     }
 
 
@@ -66,30 +66,30 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return ApiResponse::success(null, 'Logged out successfully');
+        return ApiResponse::success(null, __('auth.logout_successful'));
     }
 
     public function verifyEmail(Request $request): JsonResponse
     {
         if (!$request->hasValidSignature()) {
-            throw new EmailVerificationException('Invalid or expired verification link.');
+            throw new EmailVerificationException(__('auth.invalid_verification_link'));
         }
 
         $user = User::findOrFail($request->route('id'));
 
         $expectedHash = sha1($user->getEmailForVerification());
         if (!hash_equals($expectedHash, $request->route('hash'))) {
-            throw new EmailVerificationException('This verification link is invalid.');
+            throw new EmailVerificationException(__('auth.verification_link_invalid'));
         }
 
         if ($user->hasVerifiedEmail()) {
-            return ApiResponse::success(null, 'This account has already been verified');
+            return ApiResponse::success(null, __('auth.already_verified'));
         }
 
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        return ApiResponse::success(null, 'Email verified successfully!');
+        return ApiResponse::success(null, __('auth.email_verified'));
     }
 
     public function resendVerificationEmail(ResendVerificationEmailRequest $request): JsonResponse
@@ -97,24 +97,24 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException(__('error.user_not_found'));
         }
 
         if ($user->hasVerifiedEmail()) {
-            return ApiResponse::success(null, 'Email already verified');
+            return ApiResponse::success(null, __('auth.email_already_verified'));
         }
 
         $key = 'verification-resend|' . $user->email . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
             $seconds = RateLimiter::availableIn($key);
-            throw new TooManyRequestsException("You may try again in {$seconds} seconds.");
+            throw new TooManyRequestsException(trans_choice('auth.too_many_attempts', $seconds, ['seconds' => $seconds]));
         }
 
         $user->sendEmailVerificationNotification();
         RateLimiter::hit($key, 60);
 
-        return ApiResponse::success(null, 'Verification email sent successfully');
+        return ApiResponse::success(null, __('auth.verification_email_sent'));
     }
 
     public function me(Request $request): JsonResponse

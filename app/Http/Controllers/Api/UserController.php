@@ -33,6 +33,6 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return ApiResponse::success(null, 'Password updated successfully');
+        return ApiResponse::success(null, __('auth.password_updated'));
     }
 }
