@@ -7,6 +7,7 @@ namespace App\Actions\Product;
 use App\Repositories\Category\CategoryRepository;
 use App\Repositories\Product\ProductRepository;
 use App\DTOs\Product\FilterProductsByCategoryDTO;
+use App\DTOs\Product\CategoryFilterResult;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class FilterProductsByCategoryAction
@@ -16,7 +17,7 @@ class FilterProductsByCategoryAction
         private CategoryRepository $categoryRepository,
     ) {}
 
-    public function execute(FilterProductsByCategoryDTO $dto): array
+    public function execute(FilterProductsByCategoryDTO $dto): CategoryFilterResult
     {
         $locale = app()->getLocale();
 
@@ -57,21 +58,17 @@ class FilterProductsByCategoryAction
         // Get category translation
         $categoryTranslation = $category->translation($locale);
 
-        return [
-            'paginator' => $paginator,
-            'category' => [
-                'id' => $category->id,
-                'name' => $categoryTranslation?->name ?? $category->slug,
-                'slug' => $categoryTranslation?->slug ?? $category->slug,
-                'breadcrumb' => $this->categoryRepository->getBreadcrumb($category),
-            ],
-            'filters' => [
-                'descendants' => $descendantCategories,
-                'min_price' => $filterRanges->min_price ?? null,
-                'max_price' => $filterRanges->max_price ?? null,
-                'earliest_manufacture' => $filterRanges->earliest_manufacture ?? null,
-                'latest_expiry' => $filterRanges->latest_expiry ?? null,
-            ],
-        ];
+        return new CategoryFilterResult(
+            paginator: $paginator,
+            categoryId: (string) $category->id,
+            categoryName: $categoryTranslation?->name ?? $category->slug,
+            categorySlug: $categoryTranslation?->slug ?? $category->slug,
+            breadcrumb: $this->categoryRepository->getBreadcrumb($category),
+            descendants: $descendantCategories,
+            minPrice: $filterRanges->min_price ?? null,
+            maxPrice: $filterRanges->max_price ?? null,
+            earliestManufacture: $filterRanges->earliest_manufacture ?? null,
+            latestExpiry: $filterRanges->latest_expiry ?? null,
+        );
     }
 }

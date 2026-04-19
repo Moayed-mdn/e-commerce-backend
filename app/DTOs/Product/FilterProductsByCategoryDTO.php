@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTOs\Product;
 
+use App\Http\Requests\Product\FilterProductsByCategoryRequest;
+
 class FilterProductsByCategoryDTO
 {
     public function __construct(
@@ -16,7 +18,7 @@ class FilterProductsByCategoryDTO
         public int $perPage,
     ) {}
 
-    public static function fromRequest(string $slug, $request): self
+    public static function fromRequest(string $slug, FilterProductsByCategoryRequest $request): self
     {
         return new self(
             slug: $slug,

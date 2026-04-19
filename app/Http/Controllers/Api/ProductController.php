@@ -1,10 +1,12 @@
 <?php
-// app/Http/Controllers/Api/ProductController.php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\FilterProductsRequest;
+use App\Http\Requests\Product\FilterProductsByCategoryRequest;
 use App\Http\Resources\RelatedProductResource;
 use App\Http\Resources\ProductCardResource;
 use App\Http\Resources\ProductDetailResource;
@@ -17,7 +19,6 @@ use App\DTOs\Product\FilterProductsByCategoryDTO;
 use App\DTOs\Product\GetProductDetailDTO;
 use App\DTOs\Product\GetRelatedProductsDTO;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -39,9 +40,16 @@ class ProductController extends Controller
         $result = $this->filterProductsAction->execute($dto);
 
         return $this->paginated(
-            $result['paginator'],
-            ProductCardResource::collection($result['paginator']->items()),
-            $result['filters']
+            ProductCardResource::collection($result->paginator),
+            null,
+            200,
+            [
+                'descendants' => $result->descendants,
+                'min_price' => $result->minPrice,
+                'max_price' => $result->maxPrice,
+                'earliest_manufacture' => $result->earliestManufacture,
+                'latest_expiry' => $result->latestExpiry,
+            ]
         );
     }
 
@@ -51,18 +59,28 @@ class ProductController extends Controller
      * GET /products/category/{slug}
      * GET /products/category/{slug}?category_slug=sub-category&min_price=10&max_price=100
      */
-    public function indexByCategory(string $slug, Request $request): JsonResponse
+    public function indexByCategory(string $slug, FilterProductsByCategoryRequest $request): JsonResponse
     {
         $dto = FilterProductsByCategoryDTO::fromRequest($slug, $request);
 
         $result = $this->filterProductsByCategoryAction->execute($dto);
 
         return $this->paginated(
-            $result['paginator'],
-            ProductCardResource::collection($result['paginator']->items()),
+            ProductCardResource::collection($result->paginator),
+            null,
+            200,
             [
-                'category' => $result['category'],
-                'filters' => $result['filters'],
+                'category' => [
+                    'id' => $result->categoryId,
+                    'name' => $result->categoryName,
+                    'slug' => $result->categorySlug,
+                    'breadcrumb' => $result->breadcrumb,
+                ],
+                'descendants' => $result->descendants,
+                'min_price' => $result->minPrice,
+                'max_price' => $result->maxPrice,
+                'earliest_manufacture' => $result->earliestManufacture,
+                'latest_expiry' => $result->latestExpiry,
             ]
         );
     }

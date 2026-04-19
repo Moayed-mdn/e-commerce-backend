@@ -15,9 +15,9 @@ trait ApiResponserTrait
         ], $statusCode);
     }
 
-    public function paginated($resourceCollection, ?string $message = null, int $statusCode = 200): JsonResponse
+    public function paginated($resourceCollection, ?string $message = null, int $statusCode = 200, ?array $additionalMeta = null): JsonResponse
     {
-        return response()->json([
+        $response = [
             'status'  => true,
             'message' => $message ? __($message) : null,
             'data'    => $resourceCollection->collection,
@@ -30,6 +30,12 @@ trait ApiResponserTrait
                     'total_pages'   => $resourceCollection->resource->lastPage(),
                 ],
             ],
-        ], $statusCode);
+        ];
+
+        if ($additionalMeta !== null) {
+            $response['meta'] = array_merge($response['meta'], $additionalMeta);
+        }
+
+        return response()->json($response, $statusCode);
     }
 }
