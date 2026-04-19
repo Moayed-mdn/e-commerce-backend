@@ -11,8 +11,8 @@ class ReorderFailedException extends BaseApiException
 
     protected string $errorCode = ErrorCode::ORD_003->value;
 
-    public function __construct(string $message = 'Failed to reorder the items.')
+    public function __construct(?string $message = null)
     {
-        parent::__construct($message);
+        parent::__construct($message ?? __('services.reorder_failed'));
     }
 }

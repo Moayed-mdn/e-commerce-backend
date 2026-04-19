@@ -8,11 +8,11 @@ use App\Exceptions\BaseApiException;
 class StripeServiceException extends BaseApiException
 {
     public function __construct(
-        string $message = 'A Stripe service error occurred.',
+        ?string $message = null,
         int $statusCode = 500,
         string $errorCode = ErrorCode::PMT_004->value,
         ?array $errors = null
     ) {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('services.stripe_service_error'), $statusCode, $errorCode, $errors);
     }
 }

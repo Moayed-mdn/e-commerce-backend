@@ -12,9 +12,9 @@ class BaseApiException extends Exception
     protected string $errorCode;
     protected ?array $errors;
 
-    public function __construct(string $message = "", int $statusCode = 500, string $errorCode = 'SYS_001', ?array $errors = null)
+    public function __construct(?string $message = null, int $statusCode = 500, string $errorCode = 'SYS_001', ?array $errors = null)
     {
-        parent::__construct($message);
+        parent::__construct($message ?? __('error.internal_server_error'));
         $this->statusCode = $statusCode;
         $this->errorCode = $errorCode;
         $this->errors = $errors;

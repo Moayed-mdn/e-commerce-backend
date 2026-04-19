@@ -7,8 +7,8 @@ use App\Exceptions\BaseApiException;
 
 class OrderCancellationException extends BaseApiException
 {
-    public function __construct(string $message = "This order cannot be cancelled.", int $statusCode = 422, string $errorCode = ErrorCode::ORDER_002->value, ?array $errors = null)
+    public function __construct(?string $message = null, int $statusCode = 422, string $errorCode = ErrorCode::ORDER_002->value, ?array $errors = null)
     {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('services.order_cannot_be_cancelled'), $statusCode, $errorCode, $errors);
     }
 }

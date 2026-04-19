@@ -8,11 +8,11 @@ use App\Exceptions\BaseApiException;
 class StripeWebhookException extends BaseApiException
 {
     public function __construct(
-        string $message = 'Stripe webhook error.',
+        ?string $message = null,
         int $statusCode = 400,
         string $errorCode = ErrorCode::PMT_003->value,
         ?array $errors = null
     ) {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('services.stripe_webhook_error'), $statusCode, $errorCode, $errors);
     }
 }
