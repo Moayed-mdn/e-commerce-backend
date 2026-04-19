@@ -7,6 +7,7 @@ namespace App\Actions\Product;
 use App\Repositories\Category\CategoryRepository;
 use App\Repositories\Product\ProductRepository;
 use App\DTOs\Product\FilterProductsDTO;
+use App\DTOs\Product\FilterResult;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class FilterProductsAction
@@ -16,7 +17,7 @@ class FilterProductsAction
         private CategoryRepository $categoryRepository,
     ) {}
 
-    public function execute(FilterProductsDTO $dto): array
+    public function execute(FilterProductsDTO $dto): FilterResult
     {
         $query = $this->productRepository->buildBaseQuery();
 
@@ -41,19 +42,17 @@ class FilterProductsAction
         // Paginate
         $paginator = $this->productRepository->paginate($query, $dto->perPage);
 
-        return [
-            'paginator' => $paginator,
-            'filters' => [
-                'descendants' => $descendants->map(fn($cat) => [
-                    'id' => $cat->id,
-                    'slug' => $cat->slug,
-                    'name' => $cat->name,
-                ])->toArray(),
-                'min_price' => $filterRanges->min_price ?? null,
-                'max_price' => $filterRanges->max_price ?? null,
-                'earliest_manufacture' => $filterRanges->earliest_manufacture ?? null,
-                'latest_expiry' => $filterRanges->latest_expiry ?? null,
-            ],
-        ];
+        return new FilterResult(
+            paginator: $paginator,
+            descendants: $descendants->map(fn($cat) => [
+                'id' => $cat->id,
+                'slug' => $cat->slug,
+                'name' => $cat->name,
+            ])->toArray(),
+            minPrice: $filterRanges->min_price ?? null,
+            maxPrice: $filterRanges->max_price ?? null,
+            earliestManufacture: $filterRanges->earliest_manufacture ?? null,
+            latestExpiry: $filterRanges->latest_expiry ?? null,
+        );
     }
 }
