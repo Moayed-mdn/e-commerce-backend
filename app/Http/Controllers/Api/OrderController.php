@@ -101,7 +101,7 @@ class OrderController extends Controller
                 'items.productVariant.images',
                 'items.productVariant.product.translations',
             ])),
-            'Order cancelled successfully.'
+            __('services.order_cancelled')
         );
     }
 
@@ -124,12 +124,12 @@ class OrderController extends Controller
         $failedCount = count($result['failed']);
 
         if ($addedCount === 0) {
-            throw new ReorderException('None of the items could be added to your cart.', errors: $result);
+            throw new ReorderException(__('services.reorder_items_not_added'), errors: $result);
         }
 
-        $message = "{$addedCount} item(s) added to your cart.";
+        $message = trans_choice('services.reorder_items_added', $addedCount, ['count' => $addedCount]);
         if ($failedCount > 0) {
-            $message .= " {$failedCount} item(s) could not be added.";
+            $message .= ' ' . trans_choice('services.reorder_items_failed', $failedCount, ['count' => $failedCount]);
         }
 
         return ApiResponse::success($result, $message);
@@ -159,7 +159,7 @@ class OrderController extends Controller
             ->first();
 
         if (!$order) {
-            throw new NotFoundException('No order found with that order number and email combination.');
+            throw new NotFoundException(__('error.order_not_found'));
         }
 
         return ApiResponse::success(new OrderResource($order));

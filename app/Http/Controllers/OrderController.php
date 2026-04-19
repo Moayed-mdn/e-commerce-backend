@@ -54,7 +54,7 @@ class OrderController extends Controller
             $cart = $user->cart;
 
             if (!$cart || $cart->items->isEmpty()) {
-                throw new UnprocessableContentException('Cart is empty');
+                throw new UnprocessableContentException(__('error.cart_empty'));
             }
 
             $shippingAddress = Address::where('id', $request->shipping_address_id)
@@ -108,7 +108,7 @@ class OrderController extends Controller
 
             $order->load(['items', 'shippingAddress', 'billingAddress']);
 
-            return ApiResponse::success(new OrderResource($order), 'Order created successfully', 201);
+            return ApiResponse::success(new OrderResource($order), __('services.order_created'), 201);
         });
     }
 
@@ -117,7 +117,7 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         if (!$order->canBeCancelled()) {
-            throw new OrderCancellationException('Order cannot be cancelled');
+            throw new OrderCancellationException();
         }
 
         DB::transaction(function () use ($order) {
@@ -131,7 +131,7 @@ class OrderController extends Controller
             ]);
         });
 
-        return ApiResponse::success(null, 'Order cancelled successfully');
+        return ApiResponse::success(null, __('services.order_cancelled'));
     }
 
     private function calculateShipping($shippingMethod, $cart)
