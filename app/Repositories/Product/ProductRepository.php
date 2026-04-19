@@ -1,0 +1,168 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repositories\Product;
+
+use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+class ProductRepository
+{
+    public function buildBaseQuery(): Builder
+    {
+        $locale = app()->getLocale();
+
+        return Product::active()
+            ->leftJoin('product_translations', function ($join) use ($locale) {
+                $join->on('products.id', '=', 'product_translations.product_id')
+                    ->where('product_translations.locale', $locale);
+            })
+            ->leftJoin('product_variants as display_v', function ($join) {
+                $join->on('display_v.id', '=', \Illuminate\Support\Facades\DB::raw("(
+                    SELECT id FROM product_variants 
+                    WHERE product_id = products.id 
+                    ORDER BY (CASE WHEN id = products.product_variant_id THEN 0 ELSE 1 END), id ASC 
+                    LIMIT 1
+                )"));
+            })
+            ->leftJoin('images', function ($join) {
+                $join->on('display_v.id', '=', 'images.imageable_id')
+                    ->where('images.imageable_type', '=', 'App\\Models\\ProductVariant')
+                    ->where('images.is_primary', '=', true);
+            })
+            ->select(
+                'products.id as product_id',
+                'products.category_id',
+                'display_v.id as product_variant_id',
+                'product_translations.slug as slug',
+                'product_translations.name as product_name',
+                'product_translations.description as description',
+                'display_v.price as price',
+                'images.image_url as primary_image'
+            );
+    }
+
+    public function getFilterRanges(Builder $query): object
+    {
+        $filterQuery = clone $query;
+        $productIdsSub = $filterQuery->select('products.id');
+
+        return \Illuminate\Support\Facades\DB::table('product_variants')
+            ->whereIn('product_id', $productIdsSub)
+            ->selectRaw("
+                MIN(price) AS min_price,
+                MAX(price) AS max_price,
+                MIN(manufacture_date) AS earliest_manufacture,
+                MAX(expiry_date) AS latest_expiry
+            ")->first();
+    }
+
+    public function applyPriceFilter(Builder $query, ?float $minPrice, ?float $maxPrice): Builder
+    {
+        if ($minPrice !== null) {
+            $query->whereHas('variants', function ($q) use ($minPrice) {
+                $q->where('price', '>=', $minPrice);
+            });
+        }
+
+        if ($maxPrice !== null) {
+            $query->whereHas('variants', function ($q) use ($maxPrice) {
+                $q->where('price', '<=', $maxPrice);
+            });
+        }
+
+        return $query;
+    }
+
+    public function applyManufactureFilter(Builder $query, ?string $earliestManufacture): Builder
+    {
+        if ($earliestManufacture !== null) {
+            $query->whereHas('variants', function ($q) use ($earliestManufacture) {
+                $q->where('manufacture_date', '>=', $earliestManufacture);
+            });
+        }
+
+        return $query;
+    }
+
+    public function applyExpiryFilter(Builder $query, ?string $latestExpiry): Builder
+    {
+        if ($latestExpiry !== null) {
+            $query->whereHas('variants', function ($q) use ($latestExpiry) {
+                $q->where('expiry_date', '>=', $latestExpiry);
+            });
+        }
+
+        return $query;
+    }
+
+    public function filterByCategory(Builder $query, array $categoryIds): Builder
+    {
+        return $query->whereIn('products.category_id', $categoryIds);
+    }
+
+    public function paginate(Builder $query, int $perPage): LengthAwarePaginator
+    {
+        return $query->paginate($perPage);
+    }
+
+    public function findById(int $id): ?Product
+    {
+        return Product::find($id);
+    }
+
+    public function findBySlug(string $slug): ?Product
+    {
+        return Product::findBySlug($slug);
+    }
+
+    public function findRelatedProducts(Product $currentProduct, int $limit = 8): Collection
+    {
+        $currentProduct->load(['category', 'tags']);
+
+        $relatedQuery = Product::with([
+            'translations',
+            'activeVariants.images',
+            'defaultVariant.images',
+        ])
+            ->where('id', '!=', $currentProduct->id)
+            ->where('is_active', true);
+
+        if ($currentProduct->category_id) {
+            $relatedQuery->where('category_id', $currentProduct->category_id);
+        }
+
+        if ($currentProduct->tags->isNotEmpty()) {
+            $tagIds = $currentProduct->tags->pluck('id');
+            $relatedQuery->whereHas('tags', function ($query) use ($tagIds) {
+                $query->whereIn('product_tags.id', $tagIds);
+            });
+        }
+
+        $relatedProducts = $relatedQuery
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+
+        if ($relatedProducts->count() < 4) {
+            $additionalProducts = Product::with([
+                'translations',
+                'activeVariants.images',
+                'defaultVariant.images',
+            ])
+                ->where('id', '!=', $currentProduct->id)
+                ->where('is_active', true)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->inRandomOrder()
+                ->limit($limit - $relatedProducts->count())
+                ->get();
+
+            $relatedProducts = $relatedProducts->merge($additionalProducts);
+        }
+
+        return $relatedProducts;
+    }
+}

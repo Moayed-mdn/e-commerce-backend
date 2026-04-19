@@ -46,6 +46,40 @@ class CategoryRepository
             ->find($id);
     }
 
+    public function findBySlugOrFail(string $slug): Category
+    {
+        return Category::findByLocalizedSlugOrFail($slug);
+    }
+
+    public function findBySlug(string $slug): ?Category
+    {
+        return Category::findByLocalizedSlug($slug);
+    }
+
+    public function flattenDescendantsWithTranslations(Category $category, string $locale): array
+    {
+        $result = collect();
+        $this->flattenDescendantsRecursive($category, $result, $locale);
+        return $result->toArray();
+    }
+
+    private function flattenDescendantsRecursive(Category $category, &$result, string $locale): void
+    {
+        foreach ($category->children as $child) {
+            $translation = $child->translation($locale);
+
+            $result->push([
+                'id'   => $child->id,
+                'name' => $translation?->name ?? $child->slug,
+                'slug' => $translation?->slug ?? $child->slug,
+            ]);
+
+            if ($child->relationLoaded('descendants') || $child->relationLoaded('children')) {
+                $this->flattenDescendantsRecursive($child, $result, $locale);
+            }
+        }
+    }
+
     public function getBreadcrumb(Category $category): array
     {
         $breadcrumb = [];

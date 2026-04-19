@@ -8,14 +8,24 @@ use App\Http\Requests\Product\FilterProductsRequest;
 use App\Http\Resources\RelatedProductResource;
 use App\Http\Resources\ProductCardResource;
 use App\Http\Resources\ProductDetailResource;
-use App\Services\ProductService;
+use App\Actions\Product\FilterProductsAction;
+use App\Actions\Product\FilterProductsByCategoryAction;
+use App\Actions\Product\GetProductDetailAction;
+use App\Actions\Product\GetRelatedProductsAction;
+use App\DTOs\Product\FilterProductsDTO;
+use App\DTOs\Product\FilterProductsByCategoryDTO;
+use App\DTOs\Product\GetProductDetailDTO;
+use App\DTOs\Product\GetRelatedProductsDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function __construct(
-        protected ProductService $productService
+        protected FilterProductsAction $filterProductsAction,
+        protected FilterProductsByCategoryAction $filterProductsByCategoryAction,
+        protected GetProductDetailAction $getProductDetailAction,
+        protected GetRelatedProductsAction $getRelatedProductsAction,
     ) {
     }
 
@@ -24,39 +34,14 @@ class ProductController extends Controller
      */
     public function index(FilterProductsRequest $request): JsonResponse
     {
-        $query = $this->productService->buildBaseProductQuery();
+        $dto = FilterProductsDTO::fromRequest($request);
 
-        $descendants = $this->productService->getCategoryDescendants();
-
-        if ($request->filled('category_slug')) {
-            $category = $this->productService->findCategoryBySlugOrFail($request->category_slug);
-
-            $descendantsWithSelf = $category->allDescendantIds()->push($category->id);
-
-            $query->whereHas('category', function ($query) use ($descendantsWithSelf) {
-                $query->whereIn('id', $descendantsWithSelf);
-            });
-        }
-
-        $variantStatus = $this->productService->getProductFilterRanges($query);
-
-        $query = $this->productService->applyFilters($query, $request);
-
-        $perPage = $request->get('per_page', 20);
-        $paginator = $query->paginate($perPage);
+        $result = $this->filterProductsAction->execute($dto);
 
         return $this->paginated(
-            $paginator,
-            ProductCardResource::collection($paginator->items()),
-            [
-                'filters' => [
-                    'descendants' => $descendants,
-                    'min_price' => $variantStatus->min_price,
-                    'max_price' => $variantStatus->max_price,
-                    'earliest_manufacture' => $variantStatus->earliest_manufacture,
-                    'latest_expiry' => $variantStatus->latest_expiry
-                ]
-            ]
+            $result['paginator'],
+            ProductCardResource::collection($result['paginator']->items()),
+            $result['filters']
         );
     }
 
@@ -68,54 +53,16 @@ class ProductController extends Controller
      */
     public function indexByCategory(string $slug, Request $request): JsonResponse
     {
-        $locale = app()->getLocale();
+        $dto = FilterProductsByCategoryDTO::fromRequest($slug, $request);
 
-        $category = $this->productService->findCategoryBySlugOrFail($slug);
-        $category->loadMissing(['translations', 'descendants.translations']);
-
-        $descendantCategories = $this->productService->flattenCategoryDescendants($category, $locale);
-
-        $query = $this->productService->buildBaseProductQuery()
-            ->addSelect('images.alt_text as alt_text');
-
-        if ($request->filled('category_slug')) {
-            $subCategory = $this->productService->findCategoryBySlug($request->category_slug);
-
-            if ($subCategory) {
-                $subIds = $subCategory->allDescendantIds();
-                $query->whereIn('products.category_id', $subIds);
-            }
-        } else {
-            $allIds = $category->allDescendantIds();
-            $query->whereIn('products.category_id', $allIds);
-        }
-
-        $variantStatus = $this->productService->getProductFilterRanges($query);
-
-        $query = $this->productService->applyFilters($query, $request);
-
-        $perPage = $request->get('per_page', 20);
-        $products = $query->paginate($perPage);
-
-        $categoryTranslation = $category->translation($locale);
+        $result = $this->filterProductsByCategoryAction->execute($dto);
 
         return $this->paginated(
-            $products,
-            ProductCardResource::collection($products->items()),
+            $result['paginator'],
+            ProductCardResource::collection($result['paginator']->items()),
             [
-                'category' => [
-                    'id'         => $category->id,
-                    'name'       => $categoryTranslation?->name ?? $category->slug,
-                    'slug'       => $categoryTranslation?->slug ?? $category->slug,
-                    'breadcrumb' => $category->breadcrumb,
-                ],
-                'filters' => [
-                    'descendants'          => $descendantCategories,
-                    'min_price'            => $variantStatus->min_price ?? null,
-                    'max_price'            => $variantStatus->max_price ?? null,
-                    'earliest_manufacture' => $variantStatus->earliest_manufacture ?? null,
-                    'latest_expiry'        => $variantStatus->latest_expiry ?? null,
-                ],
+                'category' => $result['category'],
+                'filters' => $result['filters'],
             ]
         );
     }
@@ -127,16 +74,9 @@ class ProductController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $product = $this->productService->findProductBySlugOrFail($slug);
+        $dto = GetProductDetailDTO::fromRequest($slug);
 
-        $product->load([
-            'translations',
-            'category.translations',
-            'brand',
-            'activeVariants.attributeValues.translations',
-            'activeVariants.attributeValues.attribute.translations',
-            'activeVariants.images',
-        ]);
+        $product = $this->getProductDetailAction->execute($dto);
 
         return $this->success(new ProductDetailResource($product));
     }
@@ -148,9 +88,9 @@ class ProductController extends Controller
      */
     public function related(string $slug): JsonResponse
     {
-        $currentProduct = $this->productService->findProductBySlugOrFail($slug);
+        $dto = GetRelatedProductsDTO::fromRequest($slug);
 
-        $relatedProducts = $this->productService->getRelatedProducts($currentProduct);
+        $relatedProducts = $this->getRelatedProductsAction->execute($dto);
 
         return $this->success(RelatedProductResource::collection($relatedProducts));
     }

@@ -31,4 +31,7 @@ enum ErrorCode: string
 
     // --- Validation (VAL) ---
     case VAL_001 = 'VAL_001'; // Validation failed
+
+    // --- Product (PRD) ---
+    case PRD_001 = 'PRD_001'; // Product not found
 }
