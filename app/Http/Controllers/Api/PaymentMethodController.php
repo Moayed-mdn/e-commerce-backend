@@ -12,12 +12,9 @@ use App\Http\Resources\PaymentMethodResource;
 use App\Services\PaymentMethod\PaymentMethodService;
 use App\DTOs\StorePaymentMethodDTO;
 use App\Models\PaymentMethod;
-use App\Traits\ApiResponserTrait;
 
 class PaymentMethodController extends Controller
 {
-    use ApiResponserTrait;
-
     public function __construct(
         private PaymentMethodService $paymentMethodService,
     ) {}
