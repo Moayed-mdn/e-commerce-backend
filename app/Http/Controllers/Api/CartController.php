@@ -2,75 +2,70 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\AddToCartAction;
+use App\Actions\ClearCartAction;
+use App\Actions\RemoveCartItemAction;
+use App\Actions\UpdateCartItemAction;
+use App\DTOs\AddToCartDTO;
+use App\DTOs\ClearCartDTO;
+use App\DTOs\RemoveCartItemDTO;
+use App\DTOs\UpdateCartItemDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cart\AddItemRequest;
 use App\Http\Requests\Cart\UpdateItemRequest;
 use App\Http\Resources\CartResource;
-use App\Services\CartService;
-use App\Support\ApiResponse;
-use Illuminate\Http\JsonResponse;
 
 class CartController extends Controller
 {
-    public function __construct(private CartService $cartService)
+    public function __construct(
+        private AddToCartAction $addToCartAction,
+        private UpdateCartItemAction $updateCartItemAction,
+        private RemoveCartItemAction $removeCartItemAction,
+        private ClearCartAction $clearCartAction,
+    ) {}
+
+    public function show(): \Illuminate\Http\JsonResponse
     {
+        $cart = auth()->user()->cart()->with([
+            'items.productVariant.product.translations',
+            'items.productVariant.images',
+            'items.productVariant.attributeValues.translations',
+            'items.productVariant.attributeValues.attribute.translations',
+        ])->firstOrCreate([]);
+
+        return $this->success(new CartResource($cart));
     }
 
-    public function show()
+    public function addItem(AddItemRequest $request): \Illuminate\Http\JsonResponse
     {
-        $cart = $this->cartService->getOrCreate(auth()->user());
-
-        $cartResource = new CartResource($cart->loadMissing([
-            'items.productVariant.product.translations',                // ✅ translated name + slug
-            'items.productVariant.images',                              // ✅ variant image
-            'items.productVariant.attributeValues.translations',        // ✅ "Red", "أحمر"
-            'items.productVariant.attributeValues.attribute.translations', // ✅ "Color", "اللون"
-        ]));
-
-        return ApiResponse::success($cartResource);
-    }
-
-    public function addItem(AddItemRequest $request)
-    {
-        $cart = $this->cartService->getOrCreate(auth()->user());
-
-        $this->cartService->addItem(
-            $cart,
-            $request->product_variant_id,
-            $request->quantity
+        $cart = $this->addToCartAction->execute(
+            AddToCartDTO::fromRequest($request)
         );
 
-        return $this->show();
+        return $this->success(new CartResource($cart));
     }
 
-    public function updateItem(UpdateItemRequest $request, $itemId)
+    public function updateItem(UpdateItemRequest $request, int $itemId): \Illuminate\Http\JsonResponse
     {
-        $cart = $this->cartService->getOrCreate(auth()->user());
-
-        $this->cartService->updateItem(
-            $cart,
-            $itemId,
-            $request->quantity
-        );
+        $dto = UpdateCartItemDTO::fromRequest($request, $itemId);
+        $this->updateCartItemAction->execute($dto);
 
         return $this->show();
     }
 
-    public function removeItem($itemId)
+    public function removeItem(int $itemId): \Illuminate\Http\JsonResponse
     {
-        $cart = $this->cartService->getOrCreate(auth()->user());
-
-        $this->cartService->removeItem($cart, $itemId);
+        $dto = RemoveCartItemDTO::fromRequest(request(), $itemId);
+        $this->removeCartItemAction->execute($dto);
 
         return $this->show();
     }
 
-    public function clear(): JsonResponse
+    public function clear(): \Illuminate\Http\JsonResponse
     {
-        $cart = $this->cartService->getOrCreate(auth()->user());
+        $dto = ClearCartDTO::fromRequest(request());
+        $this->clearCartAction->execute($dto);
 
-        $this->cartService->clear($cart);
-
-        return ApiResponse::success(null, __('cart.cleared'));
+        return $this->success(null, __('cart.cleared'));
     }
 }
