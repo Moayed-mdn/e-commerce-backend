@@ -12,12 +12,9 @@ use App\Http\Resources\PaymentMethodResource;
 use App\Services\PaymentMethod\PaymentMethodService;
 use App\DTOs\StorePaymentMethodDTO;
 use App\Models\PaymentMethod;
-use App\Services\PaymentMethodService as ServicesPaymentMethodService;
-
 
 class PaymentMethodController extends Controller
 {
-
     public function __construct(
         private ServicesPaymentMethodService $paymentMethodService,
     ) {}

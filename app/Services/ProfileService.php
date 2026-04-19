@@ -12,7 +12,7 @@ class ProfileService
     /**
      * Update user profile information.
      */
-    public function updateInfo(User $user, array $data): User
+    public function updateProfile(User $user, array $data): User
     {
         if ($user->email !== $data['email']) {
             $data['email_verified_at'] = null;
@@ -26,17 +26,11 @@ class ProfileService
     /**
      * Update user password.
      */
-    public function updatePassword(User $user, string $password): string
+    public function changePassword(User $user, string $password): void
     {
-        $hasPassword = !is_null($user->password);
-
         $user->update([
             'password' => Hash::make($password),
         ]);
-
-        return $hasPassword
-            ? __('auth.password_updated')
-            : __('auth.password_set');
     }
 
     /**

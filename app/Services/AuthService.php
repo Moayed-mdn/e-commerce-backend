@@ -12,6 +12,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 
 class AuthService
@@ -120,5 +121,28 @@ class AuthService
         RateLimiter::hit($key, 60);
 
         return ['already_verified' => false];
+    }
+
+    /**
+     * Send password reset link.
+     */
+    public function sendResetLink(array $data): void
+    {
+        Password::sendResetLink($data);
+    }
+
+    /**
+     * Reset user password.
+     */
+    public function resetPassword(array $data): void
+    {
+        Password::reset(
+            $data,
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
     }
 }
