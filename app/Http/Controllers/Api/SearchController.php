@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Search\SearchRequest;
-use App\Services\Search\SearchService;
+use App\Services\SearchService;
 use App\DTOs\Search\SearchDTO;
 
 

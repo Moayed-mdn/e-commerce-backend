@@ -9,7 +9,7 @@ use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderCollection;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Services\Order\OrderService;
+use App\Services\OrderService;
 
 
 class OrderController extends Controller
