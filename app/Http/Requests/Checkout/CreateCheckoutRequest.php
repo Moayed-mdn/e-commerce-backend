@@ -31,8 +31,8 @@ class CreateCheckoutRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.required' => 'Your cart is empty.',
-            'items.min'      => 'Your cart is empty.',
+            'items.required' => __('error.cart_empty'),
+            'items.min'      => __('error.cart_empty'),
         ];
     }
 }

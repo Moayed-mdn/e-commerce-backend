@@ -21,7 +21,7 @@ class ExceptionRegistrar
             if ($e instanceof ValidationException) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Validation failed',
+                    'message' => __('error.validation_failed'),
                     'error_code' => ErrorCode::VAL_001->value,
                     'errors' => $e->errors(),
                 ], 422);
@@ -40,7 +40,7 @@ class ExceptionRegistrar
 
             return response()->json([
                 'status' => false,
-                'message' => config('app.env') === 'local' ? $e->getMessage() : 'Server Error',
+                'message' => config('app.env') === 'local' ? $e->getMessage() : __('error.internal_server_error'),
                 'error_code' => ErrorCode::SYS_001->value,
                 'errors' => null,
             ], 500);

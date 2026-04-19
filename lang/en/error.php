@@ -10,4 +10,12 @@ return [
     'conflict' => 'Conflict occurred.',
     'unprocessable_entity' => 'Unprocessable entity.',
     'too_many_requests' => 'Too many requests. Please try again later.',
+    
+    // Validation Messages
+    'email_required' => 'The email field is required.',
+    'email_invalid' => 'Please enter a valid email address.',
+    'password_required' => 'The password field is required.',
+    'cart_empty' => 'Your cart is empty.',
+    'order_number_required' => 'Please enter your order number.',
+    'checkout_email_required' => 'Please enter the email used during checkout.',
 ];
