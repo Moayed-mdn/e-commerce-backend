@@ -10,4 +10,12 @@ return [
     'conflict' => 'حدث تعارض.',
     'unprocessable_entity' => 'كيان غير قابل للمعالجة.',
     'too_many_requests' => 'طلبات كثيرة جداً. يرجى المحاولة لاحقاً.',
+    
+    // Validation Messages - Car Workshop Context
+    'email_required' => 'حقل البريد الإلكتروني مطلوب.',
+    'email_invalid' => 'يرجى إدخال عنوان بريد إلكتروني صحيح.',
+    'password_required' => 'حقل كلمة المرور مطلوب.',
+    'cart_empty' => 'سلة التسوق الخاصة بك فارغة.',
+    'order_number_required' => 'يرجى إدخال رقم الطلب الخاص بك.',
+    'checkout_email_required' => 'يرجى إدخال البريد الإلكتروني المستخدم أثناء الدفع.',
 ];

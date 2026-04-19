@@ -23,9 +23,9 @@ class GuestOrderLookupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'order_number.required' => 'Please enter your order number.',
-            'email.required'        => 'Please enter the email used during checkout.',
-            'email.email'           => 'Please enter a valid email address.',
+            'order_number.required' => __('error.order_number_required'),
+            'email.required'        => __('error.checkout_email_required'),
+            'email.email'           => __('error.email_invalid'),
         ];
     }
 }
