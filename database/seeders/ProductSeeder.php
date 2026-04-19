@@ -361,10 +361,19 @@ class ProductSeeder extends Seeder
                             ['code' => Str::slug($attributeName)]
                         );
 
+                        // Ensure English translation
                         if (!$attribute->translations()->where('locale', 'en')->exists()) {
                             $attribute->translations()->create([
                                 'locale' => 'en',
                                 'name'   => $attributeName,
+                            ]);
+                        }
+
+                        // Ensure Arabic translation
+                        if (!$attribute->translations()->where('locale', 'ar')->exists()) {
+                            $attribute->translations()->create([
+                                'locale' => 'ar',
+                                'name'   => $this->getArabicAttributeName($attributeName),
                             ]);
                         }
 
@@ -373,10 +382,19 @@ class ProductSeeder extends Seeder
                             'code'         => Str::slug($attributeValue),
                         ]);
 
+                        // Ensure English translation
                         if (!$attributeValueModel->translations()->where('locale', 'en')->exists()) {
                             $attributeValueModel->translations()->create([
                                 'locale' => 'en',
                                 'label'  => $attributeValue,
+                            ]);
+                        }
+
+                        // Ensure Arabic translation
+                        if (!$attributeValueModel->translations()->where('locale', 'ar')->exists()) {
+                            $attributeValueModel->translations()->create([
+                                'locale' => 'ar',
+                                'label'  => $this->getArabicAttributeValue($attributeValue),
                             ]);
                         }
 
@@ -396,7 +414,7 @@ class ProductSeeder extends Seeder
         }
 
         DB::commit();
-        $this->command->info('✅ Products seeded with brands & default variants!');
+        $this->command->info('✅ Products seeded with brands & default variants (including Arabic attributes)!');
     }
 
     private function getArabicProductName($englishName)
@@ -451,5 +469,217 @@ class ProductSeeder extends Seeder
         ];
 
         return $translations[$englishName] ?? $englishName;
+    }
+
+    /**
+     * Get Arabic translation for an attribute name.
+     */
+    private function getArabicAttributeName(string $englishName): string
+    {
+        $translations = [
+            // Common attribute names
+            'Storage'           => 'سعة التخزين',
+            'Color'             => 'اللون',
+            'Model'             => 'الموديل',
+            'Battery'           => 'البطارية',
+            'Size'              => 'المقاس',
+            'Material'          => 'الخامة',
+            'Resolution'        => 'الدقة',
+            'Refresh Rate'      => 'معدل التحديث',
+            'Layout'            => 'ترتيب الأزرار',
+            'Switches'          => 'نوع المفاتيح',
+            'Backlight'         => 'الإضاءة الخلفية',
+            'DPI'               => 'DPI',
+            'Buttons'           => 'الأزرار',
+            'Ports'             => 'المنافذ',
+            'Power Delivery'    => 'شحن سريع',
+            'Capacity'          => 'السعة',
+            'Interface'         => 'الواجهة',
+            'Speed'             => 'السرعة',
+            'RAM'               => 'الذاكرة العشوائية',
+            'Dimensions'        => 'الأبعاد',
+            'Power'             => 'الطاقة',
+            'Height'            => 'الارتفاع',
+            'Style'             => 'الستايل',
+            'Color Temperature' => 'درجة حرارة اللون',
+            'Diameter'          => 'القطر',
+            'Frame'             => 'الإطار',
+            'Set'               => 'المجموعة',
+            'Pot Material'      => 'مادة الأصيص',
+            'Thickness'         => 'السماكة',
+            'Type'              => 'النوع',
+            'Weight'            => 'الوزن',
+        ];
+
+        return $translations[$englishName] ?? $englishName;
+    }
+
+    /**
+     * Get Arabic translation for an attribute value.
+     */
+    private function getArabicAttributeValue(string $englishValue): string
+    {
+        $translations = [
+            // Storage capacities
+            '64GB'   => '٦٤ جيجابايت',
+            '128GB'  => '١٢٨ جيجابايت',
+            '256GB'  => '٢٥٦ جيجابايت',
+            '512GB'  => '٥١٢ جيجابايت',
+            '1TB'    => '١ تيرابايت',
+            '2TB'    => '٢ تيرابايت',
+            '500GB'  => '٥٠٠ جيجابايت',
+
+            // RAM
+            '8GB'    => '٨ جيجابايت',
+            '16GB'   => '١٦ جيجابايت',
+            '32GB'   => '٣٢ جيجابايت',
+            '64GB RAM' => '٦٤ جيجابايت',
+
+            // Colors (basic)
+            'Black'         => 'أسود',
+            'White'         => 'أبيض',
+            'Blue'          => 'أزرق',
+            'Green'         => 'أخضر',
+            'Grey'          => 'رمادي',
+            'Gray'          => 'رمادي',
+            'Red'           => 'أحمر',
+            'Pink'          => 'وردي',
+            'Brown'         => 'بني',
+            'Beige'         => 'بيج',
+            'Cream'         => 'كريمي',
+            'Navy'          => 'كحلي',
+            'Navy Blue'     => 'أزرق كحلي',
+            'Camel'         => 'كاميل',
+            'Burgundy'      => 'بورجوندي',
+            'Purple'        => 'بنفسجي',
+            'Silver'        => 'فضي',
+            'Gold'          => 'ذهبي',
+            'Space Gray'    => 'رمادي فلكي',
+            'Platinum Silver' => 'بلاتيني فضي',
+            'Frost White'   => 'أبيض ثلجي',
+            'Nightfall Black' => 'أسود الغسق',
+            'Poseidon Blue' => 'أزرق بوسيدون',
+            'Natural Silver' => 'فضي طبيعي',
+            'Eclipse Gray'  => 'رمادي إكليبس',
+            'Moonlight White' => 'أبيض ضوء القمر',
+            'Midnight'      => 'منتصف الليل',
+            'Graphite'      => 'جرافيت',
+            'Light Blue'    => 'أزرق فاتح',
+            'Dark Blue'     => 'أزرق غامق',
+            'Dark Grey'     => 'رمادي غامق',
+            'Nude'          => 'عاري',
+            'Beige'         => 'بيج',
+
+            // Sizes / dimensions
+            'S'     => 'صغير',
+            'M'     => 'متوسط',
+            'L'     => 'كبير',
+            'XL'    => 'كبير جداً',
+            '28'    => '٢٨',
+            '30'    => '٣٠',
+            '32'    => '٣٢',
+            '34'    => '٣٤',
+            '36'    => '٣٦',
+            '37'    => '٣٧',
+            '38'    => '٣٨',
+            '39'    => '٣٩',
+            '40'    => '٤٠',
+            '41'    => '٤١',
+            '44mm'  => '٤٤ مم',
+            '45mm'  => '٤٥ مم',
+            '40mm'  => '٤٠ مم',
+
+            // Materials
+            'Nylon'     => 'نايلون',
+            'Leather'   => 'جلد',
+            'Polyester' => 'بوليستر',
+            'Mesh'      => 'شبكي',
+            'Wood'      => 'خشب',
+            'Metal'     => 'معدن',
+            'Oak'       => 'بلوط',
+            'Walnut'    => 'جوز',
+            'Teak'      => 'تيك',
+            'Cotton'    => 'قطن',
+            'Velvet'    => 'مخمل',
+            'Ceramic'   => 'سيراميك',
+            'Terracotta'=> 'تيراكوتا',
+
+            // Electronics specifics
+            '1080p'     => '١٠٨٠ بكسل',
+            '4K'        => '٤ كيه',
+            '1440p'     => '١٤٤٠ بكسل',
+            '75Hz'      => '٧٥ هرتز',
+            '60Hz'      => '٦٠ هرتز',
+            '144Hz'     => '١٤٤ هرتز',
+            'RGB'       => 'أر جي بي',
+            'TKL'       => 'بدون لوحة أرقام',
+            'Full Size' => 'حجم كامل',
+            '60%'       => '٦٠٪',
+            'Blue'      => 'أزرق (مفاتيح)',
+            'Red'       => 'أحمر (مفاتيح)',
+            'Brown'     => 'بني (مفاتيح)',
+            'USB-C'     => 'يو إس بي سي',
+            'USB 3.2'   => 'يو إس بي ٣.٢',
+            'Thunderbolt'=> 'ثاندر بولت',
+            '1050MB/s'  => '١٠٥٠ ميجابايت/ث',
+            '2000MB/s'  => '٢٠٠٠ ميجابايت/ث',
+            '2800MB/s'  => '٢٨٠٠ ميجابايت/ث',
+            '6h'        => '٦ ساعات',
+            '5h'        => '٥ ساعات',
+            '8h'        => '٨ ساعات',
+            'AirPods Pro'       => 'آيربودز برو',
+            'Samsung Galaxy Buds' => 'سامسونج جالاكسي بودز',
+            'Sony WF-1000XM4'   => 'سوني WF-1000XM4',
+            'Apple Watch Series 8' => 'آبل ووتش سيريس ٨',
+            'Samsung Galaxy Watch 5' => 'سامسونج جالاكسي ووتش ٥',
+            'Fitbit Versa 4'    => 'فيت بيت فيرسا ٤',
+            'HDMI + USB3 x3 + Ethernet' => 'إتش دي إم آي + يو إس بي ٣ ×٣ + إيثرنت',
+            '4K HDMI + USB-C + SD Card' => 'إتش دي إم آي ٤ كيه + يو إس بي سي + بطاقة إس دي',
+            'VGA + USB2 x2 + Audio' => 'في جي إيه + يو إس بي ٢ ×٢ + صوت',
+            '100W'      => '١٠٠ واط',
+            '85W'       => '٨٥ واط',
+            '60W'       => '٦٠ واط',
+
+            // Furniture / dimensions
+            '200x90x85cm'   => '٢٠٠×٩٠×٨٥ سم',
+            '160x90x75cm'   => '١٦٠×٩٠×٧٥ سم',
+            '180x90x75cm'   => '١٨٠×٩٠×٧٥ سم',
+            '200x100x75cm'  => '٢٠٠×١٠٠×٧٥ سم',
+            '160x200cm'     => '١٦٠×٢٠٠ سم',
+            '120x30x180cm'  => '١٢٠×٣٠×١٨٠ سم',
+            '60x80cm'       => '٦٠×٨٠ سم',
+            '80x120cm'      => '٨٠×١٢٠ سم',
+            '100x150cm'     => '١٠٠×١٥٠ سم',
+            '45x45cm'       => '٤٥×٤٥ سم',
+            '50x50cm'       => '٥٠×٥٠ سم',
+            '25cm'          => '٢٥ سم',
+            '30cm'          => '٣٠ سم',
+            '35cm'          => '٣٥ سم',
+            '40cm'          => '٤٠ سم',
+            '50cm'          => '٥٠ سم',
+            '60cm'          => '٦٠ سم',
+            '160cm'         => '١٦٠ سم',
+            '180cm'         => '١٨٠ سم',
+
+            // Styles and others
+            'Minimalist'    => 'بسيط',
+            'Vintage'       => 'كلاسيكي قديم',
+            'Industrial'    => 'صناعي',
+            'Wall-mounted'  => 'مثبت على الحائط',
+            'Door-mounted'  => 'مثبت على الباب',
+            'Warm White'    => 'أبيض دافئ',
+            'Cool White'    => 'أبيض بارد',
+            '5mm'           => '٥ مم',
+            '8mm'           => '٨ مم',
+            '20kg'          => '٢٠ كجم',
+            '30kg'          => '٣٠ كجم',
+            '4L'            => '٤ لتر',
+            '1.7L'          => '١.٧ لتر',
+            '1200W'         => '١٢٠٠ واط',
+            '3 Succulents'  => '٣ نباتات صبارية',
+            '5 Mixed Plants'=> '٥ نباتات متنوعة',
+        ];
+
+        return $translations[$englishValue] ?? $englishValue;
     }
 }

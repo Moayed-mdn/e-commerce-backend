@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentMethodResource;
 use App\Models\PaymentMethod;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,7 @@ class PaymentMethodController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return PaymentMethodResource::collection($paymentMethods);
+        return ApiResponse::success(PaymentMethodResource::collection($paymentMethods));
     }
 
     public function store(Request $request)
@@ -44,10 +45,7 @@ class PaymentMethodController extends Controller
                 ['user_id' => $user->id]
             ));
 
-            return response()->json([
-                'data' => new PaymentMethodResource($paymentMethod),
-                'message' => 'Payment method added successfully'
-            ], 201);
+            return ApiResponse::success(new PaymentMethodResource($paymentMethod), 'Payment method added successfully', 201);
         });
     }
 
@@ -67,9 +65,7 @@ class PaymentMethodController extends Controller
 
         $paymentMethod->delete();
 
-        return response()->json([
-            'message' => 'Payment method deleted successfully'
-        ]);
+        return ApiResponse::success(null, 'Payment method deleted successfully');
     }
 
     public function setDefault(PaymentMethod $paymentMethod)
@@ -81,8 +77,6 @@ class PaymentMethodController extends Controller
             $paymentMethod->update(['is_default' => true]);
         });
 
-        return response()->json([
-            'message' => 'Payment method set as default successfully'
-        ]);
+        return ApiResponse::success(null, 'Payment method set as default successfully');
     }
 }

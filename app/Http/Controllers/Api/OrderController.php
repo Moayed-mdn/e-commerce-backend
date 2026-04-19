@@ -6,9 +6,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\FilterOrdersRequest;
 use App\Http\Requests\Order\GuestOrderLookupRequest;
+use App\Exceptions\NotFoundException;
+use App\Exceptions\Order\ReorderException;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -47,18 +50,13 @@ class OrderController extends Controller
         }
 
         // ── Paginate (newest first) ──
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 1);
         $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
-        return response()->json([
-            'data'       => OrderResource::collection($orders->items()),
-            'pagination' => [
-                'current_page' => $orders->currentPage(),
-                'total'        => $orders->total(),
-                'per_page'     => $orders->perPage(),
-                'last_page'    => $orders->lastPage(),
-            ],
-        ]);
+        return ApiResponse::paginated(
+            paginator: $orders,
+            data: OrderResource::collection($orders->items())
+        );
     }
 
     /**
@@ -80,9 +78,7 @@ class OrderController extends Controller
             ])
             ->firstOrFail();
 
-        return response()->json([
-            'data' => new OrderResource($order),
-        ]);
+        return ApiResponse::success(new OrderResource($order));
     }
 
     /**
@@ -100,13 +96,13 @@ class OrderController extends Controller
 
         $cancelledOrder = $this->orderService->cancel($order);
 
-        return response()->json([
-            'message' => 'Order cancelled successfully.',
-            'data'    => new OrderResource($cancelledOrder->load([
+        return ApiResponse::success(
+            new OrderResource($cancelledOrder->load([
                 'items.productVariant.images',
                 'items.productVariant.product.translations',
             ])),
-        ]);
+            'Order cancelled successfully.'
+        );
     }
 
     /**
@@ -124,15 +120,11 @@ class OrderController extends Controller
 
         $result = $this->orderService->reorder($order, $user);
 
-        // Build appropriate message
         $addedCount = count($result['added']);
         $failedCount = count($result['failed']);
 
         if ($addedCount === 0) {
-            return response()->json([
-                'message' => 'None of the items could be added to your cart.',
-                'data'    => $result,
-            ], 422);
+            throw new ReorderException('None of the items could be added to your cart.', errors: $result);
         }
 
         $message = "{$addedCount} item(s) added to your cart.";
@@ -140,10 +132,7 @@ class OrderController extends Controller
             $message .= " {$failedCount} item(s) could not be added.";
         }
 
-        return response()->json([
-            'message' => $message,
-            'data'    => $result,
-        ]);
+        return ApiResponse::success($result, $message);
     }
 
     /**
@@ -170,14 +159,10 @@ class OrderController extends Controller
             ->first();
 
         if (!$order) {
-            return response()->json([
-                'message' => 'No order found with that order number and email combination.',
-            ], 404);
+            throw new NotFoundException('No order found with that order number and email combination.');
         }
 
-        return response()->json([
-            'data' => new OrderResource($order),
-        ]);
+        return ApiResponse::success(new OrderResource($order));
     }
 
     /**
@@ -197,17 +182,17 @@ class OrderController extends Controller
 
         $totalOrders = array_sum($statusCounts);
 
-        return response()->json([
-            'data' => [
-                'statuses' => [
-                    ['value' => null,          'label' => 'all',        'count' => $totalOrders],
-                    ['value' => 'pending',     'label' => 'pending',    'count' => $statusCounts['pending'] ?? 0],
-                    ['value' => 'processing',  'label' => 'processing', 'count' => $statusCounts['processing'] ?? 0],
-                    ['value' => 'shipped',     'label' => 'shipped',    'count' => $statusCounts['shipped'] ?? 0],
-                    ['value' => 'delivered',   'label' => 'delivered',  'count' => $statusCounts['delivered'] ?? 0],
-                    ['value' => 'cancelled',   'label' => 'cancelled',  'count' => $statusCounts['cancelled'] ?? 0],
-                ],
+        $data = [
+            'statuses' => [
+                ['value' => null,          'label' => 'all',        'count' => $totalOrders],
+                ['value' => 'pending',     'label' => 'pending',    'count' => $statusCounts['pending'] ?? 0],
+                ['value' => 'processing',  'label' => 'processing', 'count' => $statusCounts['processing'] ?? 0],
+                ['value' => 'shipped',     'label' => 'shipped',    'count' => $statusCounts['shipped'] ?? 0],
+                ['value' => 'delivered',   'label' => 'delivered',  'count' => $statusCounts['delivered'] ?? 0],
+                ['value' => 'cancelled',   'label' => 'cancelled',  'count' => $statusCounts['cancelled'] ?? 0],
             ],
-        ]);
+        ];
+
+        return ApiResponse::success($data);
     }
 }

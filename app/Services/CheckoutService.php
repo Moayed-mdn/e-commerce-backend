@@ -3,11 +3,14 @@
 
 namespace App\Services;
 
+use App\Exceptions\Order\OutOfStockException;
+use App\Exceptions\Payment\StripeServiceException;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
@@ -23,13 +26,14 @@ class CheckoutService
     /**
      * Create a Stripe Checkout Session for a logged-in user.
      * Reads cart from the database.
+     * @throws Exception
      */
     public function createSessionForUser(User $user): array
     {
         $cart = $user->cart;
 
         if (!$cart || $cart->items->isEmpty()) {
-            abort(422, 'Your cart is empty.');
+            throw new Exception('Your cart is empty.');
         }
 
         $cart->load([
@@ -43,7 +47,7 @@ class CheckoutService
         $validatedItems = $this->validateAndPrepareItems(
             $cart->items->map(fn($item) => [
                 'product_variant_id' => $item->product_variant_id,
-                'quantity'           => $item->quantity,
+                'quantity' => $item->quantity,
             ])->toArray()
         );
 
@@ -53,11 +57,12 @@ class CheckoutService
     /**
      * Create a Stripe Checkout Session for a guest user.
      * Cart items are passed from the frontend (localStorage).
+     * @throws Exception
      */
     public function createSessionForGuest(array $items, ?string $email = null): array
     {
         if (empty($items)) {
-            abort(422, 'Your cart is empty.');
+            throw new Exception('Your cart is empty.');
         }
 
         $validatedItems = $this->validateAndPrepareItems($items);
@@ -83,7 +88,7 @@ class CheckoutService
 
             // Check active
             if (!$variant->is_active) {
-                abort(422, "Product variant #{$variant->id} is no longer available.");
+                throw new OutOfStockException("Product variant #{$variant->id} is no longer available.");
             }
 
             // Check stock
@@ -93,7 +98,7 @@ class CheckoutService
                     ?? $variant->product->translations->first()?->name
                     ?? 'Product';
 
-                abort(422, "Not enough stock for \"{$productName}\". Available: {$variant->quantity}.");
+                throw new OutOfStockException("Not enough stock for \"{$productName}\". Available: {$variant->quantity}.");
             }
 
             // Build translated product name
@@ -252,7 +257,11 @@ class CheckoutService
             }
 
             // ── 7. Create Stripe Checkout Session ──────────────
-            $session = Session::create($sessionParams);
+            try {
+                $session = Session::create($sessionParams);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                throw new StripeServiceException('Failed to create Stripe Checkout session: ' . $e->getMessage());
+            }
 
             // ── 8. Store session ID on order ───────────────────
             $order->update([
@@ -376,6 +385,28 @@ class CheckoutService
             Log::info('Checkout session expired, order cancelled', [
                 'order_id' => $order->id,
             ]);
+        }
+    }
+
+    /**
+     * Retrieve order status after checkout (for the success page).
+     */
+    public function getCheckoutStatus(string $sessionId): array
+    {
+        try {
+            $session = \Stripe\Checkout\Session::retrieve($sessionId);
+
+            $order = \App\Models\Order::where('stripe_checkout_session_id', $sessionId)
+                ->first();
+
+            return [
+                'payment_status' => $session->payment_status,  // 'paid', 'unpaid', 'no_payment_required'
+                'order_number' => $order?->order_number,
+                'order_status' => $order?->status,
+                'customer_email' => $session->customer_details->email ?? $order?->guest_email,
+            ];
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            throw new StripeServiceException('Failed to retrieve Stripe Checkout session: ' . $e->getMessage());
         }
     }
 }

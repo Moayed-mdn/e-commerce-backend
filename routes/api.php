@@ -1,16 +1,6 @@
 <?php
 // routes/api.php
 
-use App\Http\Controllers\Api\AddressController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\Api\EnhancedSearchController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\PasswordResetController;
-use App\Http\Controllers\Api\PaymentMethodController;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;

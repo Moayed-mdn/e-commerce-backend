@@ -5,23 +5,29 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cart\AddItemRequest;
 use App\Http\Requests\Cart\UpdateItemRequest;
-use App\Services\CartService;
 use App\Http\Resources\CartResource;
+use App\Services\CartService;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 
 class CartController extends Controller
 {
-    public function __construct(private CartService $cartService) {}
+    public function __construct(private CartService $cartService)
+    {
+    }
 
     public function show()
     {
         $cart = $this->cartService->getOrCreate(auth()->user());
 
-        return new CartResource($cart->loadMissing([
+        $cartResource = new CartResource($cart->loadMissing([
             'items.productVariant.product.translations',                // ✅ translated name + slug
             'items.productVariant.images',                              // ✅ variant image
             'items.productVariant.attributeValues.translations',        // ✅ "Red", "أحمر"
             'items.productVariant.attributeValues.attribute.translations', // ✅ "Color", "اللون"
         ]));
+
+        return ApiResponse::success($cartResource);
     }
 
     public function addItem(AddItemRequest $request)
@@ -59,12 +65,12 @@ class CartController extends Controller
         return $this->show();
     }
 
-    public function clear()
+    public function clear(): JsonResponse
     {
         $cart = $this->cartService->getOrCreate(auth()->user());
 
         $this->cartService->clear($cart);
 
-        return response()->json(['message' => 'Cart cleared']);
+        return ApiResponse::success(null, 'Cart cleared');
     }
 }

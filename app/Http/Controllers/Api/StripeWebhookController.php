@@ -3,10 +3,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\Payment\StripeWebhookException;
 use App\Http\Controllers\Controller;
 use App\Services\CheckoutService;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Stripe;
@@ -16,7 +18,7 @@ class StripeWebhookController extends Controller
 {
     public function __construct(private CheckoutService $checkoutService) {}
 
-    public function handle(Request $request): Response
+    public function handle(Request $request): JsonResponse
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
@@ -24,30 +26,23 @@ class StripeWebhookController extends Controller
         $sigHeader = $request->header('Stripe-Signature');
         $secret    = config('services.stripe.webhook_secret');
 
-        // ── 1. Verify webhook signature ────────────────────────
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException $e) {
-            Log::warning('Stripe webhook: invalid payload');
-            return response('Invalid payload', 400);
+            throw new StripeWebhookException('Invalid payload');
         } catch (SignatureVerificationException $e) {
-            Log::warning('Stripe webhook: invalid signature');
-            return response('Invalid signature', 400);
+            throw new StripeWebhookException('Invalid signature');
         }
 
-        // ── 2. Handle events ───────────────────────────────────
         switch ($event->type) {
             case 'checkout.session.completed':
                 $session = $event->data->object;
-
-                // Only process if payment was successful
                 if ($session->payment_status === 'paid') {
                     $this->checkoutService->handleCheckoutCompleted($session);
                 }
                 break;
 
             case 'checkout.session.async_payment_succeeded':
-                // For async payment methods (bank transfers, etc.)
                 $session = $event->data->object;
                 $this->checkoutService->handleCheckoutCompleted($session);
                 break;
@@ -66,7 +61,6 @@ class StripeWebhookController extends Controller
                 Log::info("Stripe webhook: unhandled event type {$event->type}");
         }
 
-        // ── 3. Always return 200 ───────────────────────────────
-        return response('OK', 200);
+        return ApiResponse::success(null, 'Webhook handled.');
     }
 }

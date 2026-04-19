@@ -3,6 +3,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -104,7 +105,7 @@ class Category extends Model
         $category = static::findByLocalizedSlug($slug, $locale);
 
         if (!$category) {
-            abort(404, 'Category not found.');
+            throw new NotFoundException('Category not found.');
         }
 
         return $category;

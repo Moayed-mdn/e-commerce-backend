@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Exceptions;
+
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class BaseApiException extends Exception
+{
+    protected int $statusCode;
+    protected string $errorCode;
+    protected ?array $errors;
+
+    public function __construct(string $message = "", int $statusCode = 500, string $errorCode = 'SYS_001', ?array $errors = null)
+    {
+        parent::__construct($message);
+        $this->statusCode = $statusCode;
+        $this->errorCode = $errorCode;
+        $this->errors = $errors;
+    }
+
+    public function render(Request $request): JsonResponse
+    {
+        return response()->json([
+            'status' => false,
+            'message' => $this->getMessage(),
+            'error_code' => $this->errorCode,
+            'errors' => $this->errors,
+        ], $this->statusCode);
+    }
+}

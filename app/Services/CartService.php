@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Order\OutOfStockException;
 use App\Models\Cart;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class CartService
             $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
 
             if (!$variant->is_active || $variant->quantity < $quantity) {
-                abort(422, 'Product variant is not available in the requested quantity');
+                throw new OutOfStockException('Product variant is not available in the requested quantity');
             }
 
             $item = $cart->items()
@@ -31,7 +32,7 @@ class CartService
                 $newQty = $item->quantity + $quantity;
 
                 if ($variant->quantity < $newQty) {
-                    abort(422, 'Not enough stock');
+                    throw new OutOfStockException('Not enough stock');
                 }
 
                 $item->update(['quantity' => $newQty]);
@@ -52,7 +53,7 @@ class CartService
             $variant = $item->productVariant;
 
             if (!$variant->is_active || $variant->quantity < $quantity) {
-                abort(422, 'Product variant is not available in the requested quantity');
+                throw new OutOfStockException('Product variant is not available in the requested quantity');
             }
 
             $item->update(['quantity' => $quantity]);

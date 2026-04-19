@@ -3,14 +3,16 @@
 
 namespace App\Services;
 
+use App\Exceptions\Order\OrderCancellationException;
+use App\Exceptions\Payment\PaymentFailedException;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Stripe\Stripe;
 use Stripe\Refund;
+use Stripe\Stripe;
 
 class OrderService
 {
@@ -28,7 +30,7 @@ class OrderService
     public function cancel(Order $order): Order
     {
         if (!$order->canBeCancelled()) {
-            abort(422, 'This order cannot be cancelled. Only pending or processing orders can be cancelled.');
+            throw new OrderCancellationException('This order cannot be cancelled. Only pending or processing orders can be cancelled.');
         }
 
         return DB::transaction(function () use ($order) {
@@ -52,26 +54,26 @@ class OrderService
                     ]);
 
                     $order->update([
-                        'status'         => 'cancelled',
+                        'status' => 'cancelled',
                         'payment_status' => 'refunded',
                     ]);
 
                     Log::info('Order refunded via Stripe', [
-                        'order_id'          => $order->id,
+                        'order_id' => $order->id,
                         'payment_intent_id' => $order->payment_intent_id,
                     ]);
                 } catch (\Stripe\Exception\ApiErrorException $e) {
                     Log::error('Stripe refund failed', [
                         'order_id' => $order->id,
-                        'error'    => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]);
 
-                    abort(502, 'Refund failed. Please contact support.');
+                    throw new PaymentFailedException('Refund failed. Please contact support.');
                 }
             } else {
                 // Not paid yet — just cancel
                 $order->update([
-                    'status'         => 'cancelled',
+                    'status' => 'cancelled',
                     'payment_status' => $order->payment_status === 'paid' ? 'refunded' : 'cancelled',
                 ]);
             }

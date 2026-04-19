@@ -2,13 +2,15 @@
 // app/Http/Controllers/Api/OrderController.php
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\Order\OrderCancellationException;
+use App\Exceptions\System\UnprocessableContentException;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\OrderResource;
 use App\Http\Resources\OrderCollection;
-use App\Models\Order;
-use App\Models\Cart;
+use App\Http\Resources\OrderResource;
 use App\Models\Address;
+use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -35,7 +37,7 @@ class OrderController extends Controller
             'paymentMethod'
         ]);
 
-        return new OrderResource($order);
+        return ApiResponse::success(new OrderResource($order));
     }
 
     public function store(Request $request)
@@ -52,9 +54,7 @@ class OrderController extends Controller
             $cart = $user->cart;
 
             if (!$cart || $cart->items->isEmpty()) {
-                return response()->json([
-                    'error' => 'Cart is empty'
-                ], 422);
+                throw new UnprocessableContentException('Cart is empty');
             }
 
             $shippingAddress = Address::where('id', $request->shipping_address_id)
@@ -90,7 +90,7 @@ class OrderController extends Controller
 
             foreach ($cart->items as $cartItem) {
                 $variant = $cartItem->productVariant;
-                
+
                 $order->items()->create([
                     'product_variant_id' => $variant->id,
                     'product_name' => $variant->product->name,
@@ -106,10 +106,9 @@ class OrderController extends Controller
             $cart->items()->delete();
             $order->markAsPaid();
 
-            return response()->json([
-                'data' => new OrderResource($order->load(['items', 'shippingAddress', 'billingAddress'])),
-                'message' => 'Order created successfully'
-            ], 201);
+            $order->load(['items', 'shippingAddress', 'billingAddress']);
+
+            return ApiResponse::success(new OrderResource($order), 'Order created successfully', 201);
         });
     }
 
@@ -118,9 +117,7 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         if (!$order->canBeCancelled()) {
-            return response()->json([
-                'error' => 'Order cannot be cancelled'
-            ], 422);
+            throw new OrderCancellationException('Order cannot be cancelled');
         }
 
         DB::transaction(function () use ($order) {
@@ -134,9 +131,7 @@ class OrderController extends Controller
             ]);
         });
 
-        return response()->json([
-            'message' => 'Order cancelled successfully'
-        ]);
+        return ApiResponse::success(null, 'Order cancelled successfully');
     }
 
     private function calculateShipping($shippingMethod, $cart)

@@ -9,6 +9,8 @@ use App\Models\Category;
 use App\Http\Resources\RelatedProductResource;
 use App\Http\Resources\ProductCardResource;
 use App\Http\Resources\ProductDetailResource;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -104,25 +106,22 @@ class ProductController extends Controller
                 $query->where('expiry_date','>=',$request->latest_expiry);
             });
 
-        $perPage = $request->get('per_page',20);
-        $products = $query->paginate($perPage);
+        $perPage = $request->get('per_page', 20);
+        $paginator = $query->paginate($perPage);
 
-        return response()->json([
-            'data' => ProductCardResource::collection($products->items()),
-            'pagination' => [
-                'current_page' => $products->currentPage(),
-                'total' => $products->total(),
-                'per_page' => $products->perPage(),
-                'last_page' => $products->lastPage(),
-            ],
-            'filters' => [
-                'descendants' => $descendants,
-                'min_price' => $variantStatus->min_price,
-                'max_price' => $variantStatus->max_price,
-                'earliest_manufacture' => $variantStatus->earliest_manufacture,
-                'latest_expiry' => $variantStatus->latest_expiry
+        return ApiResponse::paginated(
+            paginator: $paginator,
+            data: ProductCardResource::collection($paginator->items()),
+            additionalMeta: [
+                'filters' => [
+                    'descendants' => $descendants,
+                    'min_price' => $variantStatus->min_price,
+                    'max_price' => $variantStatus->max_price,
+                    'earliest_manufacture' => $variantStatus->earliest_manufacture,
+                    'latest_expiry' => $variantStatus->latest_expiry
+                ]
             ]
-        ]);
+        );        
     }
 
     /**
@@ -233,28 +232,25 @@ public function indexByCategory(string $slug, Request $request)
     // ── Category translation for the response ──
     $categoryTranslation = $category->translation($locale);
 
-    return response()->json([
-        'data' => ProductCardResource::collection($products->items()),
-        'category' => [
-            'id'         => $category->id,
-            'name'       => $categoryTranslation?->name ?? $category->slug,
-            'slug'       => $categoryTranslation?->slug ?? $category->slug,
-            'breadcrumb' => $category->breadcrumb,
-        ],
-        'pagination' => [
-            'current_page' => $products->currentPage(),
-            'total'        => $products->total(),
-            'per_page'     => $products->perPage(),
-            'last_page'    => $products->lastPage(),
-        ],
-        'filters' => [
-            'descendants'          => $descendantCategories,
-            'min_price'            => $variantStatus->min_price ?? null,
-            'max_price'            => $variantStatus->max_price ?? null,
-            'earliest_manufacture' => $variantStatus->earliest_manufacture ?? null,
-            'latest_expiry'        => $variantStatus->latest_expiry ?? null,
-        ],
-    ]);
+    return ApiResponse::paginated(
+        paginator: $products,
+        data: ProductCardResource::collection($products->items()),
+        additionalMeta: [
+            'category' => [
+                'id'         => $category->id,
+                'name'       => $categoryTranslation?->name ?? $category->slug,
+                'slug'       => $categoryTranslation?->slug ?? $category->slug,
+                'breadcrumb' => $category->breadcrumb,
+            ],
+            'filters' => [
+                'descendants'          => $descendantCategories,
+                'min_price'            => $variantStatus->min_price ?? null,
+                'max_price'            => $variantStatus->max_price ?? null,
+                'earliest_manufacture' => $variantStatus->earliest_manufacture ?? null,
+                'latest_expiry'        => $variantStatus->latest_expiry ?? null,
+            ],
+        ]
+    );
 }
 
 /**
@@ -286,7 +282,7 @@ private function flattenDescendants(Category $category, \Illuminate\Support\Coll
      *
      * GET /products/{slug}
      */
-    public function show(string $slug)
+    public function show(string $slug): JsonResponse
     {
         $product = Product::findBySlugOrFail($slug);
 
@@ -299,9 +295,7 @@ private function flattenDescendants(Category $category, \Illuminate\Support\Coll
             'activeVariants.images',
         ]);
 
-        return response()->json([
-            'data' => new ProductDetailResource($product),
-        ]);
+        return ApiResponse::success(new ProductDetailResource($product));
     }
 
     /**
@@ -309,58 +303,51 @@ private function flattenDescendants(Category $category, \Illuminate\Support\Coll
      *
      * GET /products/{slug}/related
      */
-    public function related(string $slug)
+    public function related(string $slug): JsonResponse
     {
         $currentProduct = Product::findBySlugOrFail($slug);
         $currentProduct->load(['category', 'tags']);
 
-        try {
-            $relatedQuery = Product::with([
+        $relatedQuery = Product::with([
+            'translations',
+            'activeVariants.images',
+            'defaultVariant.images',
+        ])
+            ->where('id', '!=', $currentProduct->id)
+            ->where('is_active', true);
+
+        if ($currentProduct->category_id) {
+            $relatedQuery->where('category_id', $currentProduct->category_id);
+        }
+
+        if ($currentProduct->tags->isNotEmpty()) {
+            $tagIds = $currentProduct->tags->pluck('id');
+            $relatedQuery->whereHas('tags', function ($query) use ($tagIds) {
+                $query->whereIn('product_tags.id', $tagIds);
+            });
+        }
+
+        $relatedProducts = $relatedQuery
+            ->inRandomOrder()
+            ->limit(8)
+            ->get();
+
+        if ($relatedProducts->count() < 4) {
+            $additionalProducts = Product::with([
                 'translations',
                 'activeVariants.images',
                 'defaultVariant.images',
             ])
                 ->where('id', '!=', $currentProduct->id)
-                ->where('is_active', true);
-
-            if ($currentProduct->category_id) {
-                $relatedQuery->where('category_id', $currentProduct->category_id);
-            }
-
-            if ($currentProduct->tags->isNotEmpty()) {
-                $tagIds = $currentProduct->tags->pluck('id');
-                $relatedQuery->whereHas('tags', function ($query) use ($tagIds) {
-                    $query->whereIn('product_tags.id', $tagIds);
-                });
-            }
-
-            $relatedProducts = $relatedQuery
+                ->where('is_active', true)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
                 ->inRandomOrder()
-                ->limit(8)
+                ->limit(8 - $relatedProducts->count())
                 ->get();
 
-            if ($relatedProducts->count() < 4) {
-                $additionalProducts = Product::with([
-                    'translations',
-                    'activeVariants.images',
-                    'defaultVariant.images',
-                ])
-                    ->where('id', '!=', $currentProduct->id)
-                    ->where('is_active', true)
-                    ->whereNotIn('id', $relatedProducts->pluck('id'))
-                    ->inRandomOrder()
-                    ->limit(8 - $relatedProducts->count())
-                    ->get();
-
-                $relatedProducts = $relatedProducts->merge($additionalProducts);
-            }
-
-            return RelatedProductResource::collection($relatedProducts);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'Failed to fetch related products',
-                'message' => $e->getMessage(),
-            ], 500);
+            $relatedProducts = $relatedProducts->merge($additionalProducts);
         }
+
+        return ApiResponse::success(RelatedProductResource::collection($relatedProducts));
     }
 }

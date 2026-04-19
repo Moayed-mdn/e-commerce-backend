@@ -2,79 +2,43 @@
 // app/Http/Controllers/Api/PasswordResetController.php
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\Auth\PasswordResetException;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Password\ResetPasswordRequest;
+use App\Http\Requests\Password\SendResetLinkRequest;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules;
 
 class PasswordResetController extends Controller
 {
-    public function sendResetLink(Request $request)
+    public function sendResetLink(SendResetLinkRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email'],
-        ]);
+        $status = Password::sendResetLink($request->only('email'));
 
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $validator->errors()
-            ], 422);
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw new PasswordResetException(__($status));
         }
 
-        try {
-            $status = Password::sendResetLink(
-                $request->only('email')
-            );
-
-            return $status === Password::RESET_LINK_SENT
-                ? response()->json(['message' => __($status)])
-                : response()->json(['error' => __($status)], 400);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to send reset link',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return ApiResponse::success(null, __($status));
     }
 
-    public function reset(Request $request)
+    public function reset(ResetPasswordRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
 
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $validator->errors()
-            ], 422);
+        if ($status !== Password::PASSWORD_RESET) {
+            throw new PasswordResetException(__($status));
         }
 
-        try {
-            $status = Password::reset(
-                $request->only('email', 'password', 'password_confirmation', 'token'),
-                function ($user, $password) {
-                    $user->forceFill([
-                        'password' => Hash::make($password)
-                    ])->save();
-                }
-            );
-
-            return $status === Password::PASSWORD_RESET
-                ? response()->json(['message' => __($status)])
-                : response()->json(['error' => __($status)], 400);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Password reset failed',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return ApiResponse::success(null, __($status));
     }
 }

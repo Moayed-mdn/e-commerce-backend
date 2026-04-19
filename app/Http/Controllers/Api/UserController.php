@@ -3,84 +3,36 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\ChangePasswordRequest;
+use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules;
 
-class UserController extends Controller 
+class UserController extends Controller
 {
-    public function profile(Request $request)
-    {   
-        try {
-            return new UserResource($request->user());
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to fetch profile',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+    public function profile(Request $request): JsonResponse
+    {
+        return ApiResponse::success(new UserResource($request->user()));
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();
 
-        $validator = Validator::make($request->all(), [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:20'],
-        ]);
+        $user->update($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $user->update($validator->validated());
-
-            return new UserResource($user);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Profile update failed',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return ApiResponse::success(new UserResource($user));
     }
 
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $request->user()->update([
+            'password' => Hash::make($request->password),
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $request->user()->update([
-                'password' => Hash::make($request->password),
-            ]);
-
-            return response()->json([
-                'message' => 'Password updated successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Password change failed',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return ApiResponse::success(null, 'Password updated successfully');
     }
 }

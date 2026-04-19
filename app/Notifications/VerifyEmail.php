@@ -8,9 +8,9 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmail extends Notification 
+class VerifyEmail extends Notification implements ShouldQueue
 {
-
+    use Queueable;
 
     public function via($notifiable)
     {

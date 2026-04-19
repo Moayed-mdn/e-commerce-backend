@@ -14,6 +14,39 @@ class HeroBannerSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
+        | Banner 0 - Image
+        |--------------------------------------------------------------------------
+        */
+        $banner0 = HeroBanner::create([
+            'cat_url'       => '#',
+            'position'      => 0,
+            'visual_type'   => 'image',
+            'image_path'    => 'hero/hero-banner.jpg',
+            'gradient_from' => null,
+            'gradient_to'   => null,
+            'is_active'     => true,
+            'starts_at'     => $now,
+            'ends_at'       => null,
+        ]);
+
+        $banner0->translations()->createMany([
+            [
+                'locale'    => 'en',
+                'title'     => 'Your private world of luxury shopping.',
+                'subtitle'  => 'Enjoy moments of calm while choosing your favorite pieces; we provide everything you need for an unforgettable journey.',
+                'cta_text'  => 'Shop Now',
+            ],
+            [
+                'locale' => 'ar',
+                'title' => 'عالمك الخاص من التسوق الفاخر',
+                'subtitle' => 'استمتع بلحظات من الهدوء أثناء اختيار قطعك المفضلة؛ نحن نوفر كل ما تحتاجه لرحلة لا تُنسى.',
+                'cta_text' => 'تسوق الآن',
+            ],
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Banner 1 - Image
         |--------------------------------------------------------------------------
         */

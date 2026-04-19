@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,7 @@ class AddressController extends Controller
             ->where('type', $type)
             ->get();
 
-        return AddressResource::collection($addresses);
+        return ApiResponse::success(AddressResource::collection($addresses));
     }
 
     public function store(Request $request)
@@ -51,10 +52,7 @@ class AddressController extends Controller
                 ['user_id' => $user->id]
             ));
 
-            return response()->json([
-                'data' => new AddressResource($address),
-                'message' => 'Address added successfully'
-            ], 201);
+            return ApiResponse::success(new AddressResource($address), 'Address added successfully', 201);
         });
     }
 
@@ -88,10 +86,7 @@ class AddressController extends Controller
 
             $address->update($request->all());
 
-            return response()->json([
-                'data' => new AddressResource($address),
-                'message' => 'Address updated successfully'
-            ]);
+            return ApiResponse::success(new AddressResource($address), 'Address updated successfully');
         });
     }
 
@@ -112,9 +107,7 @@ class AddressController extends Controller
 
         $address->delete();
 
-        return response()->json([
-            'message' => 'Address deleted successfully'
-        ]);
+        return ApiResponse::success(null, 'Address deleted successfully');
     }
 
     public function setDefault(Address $address)
@@ -129,8 +122,6 @@ class AddressController extends Controller
             $address->update(['is_default' => true]);
         });
 
-        return response()->json([
-            'message' => 'Address set as default successfully'
-        ]);
+        return ApiResponse::success(null, 'Address set as default successfully');
     }
 }

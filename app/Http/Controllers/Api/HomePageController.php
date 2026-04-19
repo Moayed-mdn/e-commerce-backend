@@ -5,31 +5,30 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BestSellerResource;
 use App\Http\Resources\HeroBannerResource;
-use App\Models\Category;
 use App\Services\BestSellerService;
 use App\Services\HomePageService;
-use Illuminate\Http\Request;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 
 class HomePageController extends Controller
 {
-    public function __construct(protected HomePageService $homePageService,protected BestSellerService $bestSellerService)
-    {
-        
+    public function __construct(
+        protected HomePageService $homePageService,
+        protected BestSellerService $bestSellerService
+    ) {
     }
 
-    public function bestSeller()
+    public function bestSeller(): JsonResponse
     {
         $dtos = $this->bestSellerService->getCachedAllParents(20);
 
-       
-        return $this->dataSuccessResponse(BestSellerResource::collection($dtos));
+        return ApiResponse::success(BestSellerResource::collection($dtos));
     }
 
-    public function hero()
+    public function hero(): JsonResponse
     {
         $banners = $this->homePageService->hero();
 
-        return $this->dataSuccessResponse(HeroBannerResource::collection($banners));
+        return ApiResponse::success(HeroBannerResource::collection($banners));
     }
-
 }
