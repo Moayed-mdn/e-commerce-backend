@@ -52,7 +52,7 @@ class AddressController extends Controller
                 ['user_id' => $user->id]
             ));
 
-            return ApiResponse::success(new AddressResource($address), __('services.address_added'), 201);
+            return ApiResponse::success(new AddressResource($address), __('general.address_added'), 201);
         });
     }
 
@@ -86,7 +86,7 @@ class AddressController extends Controller
 
             $address->update($request->all());
 
-            return ApiResponse::success(new AddressResource($address), __('services.address_updated'));
+            return ApiResponse::success(new AddressResource($address), __('general.address_updated'));
         });
     }
 
@@ -107,7 +107,7 @@ class AddressController extends Controller
 
         $address->delete();
 
-        return ApiResponse::success(null, __('services.address_deleted'));
+        return ApiResponse::success(null, __('general.address_deleted'));
     }
 
     public function setDefault(Address $address)
@@ -122,6 +122,6 @@ class AddressController extends Controller
             $address->update(['is_default' => true]);
         });
 
-        return ApiResponse::success(null, __('services.address_set_default'));
+        return ApiResponse::success(null, __('general.address_set_default'));
     }
 }

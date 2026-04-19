@@ -12,9 +12,8 @@ __pycache__/
 *.out
 
 # Dependencies
+vendor/
 node_modules/
-venv/
-.venv/
 .env
 .env.local
 .env.*
@@ -25,24 +24,38 @@ venv/
 *.swp
 *.swo
 
-# Editors
-.vscode/
-.idea/
-
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# OS
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Build systems
+# Build directories
 dist/
 build/
 target/
 .gradle/
-.mypy_cache/
+
+# Python specific
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage*
+.cache/
 .pytest_cache/
+.mypy_cache/
 ```

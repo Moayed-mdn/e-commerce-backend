@@ -71,6 +71,6 @@ class CartController extends Controller
 
         $this->cartService->clear($cart);
 
-        return ApiResponse::success(null, __('services.cart_cleared'));
+        return ApiResponse::success(null, __('cart.cleared'));
     }
 }

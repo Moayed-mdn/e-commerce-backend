@@ -21,7 +21,7 @@ class CartService
             $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
 
             if (!$variant->is_active || $variant->quantity < $quantity) {
-                throw new OutOfStockException(__('services.variant_not_available'));
+                throw new OutOfStockException(__('cart.variant_not_available'));
             }
 
             $item = $cart->items()
@@ -32,7 +32,7 @@ class CartService
                 $newQty = $item->quantity + $quantity;
 
                 if ($variant->quantity < $newQty) {
-                    throw new OutOfStockException(__('services.not_enough_stock'));
+                    throw new OutOfStockException(__('cart.not_enough_stock'));
                 }
 
                 $item->update(['quantity' => $newQty]);
@@ -53,7 +53,7 @@ class CartService
             $variant = $item->productVariant;
 
             if (!$variant->is_active || $variant->quantity < $quantity) {
-                throw new OutOfStockException(__('services.variant_not_available'));
+                throw new OutOfStockException(__('cart.variant_not_available'));
             }
 
             $item->update(['quantity' => $quantity]);

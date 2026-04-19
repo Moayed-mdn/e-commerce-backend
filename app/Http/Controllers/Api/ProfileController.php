@@ -31,7 +31,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return ApiResponse::success(new ProfileResource($user), __('services.profile_updated'));
+        return ApiResponse::success(new ProfileResource($user), __('general.profile_updated'));
     }
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
@@ -62,7 +62,7 @@ class ProfileController extends Controller
 
         $user->update(['avatar' => $path]);
 
-        return ApiResponse::success(['avatar' => Storage::disk('public')->url($path)], __('services.avatar_updated'));
+        return ApiResponse::success(['avatar' => Storage::disk('public')->url($path)], __('general.avatar_updated'));
     }
 
     public function destroy(Request $request): JsonResponse
@@ -73,6 +73,6 @@ class ProfileController extends Controller
 
         $user->delete();
 
-        return ApiResponse::success(null, __('services.account_deleted'));
+        return ApiResponse::success(null, __('general.account_deleted'));
     }
 }

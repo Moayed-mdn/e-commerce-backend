@@ -33,7 +33,7 @@ class CheckoutService
 
         if (!$cart || $cart->items->isEmpty()) {
             throw new \App\Exceptions\BaseApiException(
-                message: __('services.cart_empty'),
+                message: __('cart.empty'),
                 statusCode: 422,
                 errorCode: \App\Enums\ErrorCode::SYS_001->value
             );
@@ -66,7 +66,7 @@ class CheckoutService
     {
         if (empty($items)) {
             throw new \App\Exceptions\BaseApiException(
-                message: __('services.cart_empty'),
+                message: __('cart.empty'),
                 statusCode: 422,
                 errorCode: \App\Enums\ErrorCode::SYS_001->value
             );
@@ -95,7 +95,7 @@ class CheckoutService
 
             // Check active
             if (!$variant->is_active) {
-                throw new OutOfStockException(__('services.variant_no_longer_available', ['id' => $variant->id]));
+                throw new OutOfStockException(__('cart.variant_no_longer_available', ['id' => $variant->id]));
             }
 
             // Check stock
@@ -105,7 +105,7 @@ class CheckoutService
                     ?? $variant->product->translations->first()?->name
                     ?? 'Product';
 
-                throw new OutOfStockException(__('services.not_enough_stock_for_product', [
+                throw new OutOfStockException(__('cart.not_enough_stock_for_product', [
                     'product' => $productName,
                     'available' => $variant->quantity
                 ]));
@@ -270,7 +270,7 @@ class CheckoutService
             try {
                 $session = Session::create($sessionParams);
             } catch (\Stripe\Exception\ApiErrorException $e) {
-                throw new StripeServiceException(__('services.stripe_checkout_failed'));
+                throw new StripeServiceException(__('payment.stripe_checkout_failed'));
             }
 
             // ── 8. Store session ID on order ───────────────────
@@ -416,7 +416,7 @@ class CheckoutService
                 'customer_email' => $session->customer_details->email ?? $order?->guest_email,
             ];
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            throw new StripeServiceException(__('services.stripe_session_retrieve_failed'));
+            throw new StripeServiceException(__('payment.stripe_session_retrieve_failed'));
         }
     }
 }

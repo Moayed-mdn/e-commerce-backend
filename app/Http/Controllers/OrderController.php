@@ -108,7 +108,7 @@ class OrderController extends Controller
 
             $order->load(['items', 'shippingAddress', 'billingAddress']);
 
-            return ApiResponse::success(new OrderResource($order), __('services.order_created'), 201);
+            return ApiResponse::success(new OrderResource($order), __('order.created'), 201);
         });
     }
 
@@ -131,7 +131,7 @@ class OrderController extends Controller
             ]);
         });
 
-        return ApiResponse::success(null, __('services.order_cancelled'));
+        return ApiResponse::success(null, __('order.cancelled'));
     }
 
     private function calculateShipping($shippingMethod, $cart)
