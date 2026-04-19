@@ -1,49 +1,77 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-use App\Actions\DeleteAddressAction;
-use App\Actions\SetDefaultAddressAction;
-use App\Actions\StoreAddressAction;
-use App\Actions\UpdateAddressAction;
 use App\DTOs\StoreAddressDTO;
 use App\DTOs\UpdateAddressDTO;
 use App\Models\Address;
-use App\Repositories\AddressRepository;
-use Illuminate\Database\Eloquent\Collection;
+use App\Repositories\Address\AddressRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AddressService
 {
     public function __construct(
         private AddressRepository $addressRepository,
-        private StoreAddressAction $storeAction,
-        private UpdateAddressAction $updateAction,
-        private DeleteAddressAction $deleteAction,
-        private SetDefaultAddressAction $setDefaultAction,
     ) {}
 
-    public function getUserAddresses(int $userId, ?string $type = null): Collection
+    public function getUserAddresses(int $userId, ?string $type = null): LengthAwarePaginator
     {
-        return $this->addressRepository->getByUser($userId, $type);
+        return $this->addressRepository->getUserAddresses($userId, $type);
     }
 
-    public function storeAddress(StoreAddressDTO $dto): Address
+    public function storeAddress(StoreAddressDTO $dto, int $userId): Address
     {
-        return $this->storeAction->execute($dto);
+        $data = [
+            'user_id' => $userId,
+            'name' => $dto->name,
+            'phone' => $dto->phone,
+            'country' => $dto->country,
+            'state' => $dto->state,
+            'city' => $dto->city,
+            'address_line1' => $dto->addressLine1,
+            'address_line2' => $dto->addressLine2,
+            'postal_code' => $dto->postalCode,
+            'type' => $dto->type,
+            'is_default' => $dto->isDefault,
+        ];
+
+        if ($dto->isDefault) {
+            $this->addressRepository->setAsDefaultForType($userId, $dto->type);
+        }
+
+        return $this->addressRepository->create($data);
     }
 
     public function updateAddress(Address $address, UpdateAddressDTO $dto): Address
     {
-        return $this->updateAction->execute($address, $dto);
+        $data = [
+            'name' => $dto->name,
+            'phone' => $dto->phone,
+            'country' => $dto->country,
+            'state' => $dto->state,
+            'city' => $dto->city,
+            'address_line1' => $dto->addressLine1,
+            'address_line2' => $dto->addressLine2,
+            'postal_code' => $dto->postalCode,
+            'type' => $dto->type,
+        ];
+
+        if ($dto->isDefault !== null && $dto->isDefault) {
+            $this->addressRepository->setAsDefaultForType($address->user_id, $dto->type);
+        }
+
+        return $this->addressRepository->update($address, $data);
     }
 
-    public function deleteAddress(Address $address): void
+    public function deleteAddress(Address $address): bool
     {
-        $this->deleteAction->execute($address);
+        return $this->addressRepository->delete($address);
     }
 
     public function setAsDefault(Address $address): void
     {
-        $this->setDefaultAction->execute($address);
+        $this->addressRepository->setAsDefault($address);
     }
 }

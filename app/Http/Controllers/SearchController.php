@@ -1,40 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
-use App\Models\Product;
-use App\Support\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
+use App\Http\Requests\Search\SearchRequest;
+use App\Services\Search\SearchService;
+use App\DTOs\Search\SearchDTO;
+use App\Traits\ApiResponserTrait;
 
 class SearchController extends Controller
 {
-    public function index(Request $request)
+    use ApiResponserTrait;
+
+    public function __construct(
+        private SearchService $searchService,
+    ) {}
+
+    public function index(SearchRequest $request)
     {
-        $query = Product::query()
-            ->when($request->q, fn ($query, $q) => $query->where('name', 'like', "%$q%"));
+        $dto = SearchDTO::fromRequest($request);
+        $results = $this->searchService->execute($dto);
 
+        if ($results['type'] === 'all') {
+            return $this->success([
+                'type' => 'all',
+                'products' => $results['results']['products'],
+                'categories' => $results['results']['categories'],
+            ], 'Search results retrieved successfully');
+        }
 
-        $filterQuery = clone $query;
-        $productIds = $filterQuery->select('id');
-
-        $filters = DB::table('product_variants')
-            ->whereIn('product_id', $productIds)
-            ->selectRaw("
-            MIN(price) AS min_price,
-            MAX(price) AS max_price,
-            MIN(manufacture_date) AS earliest_manufacture,
-            MAX(expiry_date) AS  latest_expiry
-        ")->first();
-
-        $paginator = $query->paginate($request->per_page ?? 15);
-
-        return ApiResponse::paginated(
-            paginator: $paginator,
-            data: $paginator->items(),
-            additionalMeta: [
-                'filters' => $filters
-            ]
+        return $this->paginated(
+            paginator: $results['results'],
+            message: 'Search results retrieved successfully',
+            additionalMeta: ['type' => $results['type']]
         );
     }
 }

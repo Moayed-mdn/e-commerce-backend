@@ -1,51 +1,46 @@
 <?php
-// app/Http/Controllers/Api/CategoryController.php
-namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
 use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResource;
+use App\Services\Category\CategoryService;
 use App\Models\Category;
-use App\Support\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use App\Traits\ApiResponserTrait;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    use ApiResponserTrait;
+
+    public function __construct(
+        private CategoryService $categoryService,
+    ) {}
+
     public function index(Request $request): CategoryCollection
     {
-        $query = Category::with(['children', 'parent'])
-            ->withCount(['products' => function ($q) {
-                $q->where('is_active', true);
-            }]);
-
         if ($request->has('parent_id')) {
             if ($request->parent_id === 'null') {
-                $query->whereNull('parent_id');
+                $categories = $this->categoryService->getRootCategories($request->input('type'));
             } else {
-                $query->where('parent_id', $request->parent_id);
+                $categories = $this->categoryService->getChildCategories((int) $request->parent_id);
             }
         } else {
-            $query->whereNull('parent_id');
+            $categories = $this->categoryService->getRootCategories($request->input('type'));
         }
-
-        $categories = $query->get();
 
         return new CategoryCollection($categories);
     }
 
     public function show(Category $category): CategoryResource
     {
-        $category->load(['children', 'parent']);
-        $category->loadCount(['products' => function ($q) {
-            $q->where('is_active', true);
-        }]);
-
         return new CategoryResource($category);
     }
 
-    public function breadcrumb(Category $category): JsonResponse
+    public function breadcrumb(Category $category)
     {
-        return ApiResponse::success($category->breadcrumb);
+        return $this->success($this->categoryService->getBreadcrumb($category));
     }
 }
