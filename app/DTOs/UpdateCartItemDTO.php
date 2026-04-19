@@ -10,10 +10,10 @@ class UpdateCartItemDTO
         public int $userId,
     ) {}
 
-    public static function fromRequest(\App\Http\Requests\Cart\UpdateItemRequest $request): self
+    public static function fromRequest(\App\Http\Requests\Cart\UpdateItemRequest $request, int $itemId): self
     {
         return new self(
-            $request->route('item_id'),
+            $itemId,
             $request->integer('quantity'),
             $request->user()->id,
         );
