@@ -12,7 +12,7 @@ class ProductService
     /**
      * Build the base product query with joins for listing.
      */
-    protected function buildBaseProductQuery()
+    public function buildBaseProductQuery()
     {
         $locale = app()->getLocale();
 
