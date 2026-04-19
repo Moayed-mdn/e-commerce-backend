@@ -1,5 +1,6 @@
 <?php
-// app/Services/OrderService.php
+
+declare(strict_types=1);
 
 namespace App\Services;
 
@@ -9,6 +10,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Repositories\Order\OrderRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Refund;
@@ -16,8 +18,9 @@ use Stripe\Stripe;
 
 class OrderService
 {
-    public function __construct()
-    {
+    public function __construct(
+        private OrderRepository $orderRepository,
+    ) {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -26,11 +29,23 @@ class OrderService
      */
     public function buildUserOrdersQuery(User $user): \Illuminate\Database\Eloquent\Builder
     {
-        return Order::where('user_id', $user->id)
-            ->with([
-                'items.productVariant.images',
-                'items.productVariant.product.translations',
-            ]);
+        return $this->orderRepository->getUserOrders($user->id);
+    }
+
+    /**
+     * Get user orders paginated.
+     */
+    public function getUserOrders(int $userId): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return $this->orderRepository->getUserOrders($userId);
+    }
+
+    /**
+     * Find an order by ID.
+     */
+    public function findOrderById(int $orderId): ?Order
+    {
+        return $this->orderRepository->findById($orderId);
     }
 
     /**
@@ -97,15 +112,7 @@ class OrderService
         return DB::transaction(function () use ($order) {
 
             // ── 1. Restore stock ───────────────────────────────
-            $order->load('items');
-
-            foreach ($order->items as $item) {
-                $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
-
-                if ($variant) {
-                    $variant->increment('quantity', $item->quantity);
-                }
-            }
+            $this->orderRepository->restoreProductVariants($order);
 
             // ── 2. Issue Stripe refund (if paid) ───────────────
             if ($order->payment_status === 'paid' && $order->payment_intent_id) {
@@ -114,10 +121,7 @@ class OrderService
                         'payment_intent' => $order->payment_intent_id,
                     ]);
 
-                    $order->update([
-                        'status' => 'cancelled',
-                        'payment_status' => 'refunded',
-                    ]);
+                    $order = $this->orderRepository->cancel($order);
 
                     Log::info('Order refunded via Stripe', [
                         'order_id' => $order->id,
@@ -133,13 +137,10 @@ class OrderService
                 }
             } else {
                 // Not paid yet — just cancel
-                $order->update([
-                    'status' => 'cancelled',
-                    'payment_status' => $order->payment_status === 'paid' ? 'refunded' : 'cancelled',
-                ]);
+                $order = $this->orderRepository->cancel($order);
             }
 
-            return $order->fresh();
+            return $order;
         });
     }
 

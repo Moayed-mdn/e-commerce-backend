@@ -1,8 +1,9 @@
 <?php
-// app/Http/Controllers/Api/AddressController.php
-namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
 use App\Http\Requests\Address\ListAddressesRequest;
 use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Address\UpdateAddressRequest;
@@ -12,11 +13,14 @@ use App\Services\AddressService;
 use App\DTOs\StoreAddressDTO;
 use App\DTOs\UpdateAddressDTO;
 use App\Models\Address;
+use App\Traits\ApiResponserTrait;
 
 class AddressController extends Controller
 {
+    use ApiResponserTrait;
+
     public function __construct(
-        private AddressService $addressService
+        private AddressService $addressService,
     ) {}
 
     public function index(ListAddressesRequest $request)
@@ -26,13 +30,14 @@ class AddressController extends Controller
             $request->input('type')
         );
 
-        return $this->success(AddressResource::collection($addresses));
+        return $this->paginated($addresses, 'Addresses retrieved successfully');
     }
 
     public function store(StoreAddressRequest $request)
     {
         $address = $this->addressService->storeAddress(
-            StoreAddressDTO::fromRequest($request)
+            StoreAddressDTO::fromRequest($request),
+            $request->user()->id
         );
 
         return $this->success(new AddressResource($address), __('general.address_added'), 201);
