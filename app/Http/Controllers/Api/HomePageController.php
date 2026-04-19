@@ -7,7 +7,6 @@ use App\Http\Resources\BestSellerResource;
 use App\Http\Resources\HeroBannerResource;
 use App\Services\BestSellerService;
 use App\Services\HomePageService;
-use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class HomePageController extends Controller
@@ -22,13 +21,13 @@ class HomePageController extends Controller
     {
         $dtos = $this->bestSellerService->getCachedAllParents(20);
 
-        return ApiResponse::success(BestSellerResource::collection($dtos));
+        return $this->success(BestSellerResource::collection($dtos));
     }
 
     public function hero(): JsonResponse
     {
         $banners = $this->homePageService->hero();
 
-        return ApiResponse::success(HeroBannerResource::collection($banners));
+        return $this->success(HeroBannerResource::collection($banners));
     }
 }
