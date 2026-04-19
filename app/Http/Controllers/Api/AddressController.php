@@ -15,7 +15,6 @@ use App\DTOs\StoreAddressDTO;
 use App\DTOs\UpdateAddressDTO;
 use App\Models\Address;
 
-
 class AddressController extends Controller
 {
     public function __construct(
