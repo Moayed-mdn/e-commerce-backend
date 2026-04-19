@@ -9,9 +9,7 @@ use App\Http\Requests\Order\GuestOrderLookupRequest;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\Order\ReorderException;
 use App\Http\Resources\OrderResource;
-use App\Models\Order;
 use App\Services\OrderService;
-use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,18 +27,12 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $query = Order::where('user_id', $user->id)
-            ->with([
-                'items.productVariant.images',
-                'items.productVariant.product.translations',
-            ]);
+        $query = $this->orderService->buildUserOrdersQuery($user);
 
-        // ── Filter by status ──
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // ── Filter by date range ──
         if ($request->filled('from_date')) {
             $query->whereDate('created_at', '>=', $request->from_date);
         }
@@ -49,14 +41,10 @@ class OrderController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        // ── Paginate (newest first) ──
-        $perPage = $request->get('per_page', 1);
+        $perPage = $request->get('per_page', 10);
         $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
-        return ApiResponse::paginated(
-            paginator: $orders,
-            data: OrderResource::collection($orders->items())
-        );
+        return $this->paginated($orders, OrderResource::collection($orders->items()));
     }
 
     /**
@@ -68,17 +56,9 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $order = Order::where('order_number', $orderNumber)
-            ->where('user_id', $user->id)
-            ->with([
-                'items.productVariant.images',
-                'items.productVariant.product.translations',
-                'items.productVariant.attributeValues.translations',
-                'items.productVariant.attributeValues.attribute.translations',
-            ])
-            ->firstOrFail();
+        $order = $this->orderService->findOrderByNumberAndUser($orderNumber, $user->id);
 
-        return ApiResponse::success(new OrderResource($order));
+        return $this->success(new OrderResource($order));
     }
 
     /**
@@ -90,13 +70,11 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $order = Order::where('order_number', $orderNumber)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        $order = $this->orderService->findOrderByNumberAndUser($orderNumber, $user->id);
 
         $cancelledOrder = $this->orderService->cancel($order);
 
-        return ApiResponse::success(
+        return $this->success(
             new OrderResource($cancelledOrder->load([
                 'items.productVariant.images',
                 'items.productVariant.product.translations',
@@ -114,9 +92,7 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $order = Order::where('order_number', $orderNumber)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        $order = $this->orderService->findOrderByNumberAndUser($orderNumber, $user->id);
 
         $result = $this->orderService->reorder($order, $user);
 
@@ -132,7 +108,7 @@ class OrderController extends Controller
             $message .= ' ' . trans_choice('services.reorder_items_failed', $failedCount, ['count' => $failedCount]);
         }
 
-        return ApiResponse::success($result, $message);
+        return $this->success($result, $message);
     }
 
     /**
@@ -143,26 +119,13 @@ class OrderController extends Controller
      */
     public function guestLookup(GuestOrderLookupRequest $request): JsonResponse
     {
-        $order = Order::where('order_number', $request->order_number)
-            ->where(function ($query) use ($request) {
-                $query->where('guest_email', $request->email)
-                    ->orWhereHas('user', function ($q) use ($request) {
-                        $q->where('email', $request->email);
-                    });
-            })
-            ->with([
-                'items.productVariant.images',
-                'items.productVariant.product.translations',
-                'items.productVariant.attributeValues.translations',
-                'items.productVariant.attributeValues.attribute.translations',
-            ])
-            ->first();
+        $order = $this->orderService->findOrderByGuestLookup($request->order_number, $request->email);
 
         if (!$order) {
             throw new NotFoundException(__('error.order_not_found'));
         }
 
-        return ApiResponse::success(new OrderResource($order));
+        return $this->success(new OrderResource($order));
     }
 
     /**
@@ -174,11 +137,7 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $statusCounts = Order::where('user_id', $user->id)
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+        $statusCounts = $this->orderService->getStatusFilterCounts($user->id);
 
         $totalOrders = array_sum($statusCounts);
 
@@ -193,6 +152,6 @@ class OrderController extends Controller
             ],
         ];
 
-        return ApiResponse::success($data);
+        return $this->success($data);
     }
 }

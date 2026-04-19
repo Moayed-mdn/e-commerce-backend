@@ -4,12 +4,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProductService;
-use App\Models\Category;
+use App\Http\Requests\Product\FilterProductsRequest;
 use App\Http\Resources\RelatedProductResource;
 use App\Http\Resources\ProductCardResource;
 use App\Http\Resources\ProductDetailResource;
-use App\Support\ApiResponse;
+use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,30 +18,23 @@ class ProductController extends Controller
         protected ProductService $productService
     ) {
     }
+
     /**
      * List products (paginated, filterable).
-     * UNCHANGED — keeping your existing index() method exactly as-is.
      */
-    public function index(Request $request)
+    public function index(FilterProductsRequest $request): JsonResponse
     {
         $query = $this->productService->buildBaseProductQuery();
 
         $descendants = $this->productService->getCategoryDescendants();
 
-        if($request->filled('category_slug')){
-            $category = Category::whereHas('translations', function($q) use($request){
-                $q->where('slug', $request->category_slug);
-            })->firstOrFail();
+        if ($request->filled('category_slug')) {
+            $category = $this->productService->findCategoryBySlugOrFail($request->category_slug);
 
-            $_descendants = $category->descendants()->leftJoin('category_translations',function($join){
-                $join->on('categories.id','=','category_translations.category_id')
-                    ->where('category_translations.locale',app()->getLocale());
-            })->select('categories.id','category_translations.slug as slug','category_translations.name as name');
+            $descendantsWithSelf = $category->allDescendantIds()->push($category->id);
 
-            $descendantsWithSelf = $_descendants->pluck('id')->push($category->id);
-
-            $query->whereHas('category',function ($query) use ($descendantsWithSelf){
-                $query->whereIn('id',$descendantsWithSelf);
+            $query->whereHas('category', function ($query) use ($descendantsWithSelf) {
+                $query->whereIn('id', $descendantsWithSelf);
             });
         }
 
@@ -53,10 +45,10 @@ class ProductController extends Controller
         $perPage = $request->get('per_page', 20);
         $paginator = $query->paginate($perPage);
 
-        return ApiResponse::paginated(
-            paginator: $paginator,
-            data: ProductCardResource::collection($paginator->items()),
-            additionalMeta: [
+        return $this->paginated(
+            $paginator,
+            ProductCardResource::collection($paginator->items()),
+            [
                 'filters' => [
                     'descendants' => $descendants,
                     'min_price' => $variantStatus->min_price,
@@ -65,7 +57,7 @@ class ProductController extends Controller
                     'latest_expiry' => $variantStatus->latest_expiry
                 ]
             ]
-        );        
+        );
     }
 
     /**
@@ -74,22 +66,18 @@ class ProductController extends Controller
      * GET /products/category/{slug}
      * GET /products/category/{slug}?category_slug=sub-category&min_price=10&max_price=100
      */
-    public function indexByCategory(string $slug, Request $request)
+    public function indexByCategory(string $slug, Request $request): JsonResponse
     {
         $locale = app()->getLocale();
 
-        // ── Find category by localized slug ──
         $category = $this->productService->findCategoryBySlugOrFail($slug);
         $category->loadMissing(['translations', 'descendants.translations']);
 
-        // ── Build subcategory filter list (translated) ──
         $descendantCategories = $this->productService->flattenCategoryDescendants($category, $locale);
 
-        // ── Main product query (same pattern as index()) ──
         $query = $this->productService->buildBaseProductQuery()
             ->addSelect('images.alt_text as alt_text');
 
-        // ── Filter by sub-category slug (from query param) ──
         if ($request->filled('category_slug')) {
             $subCategory = $this->productService->findCategoryBySlug($request->category_slug);
 
@@ -98,28 +86,23 @@ class ProductController extends Controller
                 $query->whereIn('products.category_id', $subIds);
             }
         } else {
-            // Default: show all products in this category + descendants
             $allIds = $category->allDescendantIds();
             $query->whereIn('products.category_id', $allIds);
         }
 
-        // ── Build filter ranges (before applying price/date filters) ──
         $variantStatus = $this->productService->getProductFilterRanges($query);
 
-        // ── Apply price/date filters ──
         $query = $this->productService->applyFilters($query, $request);
 
-        // ── Paginate ──
         $perPage = $request->get('per_page', 20);
         $products = $query->paginate($perPage);
 
-        // ── Category translation for the response ──
         $categoryTranslation = $category->translation($locale);
 
-        return ApiResponse::paginated(
-            paginator: $products,
-            data: ProductCardResource::collection($products->items()),
-            additionalMeta: [
+        return $this->paginated(
+            $products,
+            ProductCardResource::collection($products->items()),
+            [
                 'category' => [
                     'id'         => $category->id,
                     'name'       => $categoryTranslation?->name ?? $category->slug,
@@ -136,30 +119,6 @@ class ProductController extends Controller
             ]
         );
     }
-
-    /**
-     * Recursively flatten descendants with translated name/slug.
-     */
-    private function flattenDescendants(Category $category, \Illuminate\Support\Collection &$result, string $locale): void
-    {
-        foreach ($category->children as $child) {
-            $translation = $child->translation($locale);
-
-            $result->push([
-                'id'   => $child->id,
-                'name' => $translation?->name ?? $child->slug,
-                'slug' => $translation?->slug ?? $child->slug,
-            ]);
-
-            if ($child->relationLoaded('descendants') || $child->relationLoaded('children')) {
-                $this->flattenDescendants($child, $result, $locale);
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  UPDATED METHODS BELOW
-    // ═══════════════════════════════════════════════════════════
 
     /**
      * Show product detail by localized slug.
@@ -179,7 +138,7 @@ class ProductController extends Controller
             'activeVariants.images',
         ]);
 
-        return ApiResponse::success(new ProductDetailResource($product));
+        return $this->success(new ProductDetailResource($product));
     }
 
     /**
@@ -193,6 +152,6 @@ class ProductController extends Controller
 
         $relatedProducts = $this->productService->getRelatedProducts($currentProduct);
 
-        return ApiResponse::success(RelatedProductResource::collection($relatedProducts));
+        return $this->success(RelatedProductResource::collection($relatedProducts));
     }
 }

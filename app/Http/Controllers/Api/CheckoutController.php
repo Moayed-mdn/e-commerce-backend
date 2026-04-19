@@ -3,11 +3,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Exceptions\Payment\PaymentFailedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CreateCheckoutRequest;
 use App\Services\CheckoutService;
-use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class CheckoutController extends Controller
@@ -25,17 +23,15 @@ class CheckoutController extends Controller
         $user = $request->user();
 
         if ($user) {
-            // Logged-in: read cart from database
             $result = $this->checkoutService->createSessionForUser($user);
         } else {
-            // Guest: read cart from request body
             $result = $this->checkoutService->createSessionForGuest(
                 $request->input('items', []),
                 $request->input('email')
             );
         }
 
-        return ApiResponse::success($result);
+        return $this->success($result);
     }
 
     /**
@@ -45,6 +41,6 @@ class CheckoutController extends Controller
     {
         $data = $this->checkoutService->getCheckoutStatus($sessionId);
 
-        return ApiResponse::success($data);
+        return $this->success($data);
     }
 }

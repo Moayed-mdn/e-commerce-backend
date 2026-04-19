@@ -7,72 +7,46 @@ use App\Http\Requests\Profile\UpdateAvatarRequest;
 use App\Http\Requests\Profile\UpdateInfoRequest;
 use App\Http\Requests\Profile\UpdatePasswordRequest;
 use App\Http\Resources\ProfileResource;
-use App\Support\ApiResponse;
+use App\Services\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private ProfileService $profileService
+    ) {}
+
     public function show(Request $request): JsonResponse
     {
-        return ApiResponse::success(new ProfileResource($request->user()));
+        return $this->success(new ProfileResource($request->user()));
     }
 
     public function updateInfo(UpdateInfoRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $validated = $request->validated();
+        $user = $this->profileService->updateInfo($request->user(), $request->validated());
 
-        if ($user->email !== $validated['email']) {
-            $validated['email_verified_at'] = null;
-        }
-
-        $user->update($validated);
-
-        return ApiResponse::success(new ProfileResource($user), __('general.profile_updated'));
+        return $this->success(new ProfileResource($user), __('general.profile_updated'));
     }
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $hasPassword = !is_null($user->password);
+        $message = $this->profileService->updatePassword($request->user(), $request->validated('password'));
 
-        $user->update([
-            'password' => Hash::make($request->validated('password')),
-        ]);
-
-        $message = $hasPassword
-            ? __('auth.password_updated')
-            : __('auth.password_set');
-
-        return ApiResponse::success(null, $message);
+        return $this->success(null, $message);
     }
 
     public function updateAvatar(UpdateAvatarRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $avatarUrl = $this->profileService->updateAvatar($request->user(), $request->file('avatar'));
 
-        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-
-        $path = $request->file('avatar')->store('avatars', 'public');
-
-        $user->update(['avatar' => $path]);
-
-        return ApiResponse::success(['avatar' => Storage::disk('public')->url($path)], __('general.avatar_updated'));
+        return $this->success(['avatar' => $avatarUrl], __('general.avatar_updated'));
     }
 
     public function destroy(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $this->profileService->deleteAccount($request->user());
 
-        $user->tokens()->delete();
-
-        $user->delete();
-
-        return ApiResponse::success(null, __('general.account_deleted'));
+        return $this->success(null, __('general.account_deleted'));
     }
 }

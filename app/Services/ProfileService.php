@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
+class ProfileService
+{
+    /**
+     * Update user profile information.
+     */
+    public function updateInfo(User $user, array $data): User
+    {
+        if ($user->email !== $data['email']) {
+            $data['email_verified_at'] = null;
+        }
+
+        $user->update($data);
+
+        return $user->fresh();
+    }
+
+    /**
+     * Update user password.
+     */
+    public function updatePassword(User $user, string $password): string
+    {
+        $hasPassword = !is_null($user->password);
+
+        $user->update([
+            'password' => Hash::make($password),
+        ]);
+
+        return $hasPassword
+            ? __('auth.password_updated')
+            : __('auth.password_set');
+    }
+
+    /**
+     * Update user avatar.
+     */
+    public function updateAvatar(User $user, UploadedFile $file): string
+    {
+        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $file->store('avatars', 'public');
+
+        $user->update(['avatar' => $path]);
+
+        return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Delete user account.
+     */
+    public function deleteAccount(User $user): void
+    {
+        $user->tokens()->delete();
+        $user->delete();
+    }
+}

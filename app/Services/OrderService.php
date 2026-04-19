@@ -22,6 +22,67 @@ class OrderService
     }
 
     /**
+     * Build the base query for user orders with eager loading.
+     */
+    public function buildUserOrdersQuery(User $user): \Illuminate\Database\Eloquent\Builder
+    {
+        return Order::where('user_id', $user->id)
+            ->with([
+                'items.productVariant.images',
+                'items.productVariant.product.translations',
+            ]);
+    }
+
+    /**
+     * Find an order by order number and user ID.
+     */
+    public function findOrderByNumberAndUser(string $orderNumber, int $userId): Order
+    {
+        return Order::where('order_number', $orderNumber)
+            ->where('user_id', $userId)
+            ->with([
+                'items.productVariant.images',
+                'items.productVariant.product.translations',
+                'items.productVariant.attributeValues.translations',
+                'items.productVariant.attributeValues.attribute.translations',
+            ])
+            ->firstOrFail();
+    }
+
+    /**
+     * Find an order by guest lookup (order number + email).
+     */
+    public function findOrderByGuestLookup(string $orderNumber, string $email): ?Order
+    {
+        return Order::where('order_number', $orderNumber)
+            ->where(function ($query) use ($email) {
+                $query->where('guest_email', $email)
+                    ->orWhereHas('user', function ($q) use ($email) {
+                        $q->where('email', $email);
+                    });
+            })
+            ->with([
+                'items.productVariant.images',
+                'items.productVariant.product.translations',
+                'items.productVariant.attributeValues.translations',
+                'items.productVariant.attributeValues.attribute.translations',
+            ])
+            ->first();
+    }
+
+    /**
+     * Get status filter counts for a user.
+     */
+    public function getStatusFilterCounts(int $userId): array
+    {
+        return Order::where('user_id', $userId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+    }
+
+    /**
      * Cancel an order.
      * - Only pending/processing orders can be cancelled.
      * - Restores stock.
