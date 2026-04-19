@@ -10,7 +10,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\User;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
@@ -33,7 +32,11 @@ class CheckoutService
         $cart = $user->cart;
 
         if (!$cart || $cart->items->isEmpty()) {
-            throw new Exception('Your cart is empty.');
+            throw new \App\Exceptions\BaseApiException(
+                message: __('services.cart_empty'),
+                statusCode: 422,
+                errorCode: \App\Enums\ErrorCode::SYS_001->value
+            );
         }
 
         $cart->load([
@@ -62,7 +65,11 @@ class CheckoutService
     public function createSessionForGuest(array $items, ?string $email = null): array
     {
         if (empty($items)) {
-            throw new Exception('Your cart is empty.');
+            throw new \App\Exceptions\BaseApiException(
+                message: __('services.cart_empty'),
+                statusCode: 422,
+                errorCode: \App\Enums\ErrorCode::SYS_001->value
+            );
         }
 
         $validatedItems = $this->validateAndPrepareItems($items);
@@ -88,7 +95,7 @@ class CheckoutService
 
             // Check active
             if (!$variant->is_active) {
-                throw new OutOfStockException("Product variant #{$variant->id} is no longer available.");
+                throw new OutOfStockException(__('services.variant_no_longer_available', ['id' => $variant->id]));
             }
 
             // Check stock
@@ -98,7 +105,10 @@ class CheckoutService
                     ?? $variant->product->translations->first()?->name
                     ?? 'Product';
 
-                throw new OutOfStockException("Not enough stock for \"{$productName}\". Available: {$variant->quantity}.");
+                throw new OutOfStockException(__('services.not_enough_stock_for_product', [
+                    'product' => $productName,
+                    'available' => $variant->quantity
+                ]));
             }
 
             // Build translated product name
@@ -260,7 +270,7 @@ class CheckoutService
             try {
                 $session = Session::create($sessionParams);
             } catch (\Stripe\Exception\ApiErrorException $e) {
-                throw new StripeServiceException('Failed to create Stripe Checkout session: ' . $e->getMessage());
+                throw new StripeServiceException(__('services.stripe_checkout_failed'));
             }
 
             // ── 8. Store session ID on order ───────────────────
@@ -406,7 +416,7 @@ class CheckoutService
                 'customer_email' => $session->customer_details->email ?? $order?->guest_email,
             ];
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            throw new StripeServiceException('Failed to retrieve Stripe Checkout session: ' . $e->getMessage());
+            throw new StripeServiceException(__('services.stripe_session_retrieve_failed'));
         }
     }
 }

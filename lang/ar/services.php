@@ -24,4 +24,9 @@ return [
     'duplicate_entry' => 'تم اكتشاف إدخال مكرر.',
     'insufficient_permissions' => 'صلاحيات غير كافية.',
     'service_unavailable' => 'الخدمة غير متاحة مؤقتاً.',
+    
+    // Cart - Car Workshop Context
+    'cart_cleared' => 'تم إفراغ السلة',
+    'variant_not_available' => 'قطعة الغيار غير متوفرة بالكمية المطلوبة.',
+    'not_enough_stock' => 'الكمية المتوفرة لا تكفي للطلب المطلوب.',
 ];
