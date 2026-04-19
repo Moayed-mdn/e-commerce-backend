@@ -30,7 +30,7 @@ class OrderService
     public function cancel(Order $order): Order
     {
         if (!$order->canBeCancelled()) {
-            throw new OrderCancellationException(__('services.order_cannot_be_cancelled'));
+            throw new OrderCancellationException(__('order.cannot_be_cancelled'));
         }
 
         return DB::transaction(function () use ($order) {
@@ -68,7 +68,7 @@ class OrderService
                         'error' => $e->getMessage(),
                     ]);
 
-                    throw new PaymentFailedException(__('services.payment_failed'));
+                    throw new PaymentFailedException(__('payment.failed'));
                 }
             } else {
                 // Not paid yet — just cancel
