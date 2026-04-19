@@ -10,11 +10,10 @@ use App\Http\Resources\OrderCollection;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\Order\OrderService;
-use App\Traits\ApiResponserTrait;
+
 
 class OrderController extends Controller
 {
-    use ApiResponserTrait;
 
     public function __construct(
         private OrderService $orderService,

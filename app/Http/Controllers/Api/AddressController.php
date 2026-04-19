@@ -14,12 +14,10 @@ use App\Services\AddressService;
 use App\DTOs\StoreAddressDTO;
 use App\DTOs\UpdateAddressDTO;
 use App\Models\Address;
-use App\Traits\ApiResponserTrait;
+
 
 class AddressController extends Controller
 {
-    use ApiResponserTrait;
-
     public function __construct(
         private AddressService $addressService,
     ) {}

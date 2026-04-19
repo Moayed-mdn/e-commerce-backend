@@ -8,11 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Search\SearchRequest;
 use App\Services\Search\SearchService;
 use App\DTOs\Search\SearchDTO;
-use App\Traits\ApiResponserTrait;
+
 
 class SearchController extends Controller
 {
-    use ApiResponserTrait;
 
     public function __construct(
         private SearchService $searchService,
