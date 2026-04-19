@@ -16,7 +16,7 @@ use App\Models\PaymentMethod;
 class PaymentMethodController extends Controller
 {
     public function __construct(
-        private PaymentMethodService $paymentMethodService,
+        private ServicesPaymentMethodService $paymentMethodService,
     ) {}
 
     public function index(ListPaymentMethodsRequest $request)

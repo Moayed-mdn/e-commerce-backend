@@ -9,12 +9,11 @@ use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResource;
 use App\Services\Category\CategoryService;
 use App\Models\Category;
-use App\Traits\ApiResponserTrait;
+
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    use ApiResponserTrait;
 
     public function __construct(
         private CategoryService $categoryService,
