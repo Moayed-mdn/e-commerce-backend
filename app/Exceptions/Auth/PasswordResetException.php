@@ -8,11 +8,11 @@ use App\Exceptions\BaseApiException;
 class PasswordResetException extends BaseApiException
 {
     public function __construct(
-        string $message = 'Password reset failed.',
+        ?string $message = null,
         int $statusCode = 400,
         string $errorCode = ErrorCode::AUTH_005->value,
         ?array $errors = null
     ) {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('auth.password_reset_failed'), $statusCode, $errorCode, $errors);
     }
 }

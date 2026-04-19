@@ -11,7 +11,7 @@ trait ApiResponserTrait
     {
         return response()->json([
             'status'  => 'Success',
-            'message' => $message,
+            'message' => $message ? __($message) : null,
         ], $code);
     }
     
@@ -19,7 +19,7 @@ trait ApiResponserTrait
     {
         return response()->json([
             'status'  => 'Success',
-            'message' => $message,
+            'message' => $message ? __($message) : null,
             'data'    => $data,
         ], $code);
     }

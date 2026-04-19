@@ -7,8 +7,8 @@ use App\Exceptions\BaseApiException;
 
 class InvalidCredentialsException extends BaseApiException
 {
-    public function __construct(string $message = "Invalid credentials.", int $statusCode = 401, string $errorCode = ErrorCode::AUTH_001->value, ?array $errors = null)
+    public function __construct(?string $message = null, int $statusCode = 401, string $errorCode = ErrorCode::AUTH_001->value, ?array $errors = null)
     {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('auth.invalid_credentials'), $statusCode, $errorCode, $errors);
     }
 }

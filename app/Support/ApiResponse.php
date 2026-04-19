@@ -6,20 +6,20 @@ use Illuminate\Http\JsonResponse;
 
 class ApiResponse
 {
-    public static function success($data = null, string $message = 'Success', int $statusCode = 200): JsonResponse
+    public static function success($data = null, string $message = 'success', int $statusCode = 200): JsonResponse
     {
         return response()->json([
             'status' => true,
-            'message' => $message,
+            'message' => __($message),
             'data' => $data,
         ], $statusCode);
     }
 
-    public static function paginated($paginator, $data, $additionalMeta = [], $message = 'Success', $code = 200)
+    public static function paginated($paginator, $data, $additionalMeta = [], string $message = 'success', $code = 200)
     {
         return response()->json([
             'status'  => true,
-            'message' => $message,
+            'message' => __($message),
             'data'    => $data,
             'meta' => [
                 'pagination' => [

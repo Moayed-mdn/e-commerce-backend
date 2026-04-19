@@ -8,11 +8,11 @@ use App\Exceptions\BaseApiException;
 class ReorderException extends BaseApiException
 {
     public function __construct(
-        string $message = 'None of the items could be added to your cart.',
+        ?string $message = null,
         int $statusCode = 422,
         string $errorCode = ErrorCode::ORD_003->value,
         ?array $errors = null
     ) {
-        parent::__construct($message, $statusCode, $errorCode, $errors);
+        parent::__construct($message ?? __('services.reorder_items_not_added'), $statusCode, $errorCode, $errors);
     }
 }
