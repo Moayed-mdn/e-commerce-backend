@@ -4,39 +4,43 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\AddToCartAction;
 use App\Actions\ClearCartAction;
+use App\Actions\GetCartAction;
 use App\Actions\RemoveCartItemAction;
 use App\Actions\UpdateCartItemAction;
 use App\DTOs\AddToCartDTO;
 use App\DTOs\ClearCartDTO;
+use App\DTOs\GetCartDTO;
 use App\DTOs\RemoveCartItemDTO;
 use App\DTOs\UpdateCartItemDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cart\AddItemRequest;
+use App\Http\Requests\Cart\ClearRequest;
+use App\Http\Requests\Cart\RemoveItemRequest;
 use App\Http\Requests\Cart\UpdateItemRequest;
 use App\Http\Resources\CartResource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
     public function __construct(
+        private GetCartAction $getCartAction,
         private AddToCartAction $addToCartAction,
         private UpdateCartItemAction $updateCartItemAction,
         private RemoveCartItemAction $removeCartItemAction,
         private ClearCartAction $clearCartAction,
     ) {}
 
-    public function show(): \Illuminate\Http\JsonResponse
+    public function show(Request $request): JsonResponse
     {
-        $cart = auth()->user()->cart()->with([
-            'items.productVariant.product.translations',
-            'items.productVariant.images',
-            'items.productVariant.attributeValues.translations',
-            'items.productVariant.attributeValues.attribute.translations',
-        ])->firstOrCreate([]);
+        $cart = $this->getCartAction->execute(
+            GetCartDTO::fromRequest($request)
+        );
 
         return $this->success(new CartResource($cart));
     }
 
-    public function addItem(AddItemRequest $request): \Illuminate\Http\JsonResponse
+    public function addItem(AddItemRequest $request): JsonResponse
     {
         $cart = $this->addToCartAction->execute(
             AddToCartDTO::fromRequest($request)
@@ -45,26 +49,29 @@ class CartController extends Controller
         return $this->success(new CartResource($cart));
     }
 
-    public function updateItem(UpdateItemRequest $request, int $itemId): \Illuminate\Http\JsonResponse
+    public function updateItem(UpdateItemRequest $request): JsonResponse
     {
-        $dto = UpdateCartItemDTO::fromRequest($request, $itemId);
-        $this->updateCartItemAction->execute($dto);
+        $this->updateCartItemAction->execute(
+            UpdateCartItemDTO::fromRequest($request)
+        );
 
-        return $this->show();
+        return $this->show($request);
     }
 
-    public function removeItem(int $itemId): \Illuminate\Http\JsonResponse
+    public function removeItem(RemoveItemRequest $request): JsonResponse
     {
-        $dto = RemoveCartItemDTO::fromRequest(request(), $itemId);
-        $this->removeCartItemAction->execute($dto);
+        $this->removeCartItemAction->execute(
+            RemoveCartItemDTO::fromRequest($request)
+        );
 
-        return $this->show();
+        return $this->show($request);
     }
 
-    public function clear(): \Illuminate\Http\JsonResponse
+    public function clear(ClearRequest $request): JsonResponse
     {
-        $dto = ClearCartDTO::fromRequest(request());
-        $this->clearCartAction->execute($dto);
+        $this->clearCartAction->execute(
+            ClearCartDTO::fromRequest($request)
+        );
 
         return $this->success(null, __('cart.cleared'));
     }

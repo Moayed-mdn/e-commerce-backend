@@ -9,10 +9,10 @@ class RemoveCartItemDTO
         public int $userId,
     ) {}
 
-    public static function fromRequest(\Illuminate\Http\Request $request, int $itemId): self
+    public static function fromRequest(\App\Http\Requests\Cart\RemoveItemRequest $request): self
     {
         return new self(
-            $itemId,
+            (int) $request->route('itemId'),
             $request->user()->id,
         );
     }

@@ -1,36 +1,53 @@
 <?php
-// app/Http/Controllers/Api/UserController.php
+
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ChangePasswordAction;
+use App\Actions\GetUserAction;
+use App\Actions\UpdateUserAction;
+use App\DTOs\ChangePasswordDTO;
+use App\DTOs\GetUserDTO;
+use App\DTOs\UpdateUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ChangePasswordRequest;
+use App\Http\Requests\User\GetProfileRequest;
 use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
-use App\Services\ProfileService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     public function __construct(
-        private ProfileService $profileService,
+        private GetUserAction $getUserAction,
+        private UpdateUserAction $updateUserAction,
+        private ChangePasswordAction $changePasswordAction,
     ) {}
 
-    public function profile(Request $request): JsonResponse
+    public function profile(GetProfileRequest $request): JsonResponse
     {
-        return $this->success(new UserResource($request->user()));
+        $user = $this->getUserAction->execute(
+            GetUserDTO::fromRequest($request)
+        );
+
+        return $this->success(new UserResource($user));
     }
 
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        $user = $this->profileService->updateProfile($request->user(), $request->validated());
+        $user = $this->updateUserAction->execute(
+            UpdateUserDTO::fromRequest($request)
+        );
 
         return $this->success(new UserResource($user));
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $this->profileService->changePassword($request->user(), $request->password);
+        $this->changePasswordAction->execute(
+            ChangePasswordDTO::fromRequest($request)
+        );
 
         return $this->success(null, __('auth.password_updated'));
     }

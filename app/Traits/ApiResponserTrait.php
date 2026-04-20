@@ -2,34 +2,36 @@
 
 namespace App\Traits;
 
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 trait ApiResponserTrait
 {
-    public function success($data = null, ?string $message = null, int $statusCode = 200): JsonResponse
+    public static function success($data = null, string $message = 'success', int $statusCode = 200): JsonResponse
     {
         return response()->json([
-            'status'  => true,
-            'message' => $message ? __($message) : null,
-            'data'    => $data,
+            'status' => true,
+            'message' => __($message),
+            'data' => $data,
         ], $statusCode);
     }
 
-    public function paginated($resourceCollection, ?string $message = null, int $statusCode = 200): JsonResponse
+    public static function paginated(LengthAwarePaginator $paginator, $data, array $additionalMeta = [], string $message = 'success', int $code = 200): JsonResponse
     {
         return response()->json([
             'status'  => true,
-            'message' => $message ? __($message) : null,
-            'data'    => $resourceCollection->collection,
-            'meta'    => [
+            'message' => __($message),
+            'data'    => $data,
+            'meta' => [
                 'pagination' => [
-                    'total'         => $resourceCollection->resource->total(),
-                    'count'         => $resourceCollection->count(),
-                    'per_page'      => $resourceCollection->resource->perPage(),
-                    'current_page'  => $resourceCollection->resource->currentPage(),
-                    'total_pages'   => $resourceCollection->resource->lastPage(),
+                    'total' => $paginator->total(),
+                    'count' => count($data),
+                    'per_page' => $paginator->perPage(),
+                    'current_page' => $paginator->currentPage(),
+                    'total_pages' => $paginator->lastPage(),
                 ],
+                ...$additionalMeta
             ],
-        ], $statusCode);
+        ], $code);
     }
 }

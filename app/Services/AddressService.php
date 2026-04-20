@@ -21,24 +21,26 @@ class AddressService
         return $this->addressRepository->getUserAddresses($userId, $type);
     }
 
-    public function storeAddress(StoreAddressDTO $dto, int $userId): Address
+    public function storeAddress(StoreAddressDTO $dto): Address
     {
         $data = [
-            'user_id' => $userId,
-            'name' => $dto->name,
+            'user_id' => $dto->userId,
+            'first_name' => $dto->firstName,
+            'last_name' => $dto->lastName,
+            'company' => $dto->company,
             'phone' => $dto->phone,
             'country' => $dto->country,
             'state' => $dto->state,
             'city' => $dto->city,
-            'address_line1' => $dto->addressLine1,
-            'address_line2' => $dto->addressLine2,
+            'address_line_1' => $dto->addressLine1,
+            'address_line_2' => $dto->addressLine2,
             'postal_code' => $dto->postalCode,
             'type' => $dto->type,
             'is_default' => $dto->isDefault,
         ];
 
         if ($dto->isDefault) {
-            $this->addressRepository->setAsDefaultForType($userId, $dto->type);
+            $this->addressRepository->setAsDefaultForType($dto->userId, $dto->type);
         }
 
         return $this->addressRepository->create($data);
@@ -47,19 +49,21 @@ class AddressService
     public function updateAddress(Address $address, UpdateAddressDTO $dto): Address
     {
         $data = [
-            'name' => $dto->name,
+            'first_name' => $dto->firstName,
+            'last_name' => $dto->lastName,
+            'company' => $dto->company,
             'phone' => $dto->phone,
             'country' => $dto->country,
             'state' => $dto->state,
             'city' => $dto->city,
-            'address_line1' => $dto->addressLine1,
-            'address_line2' => $dto->addressLine2,
+            'address_line_1' => $dto->addressLine1,
+            'address_line_2' => $dto->addressLine2,
             'postal_code' => $dto->postalCode,
-            'type' => $dto->type,
+            'is_default' => $dto->isDefault,
         ];
 
-        if ($dto->isDefault !== null && $dto->isDefault) {
-            $this->addressRepository->setAsDefaultForType($address->user_id, $dto->type);
+        if ($dto->isDefault) {
+            $this->addressRepository->setAsDefaultForType($address->user_id, $address->type);
         }
 
         return $this->addressRepository->update($address, $data);

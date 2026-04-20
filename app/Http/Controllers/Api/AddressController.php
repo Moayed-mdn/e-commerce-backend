@@ -28,7 +28,12 @@ class AddressController extends Controller
             $request->input('type')
         );
 
-        return $this->paginated($addresses, 'Addresses retrieved successfully');
+        return $this->paginated(
+            $addresses,
+            AddressResource::collection($addresses),
+            [],
+            'Addresses retrieved successfully'
+        );
     }
 
     public function store(StoreAddressRequest $request)

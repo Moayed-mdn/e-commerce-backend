@@ -100,7 +100,7 @@ class Order extends Model
         return in_array($this->status, ['pending', 'processing']);
     }
 
-    public function markAsPaid(string $paymentIntentId): void
+    public function markAsPaid(?string $paymentIntentId = null): void
     {
         $this->update([
             'payment_status'    => 'paid',

@@ -4,54 +4,70 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\PaymentMethod\ListPaymentMethodsRequest;
-use App\Http\Requests\PaymentMethod\StorePaymentMethodRequest;
-use App\Http\Requests\PaymentMethod\SetDefaultPaymentMethodRequest;
-use App\Http\Resources\PaymentMethodResource;
-use App\Services\PaymentMethod\PaymentMethodService;
+use App\Actions\DeletePaymentMethodAction;
+use App\Actions\ListPaymentMethodsAction;
+use App\Actions\SetDefaultPaymentMethodAction;
+use App\Actions\StorePaymentMethodAction;
+use App\DTOs\DeletePaymentMethodDTO;
+use App\DTOs\ListPaymentMethodsDTO;
+use App\DTOs\SetDefaultPaymentMethodDTO;
 use App\DTOs\StorePaymentMethodDTO;
-use App\Models\PaymentMethod;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PaymentMethod\DeletePaymentMethodRequest;
+use App\Http\Requests\PaymentMethod\ListPaymentMethodsRequest;
+use App\Http\Requests\PaymentMethod\SetDefaultPaymentMethodRequest;
+use App\Http\Requests\PaymentMethod\StorePaymentMethodRequest;
+use App\Http\Resources\PaymentMethodResource;
+use Illuminate\Http\JsonResponse;
 
 class PaymentMethodController extends Controller
 {
     public function __construct(
-        private ServicesPaymentMethodService $paymentMethodService,
+        private ListPaymentMethodsAction $listPaymentMethodsAction,
+        private StorePaymentMethodAction $storePaymentMethodAction,
+        private DeletePaymentMethodAction $deletePaymentMethodAction,
+        private SetDefaultPaymentMethodAction $setDefaultPaymentMethodAction,
     ) {}
 
-    public function index(ListPaymentMethodsRequest $request)
+    public function index(ListPaymentMethodsRequest $request): JsonResponse
     {
-        $paymentMethods = $this->paymentMethodService->getUserPaymentMethods($request->user()->id);
-
-        return $this->success(PaymentMethodResource::collection($paymentMethods), 'Payment methods retrieved successfully');
-    }
-
-    public function store(StorePaymentMethodRequest $request)
-    {
-        $dto = StorePaymentMethodDTO::fromRequest($request);
-        
-        $paymentMethod = $this->paymentMethodService->storePaymentMethod(
-            $dto,
-            $request->user()->id
+        $paymentMethods = $this->listPaymentMethodsAction->execute(
+            ListPaymentMethodsDTO::fromRequest($request)
         );
 
-        return $this->success(new PaymentMethodResource($paymentMethod), 'Payment method added successfully', 201);
+        return $this->success(
+            PaymentMethodResource::collection($paymentMethods),
+            'Payment methods retrieved successfully'
+        );
     }
 
-    public function destroy(PaymentMethod $paymentMethod)
+    public function store(StorePaymentMethodRequest $request): JsonResponse
     {
-        $this->authorize('delete', $paymentMethod);
+        $paymentMethod = $this->storePaymentMethodAction->execute(
+            StorePaymentMethodDTO::fromRequest($request)
+        );
 
-        $this->paymentMethodService->deletePaymentMethod($paymentMethod);
+        return $this->success(
+            new PaymentMethodResource($paymentMethod),
+            'Payment method added successfully',
+            201
+        );
+    }
+
+    public function destroy(DeletePaymentMethodRequest $request): JsonResponse
+    {
+        $this->deletePaymentMethodAction->execute(
+            DeletePaymentMethodDTO::fromRequest($request)
+        );
 
         return $this->success(null, 'Payment method deleted successfully');
     }
 
-    public function setDefault(SetDefaultPaymentMethodRequest $request, PaymentMethod $paymentMethod)
+    public function setDefault(SetDefaultPaymentMethodRequest $request): JsonResponse
     {
-        $this->authorize('update', $paymentMethod);
-
-        $this->paymentMethodService->setAsDefault($paymentMethod);
+        $this->setDefaultPaymentMethodAction->execute(
+            SetDefaultPaymentMethodDTO::fromRequest($request)
+        );
 
         return $this->success(null, 'Payment method set as default successfully');
     }

@@ -4,43 +4,50 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\GetCategoriesAction;
+use App\Actions\GetCategoryAction;
+use App\Actions\GetCategoryBreadcrumbAction;
+use App\DTOs\GetCategoriesDTO;
+use App\DTOs\GetCategoryDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Category\GetCategoriesRequest;
+use App\Http\Requests\Category\GetCategoryRequest;
 use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResource;
-use App\Services\CategoryService;
-use App\Models\Category;
-
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
-
     public function __construct(
-        private CategoryService $categoryService,
+        private GetCategoriesAction $getCategoriesAction,
+        private GetCategoryAction $getCategoryAction,
+        private GetCategoryBreadcrumbAction $getCategoryBreadcrumbAction,
     ) {}
 
-    public function index(Request $request): CategoryCollection
+    public function index(GetCategoriesRequest $request): JsonResponse
     {
-        if ($request->has('parent_id')) {
-            if ($request->parent_id === 'null') {
-                $categories = $this->categoryService->getRootCategories($request->input('type'));
-            } else {
-                $categories = $this->categoryService->getChildCategories((int) $request->parent_id);
-            }
-        } else {
-            $categories = $this->categoryService->getRootCategories($request->input('type'));
-        }
+        $categories = $this->getCategoriesAction->execute(
+            GetCategoriesDTO::fromRequest($request)
+        );
 
-        return new CategoryCollection($categories);
+        return $this->success(new CategoryCollection($categories));
     }
 
-    public function show(Category $category): CategoryResource
+    public function show(GetCategoryRequest $request): JsonResponse
     {
-        return new CategoryResource($category);
+        $category = $this->getCategoryAction->execute(
+            GetCategoryDTO::fromRequest($request)
+        );
+
+        return $this->success(new CategoryResource($category));
     }
 
-    public function breadcrumb(Category $category)
+    public function breadcrumb(GetCategoryRequest $request): JsonResponse
     {
-        return $this->success($this->categoryService->getBreadcrumb($category));
+        $breadcrumb = $this->getCategoryBreadcrumbAction->execute(
+            GetCategoryDTO::fromRequest($request)
+        );
+
+        return $this->success($breadcrumb);
     }
 }

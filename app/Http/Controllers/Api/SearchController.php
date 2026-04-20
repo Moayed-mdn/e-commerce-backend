@@ -31,9 +31,10 @@ class SearchController extends Controller
         }
 
         return $this->paginated(
-            paginator: $results['results'],
-            message: 'Search results retrieved successfully',
-            additionalMeta: ['type' => $results['type']]
+            $results['results'],
+            \App\Http\Resources\ProductCardResource::collection($results['results']),
+            ['type' => $results['type']],
+            'Search results retrieved successfully'
         );
     }
 }

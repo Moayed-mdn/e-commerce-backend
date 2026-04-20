@@ -12,6 +12,16 @@ class CartRepository
         return $user->cart()->firstOrCreate([]);
     }
 
+    public function getWithItems(User $user): Cart
+    {
+        return $user->cart()->with([
+            'items.productVariant.product.translations',
+            'items.productVariant.images',
+            'items.productVariant.attributeValues.translations',
+            'items.productVariant.attributeValues.attribute.translations',
+        ])->firstOrCreate([]);
+    }
+
     public function findById(int $id): Cart
     {
         return Cart::findOrFail($id);
