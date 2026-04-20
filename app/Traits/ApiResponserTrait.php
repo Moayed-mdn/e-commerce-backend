@@ -18,7 +18,7 @@ trait ApiResponserTrait
 
     public static function paginated(LengthAwarePaginator $paginator, $data, array $additionalMeta = [], string $message = 'success', int $code = 200): JsonResponse
     {
-        return response()->json([
+        $response = [
             'status'  => true,
             'message' => __($message),
             'data'    => $data,
@@ -32,6 +32,12 @@ trait ApiResponserTrait
                 ],
                 ...$additionalMeta
             ],
-        ], $code);
+        ];
+
+        if ($additionalMeta !== null) {
+            $response['meta'] = array_merge($response['meta'], $additionalMeta);
+        }
+
+        return response()->json($response, $code);
     }
 }
