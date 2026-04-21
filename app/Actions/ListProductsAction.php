@@ -22,7 +22,7 @@ class ListProductsAction
 
         if ($dto->categorySlug) {
             $category = $this->productService->findCategoryBySlugOrFail($dto->categorySlug);
-            $descendantsWithSelf = $category->allDescendantIds()->push($category->id);
+            $descendantsWithSelf = $category->allDescendantIds();
 
             $query->whereHas('category', function ($query) use ($descendantsWithSelf) {
                 $query->whereIn('id', $descendantsWithSelf);
