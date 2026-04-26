@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Actions;
+namespace App\Actions\Auth;
 
-use App\DTOs\GetMeDTO;
+use App\DTOs\Auth\GetMeDTO;
 use App\Models\User;
 
 class GetMeAction

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\SocialAuthCallbackAction;
-use App\Actions\SocialAuthRedirectAction;
-use App\DTOs\SocialAuthCallbackDTO;
-use App\DTOs\SocialAuthRedirectDTO;
+use App\Actions\Auth\SocialAuthCallbackAction;
+use App\Actions\Auth\SocialAuthRedirectAction;
+use App\DTOs\Auth\SocialAuthCallbackDTO;
+use App\DTOs\Auth\SocialAuthRedirectDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\SocialAuthCallbackRequest;
 use App\Http\Requests\Auth\SocialAuthRedirectRequest;

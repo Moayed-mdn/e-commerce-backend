@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Actions;
+namespace App\Actions\Auth;
 
-use App\DTOs\SocialAuthRedirectDTO;
+use App\DTOs\SocialAuthCallbackDTO;
 use App\Services\SocialAuthService;
 use Illuminate\Http\RedirectResponse;
 
-class SocialAuthRedirectAction
+class SocialAuthCallbackAction
 {
     public function __construct(
         private SocialAuthService $socialAuthService
     ) {}
 
-    public function execute(SocialAuthRedirectDTO $dto): RedirectResponse
+    public function execute(SocialAuthCallbackDTO $dto): RedirectResponse
     {
         // Currently only Google is supported in the service
-        return $this->socialAuthService->redirect();
+        return $this->socialAuthService->callback();
     }
 }

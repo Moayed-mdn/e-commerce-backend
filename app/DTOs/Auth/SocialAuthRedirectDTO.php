@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\DTOs;
+namespace App\DTOs\Auth;
 
-use App\Http\Requests\Auth\SocialAuthCallbackRequest;
+use App\Http\Requests\Auth\SocialAuthRedirectRequest;
 
-class SocialAuthCallbackDTO
+class SocialAuthRedirectDTO
 {
     public function __construct(
         public string $provider,
     ) {}
 
-    public static function fromRequest(SocialAuthCallbackRequest $request): self
+    public static function fromRequest(SocialAuthRedirectRequest $request): self
     {
         return new self(
             $request->string('provider', 'google')->toString(),

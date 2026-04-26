@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\DTOs;
+namespace App\DTOs\Auth;
 
-use App\Http\Requests\Auth\LogoutRequest;
+use App\Http\Requests\Auth\MeRequest;
 use App\Models\User;
 
-class LogoutDTO
+class GetMeDTO
 {
     public function __construct(
         public User $user,
     ) {}
 
-    public static function fromRequest(LogoutRequest $request): self
+    public static function fromRequest(MeRequest $request): self
     {
         return new self($request->user());
     }

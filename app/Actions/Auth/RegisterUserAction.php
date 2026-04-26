@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Actions;
+namespace App\Actions\Auth;
 
 use App\DTOs\RegisterUserDTO;
 use App\Models\User;
