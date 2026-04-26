@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('cart_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_variant_id')->constrained()->onDelete('cascade');
             $table->integer('quantity')->default(1);
+            $table->decimal('unit_price', 12, 2); // Snapshot of price at add-to-cart
+            $table->json('attributes')->nullable(); // Selected variant attributes
+            $table->softDeletes();
             $table->timestamps();
             
             $table->unique(['cart_id', 'product_variant_id']);

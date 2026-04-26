@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('type')->default('general'); // general, feature, category
+            $table->string('color')->nullable(); // For tag display color
+            $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
 

@@ -21,6 +21,9 @@ return new class extends Migration
             $table->integer('exp_month');
             $table->integer('exp_year');
             $table->boolean('is_default')->default(false);
+            $table->boolean('is_active')->default(true);
+            $table->string('billing_address_id')->nullable(); // Reference to billing address
+            $table->softDeletes();
             $table->timestamps();
         });
     }

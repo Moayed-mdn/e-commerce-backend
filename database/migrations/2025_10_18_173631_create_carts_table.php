@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('session_id')->nullable(); // For guest carts
+            $table->string('currency', 3)->default('USD');
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('expires_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

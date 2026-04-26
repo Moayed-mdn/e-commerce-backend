@@ -17,15 +17,10 @@ return new class extends Migration
             $table->foreignId('attribute_id')->constrained('attributes')->cascadeOnDelete();
             $table->foreignId('attribute_value_id')->constrained('attribute_values')->cascadeOnDelete();
 
-            // The Problem:
-            //$table->unique(['variant_id', 'attribute_value_id'], 'variant_value_unique'); abd WITHOUT  $table->foreignId('attribute_id')->constrained('attributes')->cascadeOnDelete();
-            // This doesn't actually stop a variant from having two colors. It only stops a variant from having the exact same color twice.
-            // It would allow: Variant #1 -> Black AND Variant #1 -> Blue.
-            // This is bad because a single phone variant can't be two colors at once.   
+            // Ensure a variant can't have two colors or two storages (one value per attribute type)
+            $table->unique(['variant_id', 'attribute_id'], 'variant_attribute_unique');
             
-            
-            // Ensure a variant can't have two colors or two storages
-            $table->unique(['variant_id', 'attribute_id'], 'variant_value_unique');
+            $table->timestamps();
         });
     }
 

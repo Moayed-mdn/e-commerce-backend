@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type')->default('shipping'); // shipping, billing
+            $table->enum('type', ['shipping', 'billing', 'both'])->default('shipping');
             $table->boolean('is_default')->default(false);
             $table->string('first_name');
             $table->string('last_name');
@@ -26,6 +26,11 @@ return new class extends Migration
             $table->string('postal_code');
             $table->string('country');
             $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable(); // For delivery calculations
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->text('delivery_instructions')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
