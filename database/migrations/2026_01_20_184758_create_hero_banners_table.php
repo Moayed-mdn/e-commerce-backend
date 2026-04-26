@@ -15,15 +15,21 @@ return new class extends Migration
             $table->id();
             $table->string('cat_url');
             $table->unsignedTinyInteger('position')->default(1);
-            $table->enum('visual_type',['image','gradient']);
+            $table->enum('visual_type', ['image', 'gradient']);
             $table->string('image_path')->nullable();
             $table->string('gradient_from')->nullable();
             $table->string('gradient_to')->nullable();
             
-            //visibility 
+            // Link fields
+            $table->string('link_url')->nullable();
+            $table->string('link_text')->nullable();
+            $table->enum('link_target', ['_self', '_blank'])->default('_self');
+            
+            // Visibility 
             $table->boolean('is_active')->default(true);
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -15,12 +15,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('sku')->unique();
-            $table->decimal('price', 10, 2);
-            $table->integer('quantity');
+            $table->decimal('price', 12, 2);
+            $table->decimal('compare_at_price', 12, 2)->nullable();
+            $table->decimal('cost_price', 12, 2)->nullable();
+            $table->integer('quantity')->default(0);
+            $table->integer('low_stock_threshold')->default(5);
+            $table->boolean('track_inventory')->default(true);
             $table->date('manufacture_date')->nullable();
             $table->date('expiry_date')->nullable();
-            $table->string('batch_number');
+            $table->string('batch_number')->nullable();
+            $table->unsignedTinyInteger('position')->default(0);
             $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

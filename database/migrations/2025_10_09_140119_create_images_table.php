@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('imageable_id');
             $table->string('imageable_type');
-            $table->string('image_url')->default('test');
+            $table->string('image_url');
             $table->string('alt_text')->nullable();
+            $table->string('caption')->nullable();
             $table->boolean('is_primary')->default(false);
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->softDeletes();
             $table->timestamps();
             
             $table->index(['imageable_id', 'imageable_type']);

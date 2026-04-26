@@ -18,10 +18,15 @@ return new class extends Migration
             $table->foreignId('product_variant_id')->constrained()->onDelete('cascade');
             $table->string('product_name');
             $table->string('sku');
-            $table->decimal('unit_price', 10, 2);
-            $table->decimal('unit_discount_percentage',4,2)->default(0.00);
+            $table->decimal('unit_price', 12, 2);
+            $table->decimal('unit_discount_percentage', 4, 2)->default(0.00);
+            $table->decimal('tax_rate', 5, 2)->default(0.00);
+            $table->decimal('tax_amount', 12, 2)->default(0.00);
             $table->integer('quantity');
+            $table->decimal('subtotal', 12, 2);
+            $table->decimal('total', 12, 2);
             $table->json('attributes')->nullable(); // Store variant attributes at time of purchase
+            $table->softDeletes();
             $table->timestamps();
         });
     }

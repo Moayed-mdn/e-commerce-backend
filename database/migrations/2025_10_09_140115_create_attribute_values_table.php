@@ -15,7 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('attribute_id')->constrained()->cascadeOnDelete();
             $table->string('code');
+            $table->string('value')->nullable(); // For color hex codes or other display values
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->softDeletes();
             $table->timestamps();
+
+            $table->unique(['attribute_id', 'code']);
         });
     }
 
