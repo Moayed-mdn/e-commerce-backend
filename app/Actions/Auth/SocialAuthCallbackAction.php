@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
-use App\DTOs\SocialAuthCallbackDTO;
+use App\DTOs\Auth\SocialAuthCallbackDTO;
 use App\Services\SocialAuthService;
 use Illuminate\Http\RedirectResponse;
 

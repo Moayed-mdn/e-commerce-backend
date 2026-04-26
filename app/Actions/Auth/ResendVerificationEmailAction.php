@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
-use App\DTOs\ResendVerificationEmailDTO;
+use App\DTOs\Auth\ResendVerificationEmailDTO;
 use App\Exceptions\Auth\TooManyRequestsException;
 use App\Exceptions\NotFoundException;
 use App\Models\User;

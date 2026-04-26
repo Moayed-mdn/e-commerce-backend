@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
-use App\DTOs\LoginUserDTO;
+use App\DTOs\Auth\LoginUserDTO;
 use App\Exceptions\Auth\InvalidCredentialsException;
 use App\Exceptions\Auth\UnauthorizedException;
 use App\Models\User;

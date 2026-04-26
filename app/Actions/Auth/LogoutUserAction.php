@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
-use App\DTOs\LogoutDTO;
+use App\DTOs\Auth\LogoutDTO;
 
 class LogoutUserAction
 {

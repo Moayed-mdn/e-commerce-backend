@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
-use App\DTOs\VerifyEmailDTO;
+use App\DTOs\Auth\VerifyEmailDTO;
 use App\Exceptions\Auth\EmailVerificationException;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;

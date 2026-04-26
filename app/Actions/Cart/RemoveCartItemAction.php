@@ -2,8 +2,8 @@
 
 namespace App\Actions\Cart;
 
-use App\DTOs\RemoveCartItemDTO;
-use App\Repositories\CartItemRepository;
+use App\DTOs\Cart\RemoveCartItemDTO;
+use App\Repositories\Cart\CartItemRepository;
 
 class RemoveCartItemAction
 {

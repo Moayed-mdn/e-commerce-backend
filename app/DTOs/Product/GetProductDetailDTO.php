@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\DTOs\Product;
 
+use App\Http\Requests\Product\GetProductDetailRequest;
+
 class GetProductDetailDTO
 {
     public function __construct(
         public string $slug,
     ) {}
 
-    public static function fromRequest(string $slug): self
+    public static function fromRequest(GetProductDetailRequest $request): self
     {
-        return new self(slug: $slug);
+        return new self((string) $request->route('slug'));
     }
 }

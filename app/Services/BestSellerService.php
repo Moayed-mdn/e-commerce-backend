@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\DTOs\BestSellerDTO;
-use App\DTOs\ProductCardDTO;
+use App\DTOs\Product\BestSellerDTO;
+use App\DTOs\Product\ProductCardDTO;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Category;

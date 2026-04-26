@@ -2,11 +2,11 @@
 
 namespace App\Actions\Cart;
 
-use App\DTOs\AddToCartDTO;
+use App\DTOs\Cart\AddToCartDTO;
 use App\Exceptions\Order\OutOfStockException;
-use App\Repositories\CartRepository;
-use App\Repositories\CartItemRepository;
-use App\Repositories\ProductVariantRepository;
+use App\Repositories\Cart\CartRepository;
+use App\Repositories\Cart\CartItemRepository;
+use App\Repositories\Product\ProductVariantRepository;
 use Illuminate\Support\Facades\DB;
 
 class AddToCartAction
