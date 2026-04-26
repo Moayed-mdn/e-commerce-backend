@@ -24,28 +24,106 @@ Maintain a clean, scalable, and consistent codebase across teams and AI tools.
 
 ---
 
-# 2. Project Structure
+# 2. Project Structure (Domain-Driven)
+
+Every layer must be grouped by **domain (feature)** before **type**. This is a core principle of this architecture.
+
+### Correct Structure
 
 ```plaintext
 app/
  ├── Actions/
+ │    ├── Cart/
+ │    ├── Auth/
+ │    ├── Order/
+ │    ├── Product/
+ │    ├── Payment/
+ │    ├── (a Domain ....)
+ │
  ├── DTOs/
- ├── Services/
+ │    ├── Cart/
+ │    ├── Auth/
+ │    ├── Order/
+ │    ├── Product/
+ │    ├── Payment/
+ │    ├── (a Domain ....)
+ │
  ├── Repositories/
+ │    ├── Cart/
+ │    ├── Order/
+ │    ├── Product/
+ │    ├── (a Domain ....)
+ │
+ ├── Services/
+ │    ├── Payment/
+ │    ├── (a Domain ....)
+ │
  ├── Http/
  │    ├── Controllers/
+ │    │    ├── Cart/
+ │    │    ├── Auth/
+ │    │    ├── Order/
+ │    │    ├── Product/
+ │    │    ├── Payment/
+ │    │    ├── (a Domain ....)
+ │
  │    ├── Requests/
+ │    │    ├── Cart/
+ │    │    ├── Auth/
+ │    │    ├── Order/
+ │    │    ├── Product/
+ │    │    ├── Payment/
+ │    │    ├── (a Domain ....)
+ │
  │    ├── Resources/
- ├── Models/
- ├── Enums/
- ├── Exceptions/
+ │    │    ├── Cart/
+ │    │    ├── Order/
+ │    │    ├── Product/
+ │    │    ├── (a Domain ....)
 ```
 
-### Rules:
+### Core Rules
 
-* Each layer has **one responsibility only**
-* No cross-layer violations
-* Files MUST be placed in the correct directory
+#### 1. Domain First
+- Every file MUST belong to a domain.
+- Domains reflect business capabilities, not technical types.
+- **Examples**: `Cart`, `Auth`, `Order`, `Product`, `Payment`.
+
+#### 2. No Flat Structures
+- **Forbidden**:
+  ```plaintext
+  Actions/
+   ├── AddToCartAction.php
+   ├── LoginUserAction.php
+   ├── CreateOrderAction.php
+  ```
+- **Required**:
+  ```plaintext
+  Actions/
+   ├── Cart/AddToCartAction.php
+   ├── Auth/LoginUserAction.php
+   ├── Order/CreateOrderAction.php
+  ```
+
+#### 3. Cross-Layer Consistency
+- Each use-case MUST stay within the same domain across all layers.
+- **Example (`Cart` use case):**
+  ```plaintext
+  Http/Requests/Cart/AddToCartRequest.php
+  DTOs/Cart/AddToCartDTO.php
+  Actions/Cart/AddToCartAction.php
+  Repositories/Cart/CartRepository.php
+  Http/Resources/Cart/CartResource.php
+  ```
+
+#### 4. No Cross-Domain Leakage
+- `Cart` MUST NOT contain `Order` logic.
+- `Auth` MUST NOT contain `Payment` logic.
+- If interaction is needed → use **Services**.
+
+#### 5. Services as Cross-Domain Orchestrators
+- Services may coordinate multiple domains.
+- **Example**: `Services/Payment/CheckoutService.php` can orchestrate a flow like: `Cart` → `Order` → `Payment`.
 
 ---
 
