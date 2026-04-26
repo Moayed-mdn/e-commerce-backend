@@ -2,7 +2,7 @@
 
 // routes/api.php — inside your authenticated v1/users group
 
-use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Auth\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // These need auth:sanctum middleware

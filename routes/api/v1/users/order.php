@@ -1,7 +1,7 @@
 <?php
 // routes/api/v1/users/order.php
 
-use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\Order\OrderController;
 use Illuminate\Support\Facades\Route;
 
 // ── Guest order lookup (no auth required) ──
