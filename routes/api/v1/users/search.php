@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Api\Search\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(SearchController::class)

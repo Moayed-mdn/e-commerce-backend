@@ -1,7 +1,7 @@
 <?php
 // routes/api/v1/users/checkout.php
 
-use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\Payment\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
 // Guest checkout (no auth required)

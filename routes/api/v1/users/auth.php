@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\PasswordResetController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\SocialAuthController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
 Route::name('v1.users.auth.')
     ->prefix('/v1/users/auth')
     ->group(function () {

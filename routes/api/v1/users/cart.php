@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\Cart\CartController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')

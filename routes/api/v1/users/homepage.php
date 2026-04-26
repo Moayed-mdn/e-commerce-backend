@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\HomePageController;
+use App\Http\Controllers\Api\Homepage\HomePageController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(HomePageController::class)

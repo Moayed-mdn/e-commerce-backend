@@ -1,34 +1,72 @@
 ```
-# Dependency directories
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Dependencies
+node_modules/
 vendor/
 composer.lock
-
-# Environment files
+*.lock
 .env
 .env.local
 .env.*
 
-# Logs
+# Logs and temp files
 *.log
-
-# Temporary files
 *.tmp
 *.swp
+*.swo
 
-# IDE files
+# Editors
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# OS files
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Tests and coverage
-.coverage
+# Coverage
 coverage/
 htmlcov/
+.coverage
+
+# Build directories
+dist/
+build/
+target/
+.gradle/
+
+# Python specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.Python
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.tox/
 
 # PHP specific
 *.php~
-phpunit.xml
+*.php.bak
+*.bak
+*.orig
+*.rej
+.svn/
+CVS/
 ```
