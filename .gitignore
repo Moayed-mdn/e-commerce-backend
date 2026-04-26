@@ -1,34 +1,22 @@
-```
-# Dependency directories
-vendor/
-composer.lock
-
-# Environment files
-.env
-.env.local
-.env.*
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.swp
-
-# IDE files
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
+.env*
+!.env.example
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
 Thumbs.db
-
-# Tests and coverage
-.coverage
-coverage/
-htmlcov/
-
-# PHP specific
-*.php~
-phpunit.xml
-```
+search_and_print.sh
+.marscode
