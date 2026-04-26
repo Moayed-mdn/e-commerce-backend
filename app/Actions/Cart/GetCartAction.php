@@ -2,10 +2,10 @@
 
 namespace App\Actions\Cart;
 
-use App\DTOs\GetCartDTO;
+use App\DTOs\Cart\GetCartDTO;
 use App\Models\Cart;
 use App\Models\User;
-use App\Repositories\CartRepository;
+use App\Repositories\Cart\CartRepository;
 
 class GetCartAction
 {

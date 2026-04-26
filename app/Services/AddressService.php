@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\DTOs\StoreAddressDTO;
-use App\DTOs\UpdateAddressDTO;
+use App\DTOs\Address\StoreAddressDTO;
+use App\DTOs\Address\UpdateAddressDTO;
 use App\Models\Address;
 use App\Repositories\Address\AddressRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

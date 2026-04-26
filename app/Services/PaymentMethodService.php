@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\DTOs\StorePaymentMethodDTO;
+use App\DTOs\PaymentMethod\StorePaymentMethodDTO;
 use App\Models\PaymentMethod;
-use App\Repositories\PaymentMethodRepository;
+use App\Repositories\PaymentMethod\PaymentMethodRepository;
 use Illuminate\Database\Eloquent\Collection;
 
 class PaymentMethodService

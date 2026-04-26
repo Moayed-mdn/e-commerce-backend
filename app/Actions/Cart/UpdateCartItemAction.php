@@ -2,10 +2,10 @@
 
 namespace App\Actions\Cart;
 
-use App\DTOs\UpdateCartItemDTO;
+use App\DTOs\Cart\UpdateCartItemDTO;
 use App\Exceptions\Order\OutOfStockException;
-use App\Repositories\CartItemRepository;
-use App\Repositories\ProductVariantRepository;
+use App\Repositories\Cart\CartItemRepository;
+use App\Repositories\Product\ProductVariantRepository;
 use Illuminate\Support\Facades\DB;
 
 class UpdateCartItemAction

@@ -4,25 +4,20 @@ declare(strict_types=1);
 
 namespace App\Actions\Product;
 
-use App\Models\Product;
-use App\Repositories\Product\ProductRepository;
 use App\DTOs\Product\GetRelatedProductsDTO;
-use Illuminate\Database\Eloquent\Collection;
+use App\Services\ProductService;
+use Illuminate\Support\Collection;
 
 class GetRelatedProductsAction
 {
     public function __construct(
-        private ProductRepository $productRepository,
+        private ProductService $productService,
     ) {}
 
     public function execute(GetRelatedProductsDTO $dto): Collection
     {
-        $currentProduct = $this->productRepository->findBySlug($dto->slug);
+        $currentProduct = $this->productService->findProductBySlugOrFail($dto->slug);
 
-        if (!$currentProduct) {
-            throw new \App\Exceptions\Product\ProductNotFoundException();
-        }
-
-        return $this->productRepository->findRelatedProducts($currentProduct, $dto->limit);
+        return $this->productService->getRelatedProducts($currentProduct);
     }
 }

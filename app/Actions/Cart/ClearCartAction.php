@@ -2,8 +2,8 @@
 
 namespace App\Actions\Cart;
 
-use App\DTOs\ClearCartDTO;
-use App\Repositories\CartRepository;
+use App\DTOs\Cart\ClearCartDTO;
+use App\Repositories\Cart\CartRepository;
 
 class ClearCartAction
 {

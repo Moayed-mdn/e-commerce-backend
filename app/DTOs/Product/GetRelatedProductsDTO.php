@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\DTOs\Product;
 
+use App\Http\Requests\Product\GetRelatedProductsRequest;
+
 class GetRelatedProductsDTO
 {
     public function __construct(
         public string $slug,
-        public int $limit,
     ) {}
 
-    public static function fromRequest(string $slug, int $limit = 8): self
+    public static function fromRequest(GetRelatedProductsRequest $request): self
     {
-        return new self(slug: $slug, limit: $limit);
+        return new self((string) $request->route('slug'));
     }
 }

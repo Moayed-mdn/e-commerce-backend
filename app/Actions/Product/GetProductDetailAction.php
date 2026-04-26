@@ -4,23 +4,19 @@ declare(strict_types=1);
 
 namespace App\Actions\Product;
 
-use App\Models\Product;
-use App\Repositories\Product\ProductRepository;
 use App\DTOs\Product\GetProductDetailDTO;
+use App\Models\Product;
+use App\Services\ProductService;
 
 class GetProductDetailAction
 {
     public function __construct(
-        private ProductRepository $productRepository,
+        private ProductService $productService,
     ) {}
 
     public function execute(GetProductDetailDTO $dto): Product
     {
-        $product = $this->productRepository->findBySlug($dto->slug);
-
-        if (!$product) {
-            throw new \App\Exceptions\Product\ProductNotFoundException();
-        }
+        $product = $this->productService->findProductBySlugOrFail($dto->slug);
 
         $product->load([
             'translations',
