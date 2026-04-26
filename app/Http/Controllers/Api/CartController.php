@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\AddToCartAction;
-use App\Actions\ClearCartAction;
-use App\Actions\GetCartAction;
-use App\Actions\RemoveCartItemAction;
-use App\Actions\UpdateCartItemAction;
+use App\Actions\Cart\AddToCartAction;
+use App\Actions\Cart\ClearCartAction;
+use App\Actions\Cart\GetCartAction;
+use App\Actions\Cart\RemoveCartItemAction;
+use App\Actions\Cart\UpdateCartItemAction;
 use App\DTOs\AddToCartDTO;
 use App\DTOs\ClearCartDTO;
 use App\DTOs\GetCartDTO;
