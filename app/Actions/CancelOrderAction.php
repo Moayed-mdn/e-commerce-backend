@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Actions;
+namespace App\Actions\Order;
 
 use App\DTOs\CancelOrderDTO;
 use App\Exceptions\Order\OrderCancellationException;
