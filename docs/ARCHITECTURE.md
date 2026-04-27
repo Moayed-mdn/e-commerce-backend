@@ -718,6 +718,380 @@ __('payment.failed')
 
 ---
 
+# 16. Admin & Dashboard Architecture Rules
+
+This section defines the Admin (Dashboard) system architecture, including:
+
+*   Admin APIs
+*   Role & permission system
+*   Admin domains
+*   Authorization strategy
+*   Dashboard analytics
+
+## 16.1 Core Principles
+
+Rules:
+*   Admin is NOT a separate model
+*   Admin = User with role `admin` (via `spatie/laravel-permission`)
+*   Admin APIs are strictly separated
+*   Admin logic MUST NOT pollute user-facing domains
+*   Admin follows the same architecture contract (DTO → Action → Repository → Resource)
+
+## 16.2 API Structure
+
+### Versioned Admin Routes
+
+`/api/v1/admin/...`
+
+### Examples:
+```http
+GET    /api/v1/admin/users
+PATCH  /api/v1/admin/users/{id}/block
+DELETE /api/v1/admin/users/{id}
+POST   /api/v1/admin/products
+PATCH  /api/v1/admin/orders/{id}/status
+GET    /api/v1/admin/dashboard/stats
+```
+
+## 16.3 Folder Structure (Strict Separation)
+
+Admin is treated as a top-level domain wrapper.
+
+```plaintext
+app/
+ ├── Actions/
+ │    ├── Admin/
+ │    │    ├── User/
+ │    │    ├── Product/
+ │    │    ├── Order/
+ │    │    ├── Dashboard/
+ │
+ ├── DTOs/
+ │    ├── Admin/
+ │    │    ├── User/
+ │    │    ├── Product/
+ │    │    ├── Order/
+ │
+ ├── Http/
+ │    ├── Controllers/
+ │    │    ├── Admin/
+ │    │    │    ├── User/
+ │    │    │    ├── Product/
+ │    │    │    ├── Order/
+ │    │    │    ├── Dashboard/
+ │
+ │    ├── Requests/
+ │    │    ├── Admin/
+ │    │    │    ├── User/
+ │    │    │    ├── Product/
+ │    │    │    ├── Order/
+ │
+ │    ├── Resources/
+ │    │    ├── Admin/
+ │    │    │    ├── User/
+ │    │    │    ├── Product/
+ │    │    │    ├── Order/
+ │    │    │    ├── Dashboard/
+```
+
+## 16.4 Role & Permission System
+
+Uses:
+
+*   `spatie/laravel-permission`
+
+### Roles
+*   `admin`        → full access
+*   `sub_admin`    → limited access
+*   `customer`     → default users
+
+### Permission Strategy (Granular)
+
+Required Format:
+`entity.action`
+
+Examples:
+*   `user.view`
+*   `user.block`
+*   `user.delete`
+*   `user.restore`
+*   `product.create`
+*   `product.update`
+*   `product.delete`
+*   `order.view`
+*   `order.update_status`
+*   `order.cancel`
+*   `order.refund`
+
+### Rule: No Hardcoded Strings
+
+Permissions MUST be defined as constants:
+
+```php
+class PermissionEnum
+{
+    public const USER_VIEW = 'user.view';
+    public const USER_BLOCK = 'user.block';
+}
+```
+
+## 16.5 Authorization Strategy (STRICT)
+
+### 1. Middleware (Perimeter)
+
+Used for route protection:
+
+`->middleware('permission:user.view')`
+
+### 2. Policies (Authorization ONLY)
+
+Policies handle:
+
+*   ✔ Who can perform the action
+*   ❌ NO business logic
+
+```php
+public function update(User $user)
+{
+    return $user->hasPermissionTo('product.update');
+}
+```
+
+### 3. Actions (Business Rules)
+
+ALL domain rules go here:
+
+```php
+if ($product->is_locked) {
+    throw new ProductLockedException();
+}
+```
+
+### ❌ Forbidden
+*   Business logic in Policies
+*   Skipping middleware
+*   Authorization inside Controllers
+
+## 16.6 Admin Actions Rules
+
+### Rule: Separate Admin Actions
+`Actions/Admin/Product/CreateProductAction.php`
+
+### Rule: No Logic Duplication
+
+Admin Actions MAY reuse core Actions:
+
+```php
+class AdminCreateProductAction
+{
+    public function __construct(
+        private CreateProductAction $createProduct
+    ) {}
+
+    public function execute(AdminCreateProductDTO $dto)
+    {
+        return $this->createProduct->execute(
+            $dto->toBaseDTO()
+        );
+    }
+}
+```
+
+## 16.7 DTO Rules (Admin)
+
+### Rule: Separate DTOs
+`DTOs/Admin/Product/CreateProductDTO.php`
+
+### Rule: Strict Mapping
+
+Admin DTOs MAY transform into core DTOs:
+
+`public function toBaseDTO(): CreateProductDTO`
+
+### ❌ Forbidden
+*   Reusing user DTOs in admin
+*   Passing Request directly to Actions
+
+## 16.8 User Management Rules
+
+### Customer Management (Admin)
+
+Allowed:
+
+*   ✔ View users
+*   ✔ View details
+*   ✔ Block / Unblock
+*   ✔ Soft delete
+*   ✔ Restore
+
+👉 Yes — this is standard in e-commerce dashboards
+
+### Sub-Admin Management
+
+Allowed:
+
+*   ✔ Create admins
+*   ✔ Update admins
+*   ✔ Assign roles
+*   ✔ Block / Unblock
+*   ✔ Delete / Restore
+
+### Rule: Block Implementation
+```php
+$table->boolean('is_active')->default(true);
+```
+
+### Rule: Soft Deletes (MANDATORY)
+```php
+$table->softDeletes();
+```
+
+### Rule: Repository Scope
+*   Default queries → only active users
+*   Admin queries → may include trashed
+
+## 16.9 Product Management (Complex)
+
+Admin MUST support:
+
+*   Variants (size, color)
+*   Media
+*   Categories
+*   Pricing
+*   Stock
+
+### Rule
+
+Complex operations MUST use:
+
+*   Multiple Actions
+*   OR a Service if orchestration is needed
+
+## 16.10 Order Management
+
+### Supported Operations
+
+*   ✔ View orders
+*   ✔ Change status
+*   ✔ Cancel
+*   ✔ Refund
+
+### Status Enum Example
+*   `pending`
+*   `processing`
+*   `shipped`
+*   `delivered`
+*   `cancelled`
+
+### Rule
+
+Each operation MUST be a separate Action:
+
+*   `UpdateOrderStatusAction`
+*   `CancelOrderAction`
+*   `RefundOrderAction`
+
+## 16.11 Dashboard Domain
+
+### Location
+`Actions/Admin/Dashboard/`
+
+### Responsibilities
+*   Aggregated data ONLY
+*   No business mutations
+
+### Example Actions
+*   `GetDashboardStatsAction`
+*   `GetRevenueStatsAction`
+*   `GetOrdersStatsAction`
+
+### Rule
+
+Dashboard MUST NOT access Models directly
+→ Use Repositories
+
+## 16.12 Soft Delete Strategy
+
+### Rules
+*   All admin-managed entities SHOULD support soft deletes
+*   Admin can:
+    *   View trashed
+    *   Restore
+    *   Force delete (optional)
+
+### Example Actions
+*   `DeleteUserAction`
+*   `RestoreUserAction`
+*   `ForceDeleteUserAction`
+
+## 16.13 Controllers (Admin)
+
+Same strict rules apply:
+
+*   ✔ Thin
+*   ✔ No logic
+*   ✔ Use DTO
+*   ✔ Use `ApiResponserTrait`
+
+### Example
+```php
+class AdminUserController extends Controller
+{
+    public function index(GetUsersRequest $request, GetUsersAction $action)
+    {
+        return $this->paginated(
+            AdminUserResource::collection(
+                $action->execute(
+                    GetUsersDTO::fromRequest($request)
+                )
+            )
+        );
+    }
+}
+```
+
+## 16.14 Resources (Admin)
+
+### Rule
+
+Admin resources MAY differ from user resources
+
+Example:
+
+Admin sees:
+*   `email`
+*   `status`
+*   `roles`
+
+User sees limited data
+
+## 16.15 Security Rules
+
+Required:
+
+*   ✔ Role must be `admin` to access `/admin/*`
+*   ✔ Permissions must be enforced
+*   ✔ Unauthorized access → 403
+
+### ❌ Forbidden
+*   Exposing admin endpoints to normal users
+*   Skipping permission checks
+
+## 16.16 Golden Flow (Admin)
+
+```plaintext
+Request
+ → FormRequest
+ → Admin DTO
+ → Admin Action
+ → (optional) Core Action
+ → Repository
+ → Resource
+ → ApiResponserTrait
+```
+
+---
+
 # Final Note
 
 This architecture is **strict by design**.
