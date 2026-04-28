@@ -1,3 +1,102 @@
+## 🔍 Rules File Audit
+
+I found **4 inconsistencies** between your rules file and your actual code / the prompts we just wrote.
+
+---
+
+### Issue 1 — ErrorCode mismatch in Section 8
+
+**In your rules file:**
+```php
+class UnauthorizedStoreAccessException extends BaseApiException
+{
+    parent::__construct(
+        errorCode: ErrorCode::AUTH_403_STORE->value, // ❌ doesn't exist
+    );
+}
+```
+
+**In Prompt 2 we defined:**
+```php
+case STR_001 = 'STR_001'; // Store not found
+case STR_002 = 'STR_002'; // Unauthorized store access
+```
+
+**Fix:** Update the example in Section 8 to match real ErrorCode values.
+
+---
+
+### Issue 2 — Section 14 example doesn't match your real Cart
+
+Your rules show:
+```php
+// Request field:
+'product_id' => ['required', 'exists:products,id']
+
+// DTO:
+public int $productId,
+```
+
+But your **real code** uses:
+```php
+// Request field:
+'product_variant_id' => 'required|exists:product_variants,id'
+
+// DTO:
+public int $productVariantId,
+```
+
+The example in Section 14 is misleading — it shows a simplified version that doesn't match your actual implementation.
+
+---
+
+### Issue 3 — Controllers structure mismatch in Section 2
+
+**Your rules show:**
+```plaintext
+Http/Controllers/
+ ├── Store/
+ ├── Cart/
+ ├── Auth/
+```
+
+**Your real project has:**
+```plaintext
+Http/Controllers/Api/
+ ├── Cart/
+ ├── Auth/
+ ├── Order/
+```
+
+The `Api/` subfolder is missing from the rules structure diagram.
+
+---
+
+### Issue 4 — Resources are flat in your project but rules show domain-grouped
+
+**Your rules show:**
+```plaintext
+Http/Resources/
+ ├── Cart/
+ ├── Order/
+ ├── Product/
+```
+
+**Your real project has:**
+```plaintext
+Http/Resources/
+ ├── CartResource.php      ← flat
+ ├── OrderResource.php     ← flat
+ ├── ProductResource.php   ← flat
+```
+
+You need to decide: keep flat or migrate to domain-grouped. The rules must match your decision.
+
+---
+
+## ✅ Updated Rules File
+
+```markdown
 # Laravel API Architecture Rules (Project Contract)
 
 This document defines the **mandatory architecture** for this project.
@@ -7,11 +106,13 @@ All contributors (human or AI) MUST follow these rules strictly.
 
 # 1. Core Philosophy
 
-This project follows a strict API-first architecture with clear separation of concerns.
+This project follows a strict API-first architecture with clear 
+separation of concerns.
 
 ### Rules:
 
-* The application is a **pure REST API** (no Blade, no mixed rendering logic)
+* The application is a **pure REST API** (no Blade, no mixed 
+  rendering logic)
 * Controllers must remain **thin and declarative**
 * Business logic MUST NOT exist in Controllers or Models
 * Code must be **predictable, testable, and scalable**
@@ -20,66 +121,96 @@ This project follows a strict API-first architecture with clear separation of co
 
 ### Goal:
 
-Maintain a clean, scalable, and consistent codebase across teams and AI tools.
+Maintain a clean, scalable, and consistent codebase across teams 
+and AI tools.
 
 ---
 
-# 2. Project Structure (Domain-Driven)
+# 2. Project Structure (UPDATED)
 
-Every layer must be grouped by **domain (feature)** before **type**. This is a core principle of this architecture.
+Every layer must be grouped by **domain (feature)** before **type**.
+This is a core principle of this architecture.
 
 ### Correct Structure
 
 ```plaintext
 app/
  ├── Actions/
+ │    ├── Store/
  │    ├── Cart/
  │    ├── Auth/
  │    ├── Order/
  │    ├── Product/
  │    ├── Payment/
- │    ├── (a Domain ....)
+ │    ├── Admin/
+ │    │    ├── User/
+ │    │    ├── Product/
+ │    │    ├── Order/
+ │    │    ├── Dashboard/
+ │    │    ├── Store/
  │
  ├── DTOs/
+ │    ├── Store/
  │    ├── Cart/
  │    ├── Auth/
  │    ├── Order/
  │    ├── Product/
  │    ├── Payment/
- │    ├── (a Domain ....)
+ │    ├── Admin/
+ │    │    ├── User/
+ │    │    ├── Product/
+ │    │    ├── Order/
+ │    │    ├── Store/
  │
  ├── Repositories/
+ │    ├── Store/
  │    ├── Cart/
  │    ├── Order/
  │    ├── Product/
- │    ├── (a Domain ....)
  │
  ├── Services/
  │    ├── Payment/
- │    ├── (a Domain ....)
+ │    ├── Store/
  │
  ├── Http/
  │    ├── Controllers/
- │    │    ├── Cart/
- │    │    ├── Auth/
- │    │    ├── Order/
- │    │    ├── Product/
- │    │    ├── Payment/
- │    │    ├── (a Domain ....)
+ │    │    ├── Api/                    ← REQUIRED subfolder
+ │    │    │    ├── Store/
+ │    │    │    ├── Cart/
+ │    │    │    ├── Auth/
+ │    │    │    ├── Order/
+ │    │    │    ├── Product/
+ │    │    │    ├── Payment/
+ │    │    │    ├── Admin/
+ │    │    │    │    ├── User/
+ │    │    │    │    ├── Product/
+ │    │    │    │    ├── Order/
+ │    │    │    │    ├── Dashboard/
+ │    │    │    │    ├── Store/
  │
  │    ├── Requests/
+ │    │    ├── Store/
  │    │    ├── Cart/
  │    │    ├── Auth/
  │    │    ├── Order/
  │    │    ├── Product/
  │    │    ├── Payment/
- │    │    ├── (a Domain ....)
+ │    │    ├── Admin/
+ │    │    │    ├── User/
+ │    │    │    ├── Product/
+ │    │    │    ├── Order/
+ │    │    │    ├── Store/
  │
  │    ├── Resources/
  │    │    ├── Cart/
  │    │    ├── Order/
  │    │    ├── Product/
- │    │    ├── (a Domain ....)
+ │    │    ├── Admin/
+ │    │    │    ├── User/
+ │    │    │    ├── Product/
+ │    │    │    ├── Order/
+ │    │    │    ├── Dashboard/
+ │    │    │    ├── Store/
 ```
 
 ### Core Rules
@@ -105,25 +236,41 @@ app/
    ├── Order/CreateOrderAction.php
   ```
 
-#### 3. Cross-Layer Consistency
+#### 3. Resources — Flat by Default, Domain When Needed
+- Current Resources are **flat** (no domain subfolder).
+- This is acceptable for simple resources.
+- When a domain has **more than 3 resources**, group them:
+  ```plaintext
+  Resources/
+   ├── CartResource.php         ← simple, stays flat
+   ├── Product/
+   │    ├── ProductResource.php
+   │    ├── ProductCardResource.php
+   │    ├── ProductDetailResource.php
+   │    ├── ProductVariantResource.php
+  ```
+- Admin resources MUST always be domain-grouped.
+
+#### 4. Cross-Layer Consistency
 - Each use-case MUST stay within the same domain across all layers.
 - **Example (`Cart` use case):**
   ```plaintext
-  Http/Requests/Cart/AddToCartRequest.php
+  Http/Requests/Cart/AddItemRequest.php
   DTOs/Cart/AddToCartDTO.php
   Actions/Cart/AddToCartAction.php
   Repositories/Cart/CartRepository.php
-  Http/Resources/Cart/CartResource.php
+  Http/Resources/CartResource.php
   ```
 
-#### 4. No Cross-Domain Leakage
+#### 5. No Cross-Domain Leakage
 - `Cart` MUST NOT contain `Order` logic.
 - `Auth` MUST NOT contain `Payment` logic.
 - If interaction is needed → use **Services**.
 
-#### 5. Services as Cross-Domain Orchestrators
+#### 6. Services as Cross-Domain Orchestrators
 - Services may coordinate multiple domains.
-- **Example**: `Services/Payment/CheckoutService.php` can orchestrate a flow like: `Cart` → `Order` → `Payment`.
+- **Example**: `Services/Payment/CheckoutService.php` can 
+  orchestrate: `Cart` → `Order` → `Payment`.
 
 ---
 
@@ -145,6 +292,7 @@ Controllers are **entry points only**.
 * MUST NOT perform validation
 * MUST NOT handle exceptions manually
 * MUST return responses via `ApiResponserTrait`
+* MUST live under `Http/Controllers/Api/` subfolder
 
 ---
 
@@ -184,6 +332,43 @@ DTOs are **mandatory**.
 * No arrays in business logic
 * Provide `fromRequest()` factory
 
+### 🔥 CRITICAL RULE — Multi-Store DTOs
+
+All store-bound DTOs MUST include:
+
+```php
+public int $storeId;
+```
+
+#### Rules:
+* `store_id` MUST NOT be extracted from the request body
+* `store_id` MUST be injected from the route parameter `{store}`
+* `storeId` MUST be the **first constructor parameter**
+
+#### Example:
+
+```php
+class CreateProductDTO
+{
+    public function __construct(
+        public int $storeId,
+        public string $name,
+        public float $price,
+    ) {}
+
+    public static function fromRequest(
+        CreateProductRequest $request, 
+        int $storeId,
+    ): self {
+        return new self(
+            storeId: $storeId,
+            name: $request->string('name'),
+            price: $request->float('price'),
+        );
+    }
+}
+```
+
 ---
 
 # 6. Repositories
@@ -196,19 +381,35 @@ Repositories are the **only DB access layer**.
 * No business logic inside repositories
 * Return Models or Collections only
 
+### 🔥 HARD RULE — Store Scoping (CRITICAL)
+
+ALL queries MUST be scoped by `store_id`.
+
+#### ❌ Forbidden:
+```php
+Product::all();
+Product::find($id);
+```
+
+#### ✅ Required:
+```php
+Product::where('store_id', $storeId)->get();
+Product::where('store_id', $storeId)->findOrFail($id);
+```
+
+#### Rule:
+Repositories MUST NEVER return cross-store data under any 
+circumstance.
+
 ---
 
 # 7. API Responses
 
 All responses are **centralized and standardized**.
 
----
-
 ## Response System
 
-Uses:
-
-* `ApiResponserTrait`
+Uses `ApiResponserTrait`:
 
 ```php
 abstract class Controller
@@ -216,8 +417,6 @@ abstract class Controller
     use ApiResponserTrait;
 }
 ```
-
----
 
 ## Response Format
 
@@ -242,34 +441,23 @@ abstract class Controller
 }
 ```
 
----
-
 ## Rules
 
 * Controllers MUST use:
-
   * `$this->success()`
   * `$this->paginated()`
 * API Resources are **mandatory**
 * Trait handles structure, Resources handle transformation
 
----
-
 ## Examples
 
 ```php
-return $this->success(
-    new CartResource($cart)
-);
+return $this->success(new CartResource($cart));
 ```
 
 ```php
-return $this->paginated(
-    CartResource::collection($carts)
-);
+return $this->paginated(CartResource::collection($carts));
 ```
-
----
 
 ## Forbidden
 
@@ -283,12 +471,49 @@ return $this->paginated(
 
 Error handling is **centralized and exception-driven**.
 
----
-
 ## ErrorCode Enum
 
 ```plaintext
 app/Enums/ErrorCode.php
+```
+
+### Current Error Codes:
+
+```php
+// --- Authentication (AUTH) ---
+case AUTH_001 = 'AUTH_001'; // Invalid credentials
+case AUTH_002 = 'AUTH_002'; // Unauthorized access
+case AUTH_003 = 'AUTH_003'; // Email not verified
+case AUTH_004 = 'AUTH_004'; // CSRF token mismatch
+case AUTH_005 = 'AUTH_005'; // Password reset failed
+case AUTH_006 = 'AUTH_006'; // Social authentication failed
+case AUTH_007 = 'AUTH_007'; // Email verification failed
+case AUTH_008 = 'AUTH_008'; // Too many requests
+
+// --- Order (ORD) ---
+case ORD_001 = 'ORD_001'; // Order not found
+case ORD_002 = 'ORD_002'; // Order cancellation failed
+case ORD_003 = 'ORD_003'; // Reorder failed
+
+// --- Payment (PMT) ---
+case PMT_001 = 'PMT_001'; // Payment failed
+case PMT_002 = 'PMT_002'; // Out of stock during payment
+case PMT_003 = 'PMT_003'; // Stripe webhook error
+case PMT_004 = 'PMT_004'; // Stripe service error
+
+// --- System (SYS) ---
+case SYS_001 = 'SYS_001'; // Generic server error
+case SYS_002 = 'SYS_002'; // Not Found
+
+// --- Validation (VAL) ---
+case VAL_001 = 'VAL_001'; // Validation failed
+
+// --- Product (PRD) ---
+case PRD_001 = 'PRD_001'; // Product not found
+
+// --- Store (STR) ---
+case STR_001 = 'STR_001'; // Store not found
+case STR_002 = 'STR_002'; // Unauthorized store access
 ```
 
 ### Rules:
@@ -296,8 +521,6 @@ app/Enums/ErrorCode.php
 * ALL errors MUST use `ErrorCode`
 * No hardcoded error codes
 * Acts as contract with frontend
-
----
 
 ## Custom Exceptions
 
@@ -307,18 +530,47 @@ app/Exceptions/
  ├── Auth/
  ├── Order/
  ├── Payment/
+ ├── Product/
+ ├── System/
+ ├── Store/
+ │    ├── StoreNotFoundException.php
+ │    └── UnauthorizedStoreAccessException.php
 ```
 
 ### Rules:
 
 * Extend `BaseApiException`
-* Define:
+* Define: message, status code, error code
 
-  * message
-  * status code
-  * error code
+## Required Store Exceptions
 
----
+```php
+class StoreNotFoundException extends BaseApiException
+{
+    public function __construct()
+    {
+        parent::__construct(
+            message: __('error.store_not_found'),
+            statusCode: 404,
+            errorCode: ErrorCode::STR_001->value,
+        );
+    }
+}
+```
+
+```php
+class UnauthorizedStoreAccessException extends BaseApiException
+{
+    public function __construct()
+    {
+        parent::__construct(
+            message: __('error.unauthorized_store'),
+            statusCode: 403,
+            errorCode: ErrorCode::STR_002->value,
+        );
+    }
+}
+```
 
 ## Exception Registration
 
@@ -327,8 +579,6 @@ app/Exceptions/
     app(ExceptionRegistrar::class)->handle($exceptions);
 })
 ```
-
----
 
 ## Error Response Format
 
@@ -341,12 +591,9 @@ app/Exceptions/
 }
 ```
 
----
-
 ## Handled Cases
 
 ### Business Exceptions
-
 ```php
 if ($e instanceof BaseApiException) {
     return $e->render(request());
@@ -354,7 +601,6 @@ if ($e instanceof BaseApiException) {
 ```
 
 ### Validation
-
 ```php
 if ($e instanceof ValidationException) {
     return response()->json([
@@ -367,20 +613,18 @@ if ($e instanceof ValidationException) {
 ```
 
 ### HTTP
-
 ```php
 if ($e instanceof HttpExceptionInterface) {
     return response()->json([
         'status' => false,
         'message' => $e->getMessage(),
-        'error_code' => ErrorCode::HTTP_GENERIC->value,
+        'error_code' => ErrorCode::SYS_002->value,
         'errors' => null,
     ], $e->getStatusCode());
 }
 ```
 
 ### System
-
 ```php
 Log::error($e);
 
@@ -394,8 +638,6 @@ return response()->json([
 ], 500);
 ```
 
----
-
 ## Rules
 
 * No try/catch in Controllers
@@ -404,29 +646,26 @@ return response()->json([
 * No sensitive data exposure
 * No hardcoded error codes
 
----
-
 ## Example: OutOfStockException
 
 ```php
 class OutOfStockException extends BaseApiException
 {
-    public function __construct()
+    public function __construct(string $message = '')
     {
         parent::__construct(
-            message: __('order.out_of_stock'),
-            errorCode: ErrorCode::ORDER_OUT_OF_STOCK->value,
-            statusCode: 400
+            message: $message ?: __('order.out_of_stock'),
+            statusCode: 400,
+            errorCode: ErrorCode::PMT_002->value,
         );
     }
 }
 ```
 
 Usage:
-
 ```php
-if ($product->stock < $dto->quantity) {
-    throw new OutOfStockException();
+if ($variant->quantity < $dto->quantity) {
+    throw new OutOfStockException(__('cart.not_enough_stock'));
 }
 ```
 
@@ -450,6 +689,7 @@ Handled via FormRequest only.
 * Requests → `UseCaseRequest`
 * Resources → `EntityResource`
 * Repositories → `EntityRepository`
+* Controllers → `EntityController` (under `Api/` subfolder)
 
 ---
 
@@ -461,6 +701,9 @@ Handled via FormRequest only.
 * Direct `request()` usage
 * Raw arrays or Models in responses
 * Layer mixing
+* Queries without `store_id` constraint 
+  (except super_admin global analytics)
+* Debug/test routes in `api.php` (`/test`, `/test-mailtrap`)
 
 ---
 
@@ -477,9 +720,9 @@ Handled via FormRequest only.
 ```plaintext
 Request
  → FormRequest
- → DTO
+ → DTO (with storeId from route)
  → Action
- → Repository
+ → Repository (store-scoped)
  → Resource
  → ApiResponserTrait
 ```
@@ -495,27 +738,31 @@ No step may be skipped.
 ## Route
 
 ```plaintext
-POST /api/cart/items
+POST /api/v1/stores/{store}/cart/items
 ```
-
----
 
 ## Form Request
 
 ```php
-class AddToCartRequest extends FormRequest
+class AddItemRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'exists:products,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
+            'product_variant_id' => [
+                'required', 
+                'exists:product_variants,id',
+            ],
+            'quantity' => [
+                'required', 
+                'integer', 
+                'min:1', 
+                'max:10',
+            ],
         ];
     }
 }
 ```
-
----
 
 ## DTO
 
@@ -523,45 +770,59 @@ class AddToCartRequest extends FormRequest
 class AddToCartDTO
 {
     public function __construct(
-        public int $productId,
+        public int $storeId,
+        public int $productVariantId,
         public int $quantity,
         public int $userId,
     ) {}
 
-    public static function fromRequest(AddToCartRequest $request): self
-    {
+    public static function fromRequest(
+        AddItemRequest $request,
+        int $storeId,
+    ): self {
         return new self(
-            $request->integer('product_id'),
-            $request->integer('quantity'),
-            $request->user()->id,
+            storeId: $storeId,
+            productVariantId: $request->integer(
+                'product_variant_id'
+            ),
+            quantity: $request->integer('quantity'),
+            userId: $request->user()->id,
         );
     }
 }
 ```
-
----
 
 ## Repository
 
 ```php
 class CartRepository
 {
-    public function getUserCart(int $userId): Cart
-    {
-        return Cart::firstOrCreate(['user_id' => $userId]);
+    public function getOrCreate(
+        User $user, 
+        int $storeId,
+    ): Cart {
+        return Cart::firstOrCreate(
+            [
+                'user_id'  => $user->id,
+                'store_id' => $storeId,
+            ],
+            [
+                'user_id'  => $user->id,
+                'store_id' => $storeId,
+            ]
+        );
     }
 
-    public function addItem(Cart $cart, int $productId, int $quantity): CartItem
-    {
-        return $cart->items()->updateOrCreate(
-            ['product_id' => $productId],
-            ['quantity' => DB::raw("quantity + $quantity")]
-        );
+    public function findByUser(
+        User $user, 
+        int $storeId,
+    ): ?Cart {
+        return Cart::where('user_id', $user->id)
+            ->where('store_id', $storeId)
+            ->first();
     }
 }
 ```
-
----
 
 ## Action
 
@@ -569,45 +830,86 @@ class CartRepository
 class AddToCartAction
 {
     public function __construct(
-        private CartRepository $cartRepository
+        private CartRepository $cartRepository,
+        private CartItemRepository $cartItemRepository,
+        private ProductVariantRepository $productVariantRepository,
     ) {}
 
     public function execute(AddToCartDTO $dto): Cart
     {
-        $cart = $this->cartRepository->getUserCart($dto->userId);
+        return DB::transaction(function () use ($dto) {
+            $user = User::findOrFail($dto->userId);
 
-        $this->cartRepository->addItem(
-            $cart,
-            $dto->productId,
-            $dto->quantity
-        );
+            $cart = $this->cartRepository->getOrCreate(
+                $user,
+                $dto->storeId,
+            );
 
-        return $cart->load('items.product');
+            $variant = $this->productVariantRepository
+                ->findWithLock($dto->productVariantId);
+
+            if (!$variant->is_active 
+                || $variant->quantity < $dto->quantity) {
+                throw new OutOfStockException(
+                    __('cart.variant_not_available')
+                );
+            }
+
+            $existingItem = $this->cartItemRepository
+                ->findByCartAndVariant(
+                    $cart,
+                    $dto->productVariantId,
+                );
+
+            if ($existingItem) {
+                $newQty = $existingItem->quantity 
+                    + $dto->quantity;
+
+                if ($variant->quantity < $newQty) {
+                    throw new OutOfStockException(
+                        __('cart.not_enough_stock')
+                    );
+                }
+
+                $this->cartItemRepository->updateQuantity(
+                    $existingItem,
+                    $newQty,
+                );
+            } else {
+                $this->cartItemRepository->create(
+                    $cart,
+                    $dto->productVariantId,
+                    $dto->quantity,
+                );
+            }
+
+            return $cart->load(['items.productVariant']);
+        });
     }
 }
 ```
-
----
 
 ## Controller
 
 ```php
 class CartController extends Controller
 {
-    public function store(AddToCartRequest $request, AddToCartAction $action)
-    {
-        $cart = $action->execute(
-            AddToCartDTO::fromRequest($request)
+    public function __construct(
+        private AddToCartAction $addToCartAction,
+    ) {}
+
+    public function addItem(
+        AddItemRequest $request,
+        int $store,
+    ): JsonResponse {
+        $cart = $this->addToCartAction->execute(
+            AddToCartDTO::fromRequest($request, $store)
         );
 
-        return $this->success(
-            new CartResource($cart)
-        );
+        return $this->success(new CartResource($cart));
     }
 }
 ```
-
----
 
 ## Resource
 
@@ -617,24 +919,26 @@ class CartResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id' => $this->id,
-            'items' => CartItemResource::collection($this->items),
-            'total' => $this->items->sum(
-                fn($item) => $item->price * $item->quantity
+            'id'          => $this->id,
+            'items'       => CartItemResource::collection(
+                $this->items
+            ),
+            'total_items' => $this->items->sum('quantity'),
+            'total_price' => $this->items->sum(
+                fn($item) => $item->quantity 
+                    * $item->productVariant->price
             ),
         ];
     }
 }
 ```
 
----
-
 ## Key Takeaways
 
 * Thin Controller
-* DTO enforced
-* Business logic isolated
-* Repository used
+* DTO enforced with `storeId` from route
+* Business logic isolated in Action
+* Repository scoped by `store_id`
 * Resource + Trait used
 * Flow respected
 
@@ -647,8 +951,6 @@ The project supports multiple languages:
 * English (`en`)
 * Arabic (`ar`)
 
----
-
 ## Language Structure
 
 ```plaintext
@@ -659,17 +961,17 @@ lang/
  │    ├── order.php
  │    ├── payment.php
  │    ├── error.php
- │    ├── validation.php
+ │    ├── general.php
+ │    ├── services.php
  ├── ar/
  │    ├── auth.php
  │    ├── cart.php
  │    ├── order.php
  │    ├── payment.php
  │    ├── error.php
- │    ├── validation.php
+ │    ├── general.php
+ │    ├── services.php
 ```
-
----
 
 ## Rules
 
@@ -677,15 +979,15 @@ lang/
 * Use Laravel `__()` helper
 * No hardcoded strings anywhere in the codebase
 
----
-
-## Example
+## Examples
 
 ```php
 __('order.out_of_stock')
+__('error.unauthorized_store')
+__('error.store_not_found')
+__('cart.variant_not_available')
+__('cart.not_enough_stock')
 ```
-
----
 
 ## Middleware
 
@@ -695,197 +997,191 @@ Locale is resolved via middleware:
 * Falls back to supported locales
 * Defaults to `config('app.locale')`
 
----
-
 ## Naming Convention
-
-* Use domain-based keys:
 
 ```php
 __('order.out_of_stock')
 __('cart.item_added')
 __('auth.invalid_credentials')
 __('payment.failed')
+__('error.unauthorized_store')
+__('error.store_not_found')
 ```
-
----
-
-## Goal
-
-* Centralize all messages
-* Enable multilingual support
-* Keep consistency across API responses
 
 ---
 
 # 16. Admin & Dashboard Architecture Rules
 
-This section defines the Admin (Dashboard) system architecture, including:
-
-*   Admin APIs
-*   Role & permission system
-*   Admin domains
-*   Authorization strategy
-*   Dashboard analytics
-
 ## 16.1 Core Principles
 
 Rules:
-*   Admin is NOT a separate model
-*   Admin = User with role `admin` (via `spatie/laravel-permission`)
-*   Admin APIs are strictly separated
-*   Admin logic MUST NOT pollute user-facing domains
-*   Admin follows the same architecture contract (DTO → Action → Repository → Resource)
+* Admin is NOT a separate model
+* Admin = User with role via `spatie/laravel-permission`
+* Admin APIs are strictly separated
+* Admin logic MUST NOT pollute user-facing domains
+* Admin follows same architecture contract
+* Admin MUST be store-aware at all times
 
 ## 16.2 API Structure
 
-### Versioned Admin Routes
+All admin endpoints MUST include the store context:
 
-`/api/v1/admin/...`
+```http
+/api/v1/admin/stores/{store}/...
+```
 
 ### Examples:
 ```http
-GET    /api/v1/admin/users
-PATCH  /api/v1/admin/users/{id}/block
-DELETE /api/v1/admin/users/{id}
-POST   /api/v1/admin/products
-PATCH  /api/v1/admin/orders/{id}/status
-GET    /api/v1/admin/dashboard/stats
+GET    /api/v1/admin/stores/{store}/users
+PATCH  /api/v1/admin/stores/{store}/users/{id}/block
+DELETE /api/v1/admin/stores/{store}/users/{id}
+POST   /api/v1/admin/stores/{store}/products
+PATCH  /api/v1/admin/stores/{store}/orders/{id}/status
+GET    /api/v1/admin/stores/{store}/dashboard/stats
 ```
 
-## 16.3 Folder Structure (Strict Separation)
+#### ❌ Forbidden:
+```http
+/api/v1/admin/users
+/api/v1/admin/products
+/api/v1/admin/orders
+```
 
-Admin is treated as a top-level domain wrapper.
+## 16.3 Folder Structure
 
 ```plaintext
 app/
- ├── Actions/
- │    ├── Admin/
+ ├── Actions/Admin/
+ │    ├── User/
+ │    ├── Product/
+ │    ├── Order/
+ │    ├── Dashboard/
+ │    ├── Store/
+ │
+ ├── DTOs/Admin/
+ │    ├── User/
+ │    ├── Product/
+ │    ├── Order/
+ │    ├── Store/
+ │
+ ├── Http/
+ │    ├── Controllers/Api/Admin/
  │    │    ├── User/
  │    │    ├── Product/
  │    │    ├── Order/
  │    │    ├── Dashboard/
- │
- ├── DTOs/
- │    ├── Admin/
+ │    │    ├── Store/
+ │    │
+ │    ├── Requests/Admin/
  │    │    ├── User/
  │    │    ├── Product/
  │    │    ├── Order/
- │
- ├── Http/
- │    ├── Controllers/
- │    │    ├── Admin/
- │    │    │    ├── User/
- │    │    │    ├── Product/
- │    │    │    ├── Order/
- │    │    │    ├── Dashboard/
- │
- │    ├── Requests/
- │    │    ├── Admin/
- │    │    │    ├── User/
- │    │    │    ├── Product/
- │    │    │    ├── Order/
- │
- │    ├── Resources/
- │    │    ├── Admin/
- │    │    │    ├── User/
- │    │    │    ├── Product/
- │    │    │    ├── Order/
- │    │    │    ├── Dashboard/
+ │    │    ├── Store/
+ │    │
+ │    ├── Resources/Admin/
+ │    │    ├── User/
+ │    │    ├── Product/
+ │    │    ├── Order/
+ │    │    ├── Dashboard/
+ │    │    ├── Store/
 ```
 
 ## 16.4 Role & Permission System
 
-Uses:
-
-*   `spatie/laravel-permission`
+Uses `spatie/laravel-permission`.
 
 ### Roles
-*   `admin`        → full access
-*   `sub_admin`    → limited access
-*   `customer`     → default users
 
-### Permission Strategy (Granular)
+#### Platform:
+* `super_admin` → full global access, bypasses store restrictions
 
-Required Format:
-`entity.action`
+#### Store:
+* `store_admin` → full access within a store
+* `staff` → limited access within a store
 
-Examples:
-*   `user.view`
-*   `user.block`
-*   `user.delete`
-*   `user.restore`
-*   `product.create`
-*   `product.update`
-*   `product.delete`
-*   `order.view`
-*   `order.update_status`
-*   `order.cancel`
-*   `order.refund`
+#### Customer:
+* `customer` → default users
 
-### Rule: No Hardcoded Strings
-
-Permissions MUST be defined as constants:
+### Permission Format: `entity.action`
 
 ```php
 class PermissionEnum
 {
-    public const USER_VIEW = 'user.view';
-    public const USER_BLOCK = 'user.block';
+    public const USER_VIEW          = 'user.view';
+    public const USER_BLOCK         = 'user.block';
+    public const USER_DELETE        = 'user.delete';
+    public const USER_RESTORE       = 'user.restore';
+    public const PRODUCT_CREATE     = 'product.create';
+    public const PRODUCT_UPDATE     = 'product.update';
+    public const PRODUCT_DELETE     = 'product.delete';
+    public const ORDER_VIEW         = 'order.view';
+    public const ORDER_UPDATE_STATUS = 'order.update_status';
+    public const ORDER_CANCEL       = 'order.cancel';
+    public const ORDER_REFUND       = 'order.refund';
 }
 ```
 
-## 16.5 Authorization Strategy (STRICT)
+### 🔥 Store-Scoped Permissions
 
-### 1. Middleware (Perimeter)
-
-Used for route protection:
-
-`->middleware('permission:user.view')`
-
-### 2. Policies (Authorization ONLY)
-
-Policies handle:
-
-*   ✔ Who can perform the action
-*   ❌ NO business logic
-
+#### ❌ Forbidden:
 ```php
-public function update(User $user)
-{
-    return $user->hasPermissionTo('product.update');
+hasPermissionTo('product.update')
+```
+
+#### ✅ Required:
+```php
+hasPermissionTo('product.update', $storeId)
+```
+
+## 16.5 Authorization Strategy
+
+### Middleware Stack (ALL admin routes)
+```php
+->middleware([
+    'auth:sanctum',
+    'store.context',
+    'permission:product.view',
+])
+```
+
+### Store Membership Check (in Actions)
+```php
+if (!$user->stores()->where('store_id', $storeId)->exists()) {
+    throw new UnauthorizedStoreAccessException();
 }
 ```
 
-### 3. Actions (Business Rules)
+**Exception**: `super_admin` bypasses this check.
 
-ALL domain rules go here:
+### Policies (permission check ONLY — no business logic)
+```php
+public function update(User $user, int $storeId)
+{
+    return $user->hasPermissionTo(
+        'product.update', 
+        $storeId,
+    );
+}
+```
 
+### Actions (business rules ONLY)
 ```php
 if ($product->is_locked) {
     throw new ProductLockedException();
 }
 ```
 
-### ❌ Forbidden
-*   Business logic in Policies
-*   Skipping middleware
-*   Authorization inside Controllers
-
 ## 16.6 Admin Actions Rules
 
-### Rule: Separate Admin Actions
+### Separate Admin Actions
 `Actions/Admin/Product/CreateProductAction.php`
 
-### Rule: No Logic Duplication
-
-Admin Actions MAY reuse core Actions:
-
+### Admin Actions MAY reuse core Actions:
 ```php
 class AdminCreateProductAction
 {
     public function __construct(
-        private CreateProductAction $createProduct
+        private CreateProductAction $createProduct,
     ) {}
 
     public function execute(AdminCreateProductDTO $dto)
@@ -899,150 +1195,82 @@ class AdminCreateProductAction
 
 ## 16.7 DTO Rules (Admin)
 
-### Rule: Separate DTOs
-`DTOs/Admin/Product/CreateProductDTO.php`
+* Separate DTOs: `DTOs/Admin/Product/CreateProductDTO.php`
+* All Admin DTOs MUST include `storeId` as first parameter
+* Admin DTOs MAY transform into core DTOs via `toBaseDTO()`
 
-### Rule: Strict Mapping
+#### ❌ Forbidden:
+* Reusing user DTOs in admin
+* Admin DTOs without `storeId`
 
-Admin DTOs MAY transform into core DTOs:
-
-`public function toBaseDTO(): CreateProductDTO`
-
-### ❌ Forbidden
-*   Reusing user DTOs in admin
-*   Passing Request directly to Actions
-
-## 16.8 User Management Rules
+## 16.8 User Management
 
 ### Customer Management (Admin)
-
-Allowed:
-
-*   ✔ View users
-*   ✔ View details
-*   ✔ Block / Unblock
-*   ✔ Soft delete
-*   ✔ Restore
-
-👉 Yes — this is standard in e-commerce dashboards
+* ✔ View (store-scoped)
+* ✔ Block / Unblock
+* ✔ Soft delete / Restore
 
 ### Sub-Admin Management
+* ✔ Create / Update
+* ✔ Assign roles (store-scoped)
+* ✔ Block / Unblock / Delete / Restore
 
-Allowed:
-
-*   ✔ Create admins
-*   ✔ Update admins
-*   ✔ Assign roles
-*   ✔ Block / Unblock
-*   ✔ Delete / Restore
-
-### Rule: Block Implementation
+### Rules:
 ```php
 $table->boolean('is_active')->default(true);
-```
-
-### Rule: Soft Deletes (MANDATORY)
-```php
 $table->softDeletes();
 ```
 
-### Rule: Repository Scope
-*   Default queries → only active users
-*   Admin queries → may include trashed
+## 16.9 Product Management
 
-## 16.9 Product Management (Complex)
+Admin MUST support: Variants, Media, Categories, 
+Pricing, Stock.
 
-Admin MUST support:
-
-*   Variants (size, color)
-*   Media
-*   Categories
-*   Pricing
-*   Stock
-
-### Rule
-
-Complex operations MUST use:
-
-*   Multiple Actions
-*   OR a Service if orchestration is needed
+Complex operations → Multiple Actions OR a Service.
 
 ## 16.10 Order Management
 
-### Supported Operations
-
-*   ✔ View orders
-*   ✔ Change status
-*   ✔ Cancel
-*   ✔ Refund
-
-### Status Enum Example
-*   `pending`
-*   `processing`
-*   `shipped`
-*   `delivered`
-*   `cancelled`
-
-### Rule
-
-Each operation MUST be a separate Action:
-
-*   `UpdateOrderStatusAction`
-*   `CancelOrderAction`
-*   `RefundOrderAction`
+Operations (each = separate Action):
+* `UpdateOrderStatusAction`
+* `CancelOrderAction`
+* `RefundOrderAction`
 
 ## 16.11 Dashboard Domain
 
-### Location
-`Actions/Admin/Dashboard/`
+Location: `Actions/Admin/Dashboard/`
 
-### Responsibilities
-*   Aggregated data ONLY
-*   No business mutations
+### Store Dashboard (store-scoped):
+* Revenue, Orders, Customers per store
 
-### Example Actions
-*   `GetDashboardStatsAction`
-*   `GetRevenueStatsAction`
-*   `GetOrdersStatsAction`
+### Global Dashboard (super_admin only):
+* Total revenue, Total stores, System stats
 
-### Rule
-
-Dashboard MUST NOT access Models directly
-→ Use Repositories
+Dashboard MUST use Repositories, NOT direct Model access.
 
 ## 16.12 Soft Delete Strategy
 
-### Rules
-*   All admin-managed entities SHOULD support soft deletes
-*   Admin can:
-    *   View trashed
-    *   Restore
-    *   Force delete (optional)
+Soft delete queries MUST include `store_id`:
 
-### Example Actions
-*   `DeleteUserAction`
-*   `RestoreUserAction`
-*   `ForceDeleteUserAction`
+```php
+Product::withTrashed()
+    ->where('store_id', $storeId)
+    ->get();
+```
 
-## 16.13 Controllers (Admin)
+## 16.13 Admin Controllers
 
-Same strict rules apply:
-
-*   ✔ Thin
-*   ✔ No logic
-*   ✔ Use DTO
-*   ✔ Use `ApiResponserTrait`
-
-### Example
 ```php
 class AdminUserController extends Controller
 {
-    public function index(GetUsersRequest $request, GetUsersAction $action)
-    {
+    public function index(
+        GetUsersRequest $request,
+        int $store,
+        GetUsersAction $action,
+    ) {
         return $this->paginated(
             AdminUserResource::collection(
                 $action->execute(
-                    GetUsersDTO::fromRequest($request)
+                    GetUsersDTO::fromRequest($request, $store)
                 )
             )
         );
@@ -1050,44 +1278,206 @@ class AdminUserController extends Controller
 }
 ```
 
-## 16.14 Resources (Admin)
+## 16.14 Admin Resources
 
-### Rule
+Admin resources MUST be domain-grouped and MAY differ 
+from user resources.
 
-Admin resources MAY differ from user resources
-
-Example:
-
-Admin sees:
-*   `email`
-*   `status`
-*   `roles`
-
-User sees limited data
+Admin sees: `email`, `status`, `roles`, `store_id`  
+User sees: limited data only
 
 ## 16.15 Security Rules
 
-Required:
+* ✔ Role must be `store_admin` or `super_admin`
+* ✔ Permissions must be store-scoped
+* ✔ Store membership validated on every request
+* ✔ Unauthorized → 403
 
-*   ✔ Role must be `admin` to access `/admin/*`
-*   ✔ Permissions must be enforced
-*   ✔ Unauthorized access → 403
+## 16.16 Super Admin Rules
 
-### ❌ Forbidden
-*   Exposing admin endpoints to normal users
-*   Skipping permission checks
+* ✔ Access ALL stores
+* ✔ Bypass store membership check
+* ✔ Access global dashboard
 
-## 16.16 Golden Flow (Admin)
+## 16.17 Golden Flow (Admin)
 
 ```plaintext
 Request
+ → auth:sanctum
+ → store.context middleware
+ → permission middleware (store-scoped)
  → FormRequest
- → Admin DTO
+ → Admin DTO (storeId from route)
+ → Store Membership Check (in Action)
  → Admin Action
  → (optional) Core Action
- → Repository
- → Resource
+ → Repository (store-scoped)
+ → Admin Resource
  → ApiResponserTrait
+```
+
+---
+
+# 17. Multi-Store Architecture Rules
+
+## 17.1 Core Principle
+
+Multi-tenant (single database, shared schema).
+
+Rules:
+* Every business entity MUST belong to a Store
+* Store isolation is mandatory
+* No data leakage between stores
+* Store context MUST exist in every request
+* Must support future marketplace extension
+
+## 17.2 Store Ownership Model
+
+User ↔ Store is **MANY-TO-MANY**.
+
+### Tables:
+* `users`
+* `stores`
+* `store_user` (pivot)
+
+### Pivot columns:
+```php
+$table->foreignId('store_id')
+      ->constrained('stores')
+      ->cascadeOnDelete();
+$table->foreignId('user_id')
+      ->constrained('users')
+      ->cascadeOnDelete();
+$table->enum('role', ['store_admin', 'staff']);
+$table->unique(['store_id', 'user_id']);
+```
+
+## 17.3 Required Tables
+
+* `stores` (with `owner_id`, `slug`, `is_active`, softDeletes)
+* `store_user` (pivot with role)
+
+## 17.4 Required store_id Columns (STRICT)
+
+ALL of the following MUST include `store_id`:
+
+* `products`
+* `orders`
+* `carts`
+* `cart_items` 🔥
+* `addresses`
+* `reviews`
+* `categories` *(recommended)*
+
+## 17.5 Route Structure (ENFORCED)
+
+```plaintext
+/api/v1/stores/{store}/...
+/api/v1/admin/stores/{store}/...
+```
+
+#### ❌ Forbidden:
+```plaintext
+/api/v1/products
+/api/v1/orders
+/api/v1/admin/users
+```
+
+## 17.6 StoreContext Middleware
+
+```php
+class StoreContext
+{
+    public function handle(Request $request, Closure $next): mixed
+    {
+        $storeId = $request->route('store');
+
+        $store = Store::where('id', $storeId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$store) {
+            throw new StoreNotFoundException();
+        }
+
+        app()->instance('storeId', $store->id);
+        app()->instance('currentStore', $store);
+
+        return $next($request);
+    }
+}
+```
+
+Registered as alias in `bootstrap/app.php`:
+```php
+$middleware->alias([
+    'store.context' => StoreContext::class,
+]);
+```
+
+## 17.7 Authorization Layers
+
+### 1. Middleware
+```php
+->middleware(['auth:sanctum', 'store.context', 'permission:x'])
+```
+
+### 2. Store Membership (in Actions)
+```php
+if (!$user->stores()->where('store_id', $storeId)->exists()) {
+    throw new UnauthorizedStoreAccessException();
+}
+```
+
+### 3. Policies → permission check only
+### 4. Actions → business logic only
+
+## 17.8 Roles
+
+| Scope    | Role          | Access                        |
+|----------|---------------|-------------------------------|
+| Platform | `super_admin` | All stores, bypass all checks |
+| Store    | `store_admin` | Full access within store      |
+| Store    | `staff`       | Limited access within store   |
+| Default  | `customer`    | Customer-facing actions only  |
+
+## 17.9 Super Admin Exception
+
+Super admin global analytics are the **only exception** 
+to the `store_id` constraint.
+
+## 17.10 Soft Deletes
+
+Even trashed queries MUST include `store_id`:
+
+```php
+Model::withTrashed()
+    ->where('store_id', $storeId)
+    ->get();
+```
+
+## 17.11 Future Marketplace Compatibility
+
+Architecture MUST allow:
+* `vendors`
+* `shared_products`
+* `store_products` (mapping table)
+
+---
+
+## 🚨 FINAL HARD RULES
+
+```
+NO QUERY MAY EXECUTE WITHOUT store_id CONSTRAINT.
+EXCEPTION: super_admin global analytics ONLY.
+
+NO PERMISSION CHECK MAY EXECUTE WITHOUT STORE SCOPE.
+EXCEPTION: super_admin role check ONLY.
+
+NO ADMIN ROUTE MAY EXIST WITHOUT {store} IN THE PATH.
+EXCEPTION: super_admin global routes ONLY.
+
+NO DEBUG OR TEST ROUTES IN api.php.
 ```
 
 ---
@@ -1102,3 +1492,4 @@ If a feature does not fit:
 * Extend the architecture properly
 
 Consistency > convenience.
+```
