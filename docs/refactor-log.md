@@ -149,64 +149,37 @@
 - FilterProductsByCategoryDTO had slug as first positional param, now storeId is first
 
 ---
-## Enforce Strict Multi-Store Scoping in Repositories and Actions — 2026-04-29
+## Update Services to Accept and Pass StoreId — 2026-04-29
 ### What I Did:
-- Updated OrderRepository to add store_id scoping to all methods
-- Updated ProductRepository to add store_id scoping to all methods
-- Updated ProductVariantRepository to add store_id scoping to all methods
-- Updated AddressRepository to add store_id scoping to all methods
-- Updated CategoryRepository to add store_id scoping to all methods
-- Updated CreateOrderAction to pass storeId to repository methods
-- Updated GetOrderAction to pass storeId to repository methods
-- Updated ListOrdersAction to pass storeId to repository methods
-- Updated CancelOrderAction to pass storeId to repository methods
-- Updated ListProductsAction to pass storeId to ProductService calls
-- Updated GetProductDetailAction to pass storeId to ProductService calls
-- Updated FilterProductsAction to pass storeId to repository methods
-- Updated FilterProductsByCategoryAction to pass storeId to repository methods
-- Updated GetRelatedProductsAction to pass storeId to ProductService calls
-- Updated GetBestSellersAction to pass storeId to BestSellerService calls
-- Updated StoreAddressAction to pass storeId to AddressService calls
-- Updated UpdateAddressAction to pass storeId to repository methods
-- Updated DeleteAddressAction to pass storeId to repository methods
-- Updated ListAddressesAction to pass storeId to AddressService calls
-- Updated SetDefaultAddressAction to pass storeId to repository methods
+- Updated ProductService to accept storeId in methods that call repositories
+- Updated BestSellerService to accept storeId in methods that call repositories
+- Updated AddressService to accept storeId in methods that call repositories
+- Passed storeId to all repository method calls within services
 
 ### Files Created:
 - None
 
 ### Files Modified:
-- `app/Repositories/Order/OrderRepository.php` — Added int $storeId parameter to all methods, added store_id scope to all queries
-- `app/Repositories/Product/ProductRepository.php` — Added int $storeId parameter to all methods, added store_id scope to buildBaseQuery and all queries
-- `app/Repositories/Product/ProductVariantRepository.php` — Added int $storeId parameter to findById, findByIdWithProduct, findWithLock methods
-- `app/Repositories/Address/AddressRepository.php` — Added int $storeId parameter to all methods, added store_id scope to all queries
-- `app/Repositories/Category/CategoryRepository.php` — Added int $storeId parameter to all methods, added store_id scope to all queries
-- `app/Actions/Order/CreateOrderAction.php` — Updated to use dto->storeId when accessing cart and creating order
-- `app/Actions/Order/GetOrderAction.php` — Updated execute() to pass dto->storeId to findById()
-- `app/Actions/Order/ListOrdersAction.php` — Updated execute() to pass dto->storeId to getUserOrders()
-- `app/Actions/Order/CancelOrderAction.php` — Updated execute() to pass dto->storeId to findById()
-- `app/Actions/Product/ListProductsAction.php` — Updated to pass storeId to ProductService methods
-- `app/Actions/Product/GetProductDetailAction.php` — Updated to pass storeId to findProductBySlugOrFail()
-- `app/Actions/Product/FilterProductsAction.php` — Updated to pass storeId to all repository methods
-- `app/Actions/Product/FilterProductsByCategoryAction.php` — Updated to pass storeId to all repository methods
-- `app/Actions/Product/GetRelatedProductsAction.php` — Updated to pass storeId to findProductBySlugOrFail()
-- `app/Actions/Product/GetBestSellersAction.php` — Updated to pass storeId to getCachedAllParents()
-- `app/Actions/Address/StoreAddressAction.php` — Updated to pass storeId to storeAddress()
-- `app/Actions/Address/UpdateAddressAction.php` — Updated to pass storeId to unsetDefaultForType(), update(), setDefault()
-- `app/Actions/Address/DeleteAddressAction.php` — Updated to pass storeId to getNextDefault(), delete()
-- `app/Actions/Address/ListAddressesAction.php` — Updated to pass storeId to getUserAddresses()
-- `app/Actions/Address/SetDefaultAddressAction.php` — Updated to pass storeId to setDefault()
+- `app/Services/ProductService.php` — Added int $storeId parameter to buildBaseProductQuery(), findCategoryBySlug(), findCategoryBySlugOrFail(), findProductBySlug(), findProductBySlugOrFail(), getRelatedProducts(); passed storeId to repository calls
+- `app/Services/BestSellerService.php` — Added int $storeId parameter to buildDescendantMap(), computeAllProductSales(), buildBestSellersForAllParents(), getCachedForParentId(); passed storeId to Category queries
+- `app/Services/AddressService.php` — Added int $storeId parameter to getUserAddresses(), storeAddress(), updateAddress(), deleteAddress(), setAsDefault(); passed storeId to repository calls
 
 ### Migrations Created:
 - None
 
 ### Notes:
-- All repository methods now require int $storeId as a parameter
-- All queries now include ->where('store_id', $storeId) scope
-- Model::find() and Model::all() calls replaced with store-scoped queries
-- withTrashed() queries also include store_id scope where applicable
-- Actions updated to extract storeId from DTO and pass to repository/service methods
-- Controllers, FormRequests, and Resources were NOT modified as per strict rules
-- ProductRepository buildBaseQuery() now accepts storeId and applies it to the base query
-- CategoryRepository methods now filter by store_id for all category lookups
-- AddressRepository setDefault() and unsetDefaultForType() now include store_id in their queries
+- ProductService buildBaseProductQuery() now accepts storeId and passes it to ProductRepository::buildBaseQuery()
+- ProductService getCategoryDescendants() now accepts storeId and passes it to CategoryRepository::getRootCategories()
+- ProductService findCategoryBySlug() and findCategoryBySlugOrFail() now accept storeId parameter
+- ProductService findProductBySlug() and findProductBySlugOrFail() now accept storeId parameter
+- ProductService getRelatedProducts() now accepts storeId and passes it to ProductRepository::findRelatedProducts()
+- BestSellerService buildDescendantMap() now accepts storeId for future scoping (currently builds full map)
+- BestSellerService computeAllProductSales() now accepts storeId for filtering by store
+- BestSellerService buildBestSellersForAllParents() now accepts storeId as first parameter
+- BestSellerService getCachedForParentId() now accepts storeId parameter
+- AddressService getUserAddresses() now accepts storeId as first parameter after userId
+- AddressService storeAddress() now extracts storeId from DTO and passes to repository
+- AddressService updateAddress() now passes storeId to setAsDefaultForType() and update()
+- AddressService deleteAddress() now passes storeId to repository delete method
+- AddressService setAsDefault() now accepts storeId and passes to repository
+- All service methods maintain existing business logic, only adding storeId parameter passing

@@ -6,44 +6,22 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Repositories\Product\ProductRepository;
+use App\Repositories\Category\CategoryRepository;
 
 class ProductService
 {
+    public function __construct(
+        private ProductRepository $productRepository,
+        private CategoryRepository $categoryRepository,
+    ) {}
+
     /**
      * Build the base product query with joins for listing.
      */
-    public function buildBaseProductQuery()
+    public function buildBaseProductQuery(int $storeId)
     {
-        $locale = app()->getLocale();
-
-        return Product::active()
-            ->leftJoin('product_translations', function ($join) use ($locale) {
-                $join->on('products.id', '=', 'product_translations.product_id')
-                    ->where('product_translations.locale', $locale);
-            })
-            ->leftJoin('product_variants as display_v', function ($join) {
-                $join->on('display_v.id', '=', DB::raw("(
-                    SELECT id FROM product_variants 
-                    WHERE product_id = products.id 
-                    ORDER BY (CASE WHEN id = products.product_variant_id THEN 0 ELSE 1 END), id ASC 
-                    LIMIT 1
-                )"));
-            })
-            ->leftJoin('images', function ($join) {
-                $join->on('display_v.id', '=', 'images.imageable_id')
-                    ->where('images.imageable_type', '=', 'App\\Models\\ProductVariant')
-                    ->where('images.is_primary', '=', true);
-            })
-            ->select(
-                'products.id as product_id',
-                'products.category_id',
-                'display_v.id as product_variant_id',
-                'product_translations.slug as slug',
-                'product_translations.name as product_name',
-                'product_translations.description as description',
-                'display_v.price as price',
-                'images.image_url as primary_image'
-            );
+        return $this->productRepository->buildBaseQuery($storeId);
     }
 
     /**
@@ -51,17 +29,7 @@ class ProductService
      */
     public function getProductFilterRanges($query): object
     {
-        $filterQuery = clone $query;
-        $productIdsSub = $filterQuery->select('products.id');
-
-        return DB::table('product_variants')
-            ->whereIn('product_id', $productIdsSub)
-            ->selectRaw("
-                MIN(price) AS min_price,
-                MAX(price) AS max_price,
-                MIN(manufacture_date) AS earliest_manufacture,
-                MAX(expiry_date) AS latest_expiry
-            ")->first();
+        return $this->productRepository->getFilterRanges($query);
     }
 
     /**
@@ -99,34 +67,25 @@ class ProductService
     /**
      * Get category descendants for filters.
      */
-    public function getCategoryDescendants(): array
+    public function getCategoryDescendants(int $storeId): array
     {
-        $locale = app()->getLocale();
-
-        return Category::whereNull('parent_id')
-            ->leftJoin('category_translations', function ($join) use ($locale) {
-                $join->on('categories.id', '=', 'category_translations.category_id')
-                    ->where('category_translations.locale', $locale);
-            })
-            ->select('categories.id', 'category_translations.slug as slug', 'category_translations.name as name')
-            ->get()
-            ->toArray();
+        return $this->categoryRepository->getRootCategories($storeId)->toArray();
     }
 
     /**
      * Find a category by its localized slug.
      */
-    public function findCategoryBySlug(string $slug): ?Category
+    public function findCategoryBySlug(string $slug, int $storeId): ?Category
     {
-        return Category::findByLocalizedSlug($slug);
+        return $this->categoryRepository->findBySlug($slug, $storeId);
     }
 
     /**
      * Find a category by its localized slug or fail.
      */
-    public function findCategoryBySlugOrFail(string $slug): Category
+    public function findCategoryBySlugOrFail(string $slug, int $storeId): Category
     {
-        return Category::findByLocalizedSlugOrFail($slug);
+        return $this->categoryRepository->findBySlugOrFail($slug, $storeId);
     }
 
     /**
@@ -134,9 +93,7 @@ class ProductService
      */
     public function flattenCategoryDescendants(Category $category, string $locale): array
     {
-        $result = collect();
-        $this->flattenDescendantsRecursive($category, $result, $locale);
-        return $result->toArray();
+        return $this->categoryRepository->flattenDescendantsWithTranslations($category, $locale);
     }
 
     /**
@@ -162,66 +119,30 @@ class ProductService
     /**
      * Find a product by its localized slug.
      */
-    public function findProductBySlug(string $slug): ?Product
+    public function findProductBySlug(string $slug, int $storeId): ?Product
     {
-        return Product::findBySlug($slug);
+        return $this->productRepository->findBySlug($slug, $storeId);
     }
 
     /**
      * Find a product by its localized slug or fail.
      */
-    public function findProductBySlugOrFail(string $slug): Product
+    public function findProductBySlugOrFail(string $slug, int $storeId): Product
     {
-        return Product::findBySlugOrFail($slug);
+        $product = $this->productRepository->findBySlug($slug, $storeId);
+        
+        if (!$product) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Product not found");
+        }
+
+        return $product;
     }
 
     /**
      * Get related products for a given product.
      */
-    public function getRelatedProducts(Product $currentProduct, int $limit = 8): \Illuminate\Support\Collection
+    public function getRelatedProducts(Product $currentProduct, int $storeId, int $limit = 8): \Illuminate\Support\Collection
     {
-        $currentProduct->load(['category', 'tags']);
-
-        $relatedQuery = Product::with([
-            'translations',
-            'activeVariants.images',
-            'defaultVariant.images',
-        ])
-            ->where('id', '!=', $currentProduct->id)
-            ->where('is_active', true);
-
-        if ($currentProduct->category_id) {
-            $relatedQuery->where('category_id', $currentProduct->category_id);
-        }
-
-        if ($currentProduct->tags->isNotEmpty()) {
-            $tagIds = $currentProduct->tags->pluck('id');
-            $relatedQuery->whereHas('tags', function ($query) use ($tagIds) {
-                $query->whereIn('product_tags.id', $tagIds);
-            });
-        }
-
-        $relatedProducts = $relatedQuery
-            ->inRandomOrder()
-            ->limit($limit)
-            ->get();
-
-        if ($relatedProducts->count() < 4) {
-            $additionalProducts = Product::with([
-                'translations',
-                'activeVariants.images',
-                'defaultVariant.images',
-            ])
-                ->where('id', '!=', $currentProduct->id)
-                ->where('is_active', true)
-                ->whereNotIn('id', $relatedProducts->pluck('id'))
-                ->inRandomOrder()
-                ->limit($limit - $relatedProducts->count())
-                ->get();
-
-            $relatedProducts = $relatedProducts->merge($additionalProducts);
-        }
-
-        return $relatedProducts;
+        return $this->productRepository->findRelatedProducts($currentProduct, $storeId, $limit);
     }
 }

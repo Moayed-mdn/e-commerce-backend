@@ -18,9 +18,11 @@ class BestSellerService
         $this->cacheTtl = 60 * 60 * 24;
     }
 
-    public function buildDescendantMap(): array
+    public function buildDescendantMap(int $storeId): array
     {
-        $categories = Category::select('id', 'parent_id')->get();
+        $categories = Category::where('store_id', $storeId)
+            ->select('id', 'parent_id')
+            ->get();
 
         $childrenMap = [];
         foreach ($categories as $cat) {
@@ -57,20 +59,21 @@ class BestSellerService
         return $result;
     }
 
-    public function computeAllProductSales(string $locale = 'en')
+    public function computeAllProductSales(int $storeId, string $locale = 'en')
     {
         $sales = DB::table('order_items')
             ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id')
             ->join('products', 'product_variants.product_id', '=', 'products.id')
+            ->where('products.store_id', $storeId)
             ->join('product_translations', function ($join) use ($locale) {
                 $join->on('products.id', '=', 'product_translations.product_id')
                     ->where('product_translations.locale', '=', $locale);
             })
             ->leftJoin('product_variants as display_v', function ($join) {
                 $join->on('display_v.id', '=', DB::raw("(
-                    SELECT id FROM product_variants 
-                    WHERE product_id = products.id 
-                    ORDER BY (CASE WHEN id = products.product_variant_id THEN 0 ELSE 1 END), id ASC 
+                    SELECT id FROM product_variants
+                    WHERE product_id = products.id
+                    ORDER BY (CASE WHEN id = products.product_variant_id THEN 0 ELSE 1 END), id ASC
                     LIMIT 1
                 )"));
             })
@@ -81,10 +84,10 @@ class BestSellerService
             })
             ->select(
                 'products.id as product_id',
-                'product_translations.slug as product_slug',       // ✅ from translations
+                'product_translations.slug as product_slug',
                 'products.category_id',
                 'product_translations.description as product_description',
-                'product_translations.name as product_name',       // ✅ from translations
+                'product_translations.name as product_name',
                 'display_v.id as product_variant_id',
                 'display_v.price as variant_price',
                 'images.image_url as variant_image',
@@ -110,15 +113,16 @@ class BestSellerService
         });
     }
 
-    public function buildBestSellersForAllParents(int $limit = 20, bool $useCache = true): array
+    public function buildBestSellersForAllParents(int $storeId, int $limit = 20, bool $useCache = true): array
     {
         $locale = app()->getLocale() ?: 'en';
 
-        $descendantsMap = $this->buildDescendantMap();
-        $sales = $this->computeAllProductSales($locale);
+        $descendantsMap = $this->buildDescendantMap($storeId);
+        $sales = $this->computeAllProductSales($storeId, $locale);
         $salesByCategory = $sales->groupBy('category_id');
 
-        $parents = Category::whereNull('parent_id')
+        $parents = Category::where('store_id', $storeId)
+            ->whereNull('parent_id')
             ->leftJoin('category_translations', function ($join) use ($locale) {
                 $join->on('category_translations.category_id', '=', 'categories.id')
                     ->where('category_translations.locale', '=', $locale);
@@ -131,7 +135,7 @@ class BestSellerService
             'data' => []
         ];
 
-        $dtos = [];   // ← FIX: initialize $dtos before the loop
+        $dtos = [];
 
         foreach ($parents as $parent) {
             $parentId = $parent->id;
@@ -188,45 +192,16 @@ class BestSellerService
         return $dtos;
     }
 
-    public function getCachedAllParents(int $limit = 20)
+    public function getCachedAllParents(int $storeId, int $limit = 20)
     {
-        return $this->buildBestSellersForAllParents($limit, true);
+        return $this->buildBestSellersForAllParents($storeId, $limit, true);
     }
 
-    public function getCachedForParentId(int $parentId, int $limit = 20)
+    public function getCachedForParentId(int $storeId, int $parentId, int $limit = 20)
     {
-        // $cached = Cache::store('redis')->get("best_sellers:category:{$parentId}");
-        // if ($cached !== null) {
-        //     return $cached;
-        // }
-
-        $all = $this->buildBestSellersForAllParents($limit, true);
-        $category = Category::find($parentId);
+        $all = $this->buildBestSellersForAllParents($storeId, $limit, true);
+        $category = Category::where('store_id', $storeId)->find($parentId);
         if (!$category) return [];
         return $all[$category->name] ?? [];
     }
-
-    // ══════════════════════════════════════════════════════════
-    //  REMOVED: The loose query at the bottom that referenced
-    //  products.slug — it was the source of the error.
-    //  If you need it for debugging, here's the fixed version:
-    // ══════════════════════════════════════════════════════════
-    //
-    //  $locale = app()->getLocale();
-    //  $uniqueSoldProducts = DB::table('order_items')
-    //      ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id')
-    //      ->join('products', 'product_variants.product_id', '=', 'products.id')
-    //      ->join('product_translations', function ($join) use ($locale) {
-    //          $join->on('products.id', '=', 'product_translations.product_id')
-    //              ->where('product_translations.locale', '=', $locale);
-    //      })
-    //      ->select(
-    //          'product_translations.name as product_name',   // ← was products.slug
-    //          'product_variants.price as variant_price'
-    //      )
-    //      ->groupBy(
-    //          'product_translations.name',                   // ← was products.slug
-    //          'product_variants.price'
-    //      )
-    //      ->get();
 }
