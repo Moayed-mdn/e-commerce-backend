@@ -9,13 +9,15 @@ use App\Http\Requests\HomePage\GetBestSellersRequest;
 class GetBestSellersDTO
 {
     public function __construct(
+        public int $storeId,
         public int $limit,
     ) {}
 
-    public static function fromRequest(GetBestSellersRequest $request): self
+    public static function fromRequest(GetBestSellersRequest $request, int $storeId): self
     {
         return new self(
-            $request->integer('limit', 20),
+            storeId: $storeId,
+            limit: $request->integer('limit', 20),
         );
     }
 }

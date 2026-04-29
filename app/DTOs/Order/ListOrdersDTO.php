@@ -9,13 +9,15 @@ use Illuminate\Http\Request;
 class ListOrdersDTO
 {
     public function __construct(
+        public int $storeId,
         public int $userId,
     ) {}
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(Request $request, int $storeId): self
     {
         return new self(
-            $request->user()->id,
+            storeId: $storeId,
+            userId: $request->user()->id,
         );
     }
 }

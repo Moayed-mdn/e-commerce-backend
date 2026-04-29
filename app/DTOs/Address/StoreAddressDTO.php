@@ -7,6 +7,7 @@ use App\Http\Requests\Address\StoreAddressRequest;
 class StoreAddressDTO
 {
     public function __construct(
+        public int $storeId,
         public string $type,
         public string $firstName,
         public string $lastName,
@@ -22,9 +23,10 @@ class StoreAddressDTO
         public int $userId,
     ) {}
 
-    public static function fromRequest(StoreAddressRequest $request): self
+    public static function fromRequest(StoreAddressRequest $request, int $storeId): self
     {
         return new self(
+            storeId: $storeId,
             type: $request->input('type'),
             firstName: $request->input('first_name'),
             lastName: $request->input('last_name'),

@@ -7,29 +7,43 @@ use App\Models\User;
 
 class CartRepository
 {
-    public function getOrCreate(User $user): Cart
+    public function getOrCreate(User $user, int $storeId): Cart
     {
-        return $user->cart()->firstOrCreate([]);
+        return Cart::firstOrCreate(
+            [
+                'user_id'  => $user->id,
+                'store_id' => $storeId,
+            ],
+            [
+                'user_id'  => $user->id,
+                'store_id' => $storeId,
+            ]
+        );
     }
 
-    public function getWithItems(User $user): Cart
+    public function getWithItems(User $user, int $storeId): Cart
     {
-        return $user->cart()->with([
+        $cart = $this->getOrCreate($user, $storeId);
+
+        return $cart->load([
             'items.productVariant.product.translations',
             'items.productVariant.images',
             'items.productVariant.attributeValues.translations',
             'items.productVariant.attributeValues.attribute.translations',
-        ])->firstOrCreate([]);
+        ]);
     }
 
-    public function findById(int $id): Cart
+    public function findById(int $id, int $storeId): Cart
     {
-        return Cart::findOrFail($id);
+        return Cart::where('store_id', $storeId)
+            ->findOrFail($id);
     }
 
-    public function findByUser(User $user): ?Cart
+    public function findByUser(User $user, int $storeId): ?Cart
     {
-        return $user->cart;
+        return Cart::where('user_id', $user->id)
+            ->where('store_id', $storeId)
+            ->first();
     }
 
     public function deleteByCart(Cart $cart): void

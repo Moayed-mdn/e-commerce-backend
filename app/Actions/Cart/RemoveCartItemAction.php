@@ -14,6 +14,11 @@ class RemoveCartItemAction
     public function execute(RemoveCartItemDTO $dto): void
     {
         $item = $this->cartItemRepository->findById($dto->itemId);
+        
+        if ($item->cart->store_id !== $dto->storeId) {
+            throw new \App\Exceptions\Store\UnauthorizedStoreAccessException();
+        }
+        
         $this->cartItemRepository->delete($item);
     }
 }

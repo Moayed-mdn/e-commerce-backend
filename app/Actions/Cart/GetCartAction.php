@@ -16,6 +16,6 @@ class GetCartAction
     public function execute(GetCartDTO $dto): Cart
     {
         $user = User::findOrFail($dto->userId);
-        return $this->cartRepository->getWithItems($user);
+        return $this->cartRepository->getWithItems($user, $dto->storeId);
     }
 }

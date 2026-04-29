@@ -93,3 +93,57 @@
 - All new relationships use proper return type hints (\Illuminate\Database\Eloquent\Relations\*)
 - The store.context middleware stores both 'storeId' and 'currentStore' in the service container for later retrieval
 
+---
+## Enforce Strict Multi-Store Scoping in Repositories and DTOs — 2026-05-02
+### What I Did:
+- Updated all Cart DTOs to include storeId as first constructor parameter
+- Updated all Order DTOs to include storeId as first constructor parameter
+- Updated all Product DTOs to include storeId as first constructor parameter
+- Updated all Address DTOs to include storeId as first constructor parameter
+- Updated CartRepository to enforce store_id scoping in all methods
+- Updated all Cart Actions to pass storeId to repository methods
+
+### Files Created:
+- None
+
+### Files Modified:
+- `app/DTOs/Cart/AddToCartDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Cart/GetCartDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Cart/ClearCartDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Cart/RemoveCartItemDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Cart/UpdateCartItemDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/Repositories/Cart/CartRepository.php` — Rewrote all methods to require storeId and use store-scoped queries
+- `app/Actions/Cart/AddToCartAction.php` — Updated execute() to pass dto->storeId to repository
+- `app/Actions/Cart/GetCartAction.php` — Updated execute() to pass dto->storeId to repository
+- `app/Actions/Cart/ClearCartAction.php` — Updated execute() to pass dto->storeId to repository
+- `app/Actions/Cart/RemoveCartItemAction.php` — Updated execute() to pass dto->storeId to repository (via cart lookup)
+- `app/Actions/Cart/UpdateCartItemAction.php` — Updated execute() to pass dto->storeId to repository (via cart lookup)
+- `app/DTOs/Order/CreateOrderDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Order/GetOrderDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Order/ListOrdersDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Order/CancelOrderDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/ListProductsDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/GetProductDetailDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/FilterProductsDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/FilterProductsByCategoryDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/GetRelatedProductsDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Product/GetBestSellersDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Address/StoreAddressDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Address/UpdateAddressDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Address/DeleteAddressDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Address/ListAddressesDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+- `app/DTOs/Address/SetDefaultAddressDTO.php` — Added storeId as first parameter, updated fromRequest() signature
+
+### Migrations Created:
+- None
+
+### Notes:
+- All DTOs now have storeId as the FIRST constructor parameter as per architecture rules
+- All fromRequest() methods now accept int $storeId as second parameter after the request
+- Named arguments are used in DTO constructors for clarity
+- CartRepository methods now require int $storeId parameter and use it in all queries
+- Cart Actions now extract storeId from DTO and pass it to repository methods
+- RemoveCartItemAction and UpdateCartItemAction still need cart-based scoping since they work with itemId
+- Controllers, FormRequests, and Resources were NOT modified as per strict rules
+- Product DTOs that had slug as first parameter now have storeId first, slug second
+- FilterProductsByCategoryDTO had slug as first positional param, now storeId is first

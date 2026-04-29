@@ -9,6 +9,7 @@ use App\Http\Requests\Product\FilterProductsRequest;
 class ListProductsDTO
 {
     public function __construct(
+        public int $storeId,
         public ?string $categorySlug = null,
         public ?float $minPrice = null,
         public ?float $maxPrice = null,
@@ -17,15 +18,16 @@ class ListProductsDTO
         public int $perPage = 20,
     ) {}
 
-    public static function fromRequest(FilterProductsRequest $request): self
+    public static function fromRequest(FilterProductsRequest $request, int $storeId): self
     {
         return new self(
-            $request->string('category_slug')->toString() ?: null,
-            $request->filled('min_price') ? (float) $request->input('min_price') : null,
-            $request->filled('max_price') ? (float) $request->input('max_price') : null,
-            $request->string('earliest_manufacture')->toString() ?: null,
-            $request->string('latest_expiry')->toString() ?: null,
-            $request->integer('per_page', 20),
+            storeId: $storeId,
+            categorySlug: $request->string('category_slug')->toString() ?: null,
+            minPrice: $request->filled('min_price') ? (float) $request->input('min_price') : null,
+            maxPrice: $request->filled('max_price') ? (float) $request->input('max_price') : null,
+            earliestManufacture: $request->string('earliest_manufacture')->toString() ?: null,
+            latestExpiry: $request->string('latest_expiry')->toString() ?: null,
+            perPage: $request->integer('per_page', 20),
         );
     }
 }

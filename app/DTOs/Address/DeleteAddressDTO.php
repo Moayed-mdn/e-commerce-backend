@@ -9,15 +9,17 @@ use Illuminate\Http\Request;
 class DeleteAddressDTO
 {
     public function __construct(
+        public int $storeId,
         public int $addressId,
         public int $userId,
     ) {}
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(Request $request, int $storeId): self
     {
         return new self(
-            (int) $request->route('address'),
-            $request->user()->id,
+            storeId: $storeId,
+            addressId: (int) $request->route('address'),
+            userId: $request->user()->id,
         );
     }
 }
