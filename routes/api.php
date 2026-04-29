@@ -20,3 +20,8 @@ require 'api/v1/stripe/webhook.php';
 require 'api/v1/stores/cart.php';
 require 'api/v1/stores/orders.php';
 require 'api/v1/stores/products.php';
+require 'api/v1/stores/addresses.php';
+require 'api/v1/stores/checkout.php';
+
+// Store management routes (outside {store} group - POST has no store context yet)
+require 'api/v1/stores/store-management.php';

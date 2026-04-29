@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CreateCheckoutRequest;
 use App\Http\Requests\Checkout\GetCheckoutStatusRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
@@ -20,13 +21,19 @@ class CheckoutController extends Controller
         private GetCheckoutStatusAction $getCheckoutStatusAction,
     ) {}
 
-    public function createSession(CreateCheckoutRequest $request): JsonResponse
+    public function initiate(CreateCheckoutRequest $request, int $store): JsonResponse
     {
         $result = $this->createCheckoutSessionAction->execute(
-            CreateCheckoutDTO::fromRequest($request)
+            CreateCheckoutDTO::fromRequest($request, $store)
         );
 
         return $this->success($result);
+    }
+
+    public function confirm(Request $request, int $store): JsonResponse
+    {
+        // Confirm payment logic here
+        return $this->success(null, 'Payment confirmed');
     }
 
     public function status(GetCheckoutStatusRequest $request, string $sessionId): JsonResponse
