@@ -219,3 +219,32 @@
 - No business logic was added to controllers
 - Route prefixes changed from /v1/users/* to /v1/stores/{store} for store-scoped routes
 - Debug routes /test and /test-mailtrap were removed from api.php
+
+---
+## Fix Address Routes and Controller — 2026-04-29
+### What I Did:
+- Created routes/api/v1/stores/addresses.php with all 5 address routes under store scope
+- Registered addresses.php in routes/api.php alongside cart, orders, and products
+- Updated AddressController to accept int $store parameter in all public methods
+- Added Request and JsonResponse type imports to AddressController
+- Removed unused SetDefaultAddressRequest import from AddressController
+- Passed $store to StoreAddressDTO::fromRequest() and UpdateAddressDTO::fromRequest()
+
+### Files Created:
+- `routes/api/v1/stores/addresses.php` — Store-scoped address routes with auth:sanctum and store.context middleware
+
+### Files Modified:
+- `routes/api.php` — Added require for addresses.php route file
+- `app/Http/Controllers/Api/Address/AddressController.php` — Added int $store parameter to index(), store(), update(), destroy(), setDefault() methods; updated DTO calls to pass $store
+
+### Migrations Created:
+- None
+
+### Notes:
+- Route names use prefix stores.addresses. as specified
+- All routes are under /api/v1/stores/{store}/addresses prefix
+- Middleware auth:sanctum and store.context applied to all address routes
+- Controller remains thin with no business logic added
+- No try/catch blocks added to controller
+- All responses use $this->success() or $this->paginated() via ApiResponserTrait
+- The {address} route parameter uses Laravel model binding with Address model
