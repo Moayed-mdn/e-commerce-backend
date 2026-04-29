@@ -2,6 +2,7 @@
 
 namespace App\Actions\Store;
 
+use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
 use App\Models\User;
 
@@ -10,7 +11,7 @@ class ValidateStoreMembershipAction
     public function execute(User $user, int $storeId): void
     {
         // super_admin bypasses store membership check
-        if ($user->hasRole('super_admin')) {
+        if ($user->hasRole(RoleEnum::SUPER_ADMIN)) {
             return;
         }
 

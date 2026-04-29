@@ -1,33 +1,92 @@
 ```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
+node_modules/
 vendor/
+composer.lock
+*.lock
+.env
+.env.local
+.env.*
 
 # Logs and temp files
 *.log
 *.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# IDE
-.vscode/
-.idea/
-
-# PHP specific
-*.php~
 *.swp
 *.swo
 
-# Build and cache
-bootstrap/cache/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-public/storage
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Tests
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Build directories
+dist/
+build/
+target/
+.gradle/
+
+# Python specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Laravel/Lumen specific
+bootstrap/cache/
+storage/
+public/storage
+.npm
+.yarn
+yarn-error.log
+yarn-debug.log*
+.pnp
+.pnp.js
+coverage/
+*.lcov
 .phpunit.result.cache
+
+# PHP specific
+*.phar
 ```

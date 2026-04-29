@@ -329,3 +329,40 @@
 - CreateStoreDTO::fromRequest() extracts ownerId from $request->user()->id
 - UpdateStoreDTO::fromRequest() accepts storeId as second parameter from route
 - CreateStoreAction attaches owner to store_user pivot with role 'store_admin'
+
+---
+## Configure Spatie Permissions + Seed Roles and Test Store — 2026-04-29
+### What I Did:
+- Updated config/permission.php to enable teams feature ('teams' => true)
+- Added Spatie\Permission\Traits\HasRoles trait to User model
+- Created app/Enums/PermissionEnum.php with all permission constants
+- Created app/Enums/RoleEnum.php with all role constants
+- Created database/seeders/PermissionSeeder.php to seed permissions and roles
+- Created database/seeders/StoreSeeder.php to seed test store and users
+- Updated database/seeders/DatabaseSeeder.php to call PermissionSeeder and StoreSeeder
+- Updated app/Actions/Store/ValidateStoreMembershipAction.php to use RoleEnum::SUPER_ADMIN constant
+
+### Files Created:
+- `app/Enums/PermissionEnum.php` — Defines all permission constants (user.*, product.*, order.*, store.*, dashboard.*)
+- `app/Enums/RoleEnum.php` — Defines all role constants (super_admin, store_admin, staff, customer)
+- `database/seeders/PermissionSeeder.php` — Seeds all permissions and roles, assigns permissions to each role
+- `database/seeders/StoreSeeder.php` — Seeds test store and 4 test users with appropriate role assignments
+
+### Files Modified:
+- `config/permission.php` — Changed 'teams' from false to true for store-scoped permissions
+- `app/Models/User.php` — Added HasRoles trait from Spatie to enable role/permission methods
+- `database/seeders/DatabaseSeeder.php` — Added PermissionSeeder and StoreSeeder to the call list (in that order)
+- `app/Actions/Store/ValidateStoreMembershipAction.php` — Replaced hardcoded 'super_admin' string with RoleEnum::SUPER_ADMIN constant
+
+### Migrations Created:
+- None (Spatie migrations published and run via artisan as per task instructions)
+
+### Notes:
+- super_admin role gets ALL permissions and is assigned WITHOUT team scope (global)
+- store_admin role gets full store access and is assigned WITH team scope ($store->id)
+- staff role gets limited access (product.view, order.view, order.update_status, dashboard.view) WITH team scope
+- customer role gets NO permissions and is assigned WITHOUT team scope (global)
+- Test users are attached to store via store_user pivot table (except customer who is not a store member)
+- Pivot roles: super_admin user → store_admin, store_admin user → store_admin, staff user → staff
+- All passwords use bcrypt('password')
+- PermissionSeeder MUST run before StoreSeeder so roles exist when assigning to users
