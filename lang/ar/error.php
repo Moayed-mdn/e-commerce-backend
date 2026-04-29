@@ -18,4 +18,8 @@ return [
     'cart_empty' => 'سلة التسوق الخاصة بك فارغة.',
     'order_number_required' => 'يرجى إدخال رقم الطلب الخاص بك.',
     'checkout_email_required' => 'يرجى إدخال البريد الإلكتروني المستخدم أثناء الدفع.',
+    
+    // Store Messages
+    'store_not_found' => 'المتجر غير موجود أو غير نشط.',
+    'unauthorized_store' => 'ليس لديك صلاحية للوصول إلى هذا المتجر.',
 ];

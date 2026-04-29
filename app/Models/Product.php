@@ -12,6 +12,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'store_id',
         // 'slug' ← REMOVED
         'category_id',
         'brand_id',
@@ -49,6 +50,11 @@ class Product extends Model
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function store(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function tags()
