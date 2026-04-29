@@ -46,3 +46,50 @@
 - Indexes follow the exact pattern specified: single index on store_id and composite index on [store_id, id]
 - Migration filenames follow the exact naming convention specified in the task
 - store_id is placed after('id') in all tables as specified
+
+---
+## Strict Multi-Store Architecture Refactor — 2026-04-29
+### What I Did:
+- Created app/Models/Store.php model with all required relationships
+- Updated app/Models/User.php to add stores() relationship, replace cart() with carts(), add cartForStore() helper
+- Updated app/Models/Cart.php to add store_id to fillable and add store() relationship
+- Updated app/Models/Order.php to add store_id to fillable and add store() relationship
+- Updated app/Models/Product.php to add store_id to fillable and add store() relationship
+- Updated app/Enums/ErrorCode.php to add STR_001 and STR_002 error codes
+- Created app/Exceptions/Store/StoreNotFoundException.php exception class
+- Created app/Exceptions/Store/UnauthorizedStoreAccessException.php exception class
+- Updated lang/en/error.php to add store_not_found and unauthorized_store messages
+- Updated lang/ar/error.php to add Arabic translations for store errors
+- Created app/Http/Middleware/StoreContext.php middleware for store context resolution
+- Updated bootstrap/app.php to register store.context middleware alias
+- Created app/Actions/Store/ValidateStoreMembershipAction.php action for membership validation
+
+### Files Created:
+- `app/Models/Store.php` — New Store model with owner, users, products, orders, carts relationships
+- `app/Exceptions/Store/StoreNotFoundException.php` — Exception thrown when store is not found or inactive (404)
+- `app/Exceptions/Store/UnauthorizedStoreAccessException.php` — Exception thrown when user lacks store access (403)
+- `app/Http/Middleware/StoreContext.php` — Middleware that resolves store from route and sets app context
+- `app/Actions/Store/ValidateStoreMembershipAction.php` — Action that validates user membership in a store
+
+### Files Modified:
+- `app/Models/User.php` — Removed cart() hasOne, added stores() belongsToMany, added carts() hasMany, added cartForStore() helper method
+- `app/Models/Cart.php` — Added 'store_id' to fillable array, added store() belongsTo relationship
+- `app/Models/Order.php` — Added 'store_id' to fillable array (after order_number), added store() belongsTo relationship
+- `app/Models/Product.php` — Added 'store_id' to fillable array (first item), added store() belongsTo relationship
+- `app/Enums/ErrorCode.php` — Added STR_001 (Store not found) and STR_002 (Unauthorized store access) cases
+- `lang/en/error.php` — Added 'store_not_found' and 'unauthorized_store' translation keys
+- `lang/ar/error.php` — Added Arabic translations for 'store_not_found' and 'unauthorized_store'
+- `bootstrap/app.php` — Added 'store.context' middleware alias to withMiddleware section
+
+### Migrations Created:
+- None (migrations were created in previous prompt)
+
+### Notes:
+- User model: cart() method was removed and replaced with carts() hasMany relationship as per TASK 2 requirements
+- All existing methods in User, Cart, Order, and Product models were preserved
+- ValidateStoreMembershipAction uses hasRole() which requires spatie/laravel-permission package
+- StoreContext middleware only finds active stores (is_active = true)
+- StoreNotFoundException and UnauthorizedStoreAccessException extend BaseApiException and use ErrorCode enum
+- All new relationships use proper return type hints (\Illuminate\Database\Eloquent\Relations\*)
+- The store.context middleware stores both 'storeId' and 'currentStore' in the service container for later retrieval
+

@@ -18,4 +18,8 @@ return [
     'cart_empty' => 'Your cart is empty.',
     'order_number_required' => 'Please enter your order number.',
     'checkout_email_required' => 'Please enter the email used during checkout.',
+    
+    // Store Messages
+    'store_not_found' => 'Store not found or inactive.',
+    'unauthorized_store' => 'You are not authorized to access this store.',
 ];
