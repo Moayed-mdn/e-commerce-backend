@@ -16,6 +16,6 @@ class ListOrdersAction
 
     public function execute(ListOrdersDTO $dto): LengthAwarePaginator
     {
-        return $this->orderRepository->getUserOrders($dto->userId);
+        return $this->orderRepository->getUserOrders($dto->userId, $dto->storeId);
     }
 }

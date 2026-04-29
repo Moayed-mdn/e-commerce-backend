@@ -22,14 +22,14 @@ class CreateOrderAction
     {
         return DB::transaction(function () use ($dto) {
             $user = User::findOrFail($dto->userId);
-            $cart = $user->cart;
+            $cart = $user->carts()->where('store_id', $dto->storeId)->first();
 
             if (!$cart || $cart->items->isEmpty()) {
                 throw new UnprocessableContentException(__('error.cart_empty'));
             }
 
-            $shippingAddress = $user->addresses()->findOrFail($dto->shippingAddressId);
-            $billingAddress = $user->addresses()->findOrFail($dto->billingAddressId);
+            $shippingAddress = $user->addresses()->where('store_id', $dto->storeId)->findOrFail($dto->shippingAddressId);
+            $billingAddress = $user->addresses()->where('store_id', $dto->storeId)->findOrFail($dto->billingAddressId);
             $paymentMethod = $user->paymentMethods()->findOrFail($dto->paymentMethodId);
 
             $subtotal = $cart->total;
@@ -49,7 +49,7 @@ class CreateOrderAction
                 'shipping_method' => $dto->shippingMethod,
                 'status' => 'pending',
                 'payment_status' => 'pending',
-            ]);
+            ], $dto->storeId);
 
             foreach ($cart->items as $cartItem) {
                 $variant = $cartItem->productVariant;

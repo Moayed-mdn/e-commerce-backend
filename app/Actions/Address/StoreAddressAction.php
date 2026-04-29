@@ -16,6 +16,6 @@ class StoreAddressAction
 
     public function execute(StoreAddressDTO $dto): Address
     {
-        return $this->addressService->storeAddress($dto);
+        return $this->addressService->storeAddress($dto->storeId, $dto);
     }
 }

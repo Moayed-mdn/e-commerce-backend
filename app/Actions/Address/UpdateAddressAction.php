@@ -18,7 +18,8 @@ class UpdateAddressAction
             $this->addressRepository->unsetDefaultForType(
                 $address->user_id,
                 $address->type,
-                $address->id
+                $address->id,
+                $dto->storeId
             );
         }
 
@@ -37,7 +38,7 @@ class UpdateAddressAction
         ]);
 
         if ($dto->isDefault) {
-            $this->addressRepository->setDefault($address->user_id, $address->type, $address->id);
+            $this->addressRepository->setDefault($address->user_id, $address->type, $address->id, $dto->storeId);
         }
 
         return $updated;

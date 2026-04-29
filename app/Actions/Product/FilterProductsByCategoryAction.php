@@ -22,19 +22,19 @@ class FilterProductsByCategoryAction
         $locale = app()->getLocale();
 
         // Find the main category
-        $category = $this->categoryRepository->findBySlugOrFail($dto->slug);
+        $category = $this->categoryRepository->findBySlugOrFail($dto->slug, $dto->storeId);
         $category->loadMissing(['translations', 'descendants.translations']);
 
         // Flatten descendants for filters
         $descendantCategories = $this->categoryRepository->flattenDescendantsWithTranslations($category, $locale);
 
         // Build base query
-        $query = $this->productRepository->buildBaseQuery()
+        $query = $this->productRepository->buildBaseQuery($dto->storeId)
             ->addSelect('images.alt_text as alt_text');
 
         // Apply category filter (subcategory or main category)
         if ($dto->categorySlug !== null) {
-            $subCategory = $this->categoryRepository->findBySlug($dto->categorySlug);
+            $subCategory = $this->categoryRepository->findBySlug($dto->categorySlug, $dto->storeId);
             if ($subCategory) {
                 $subIds = $subCategory->allDescendantIds();
                 $query = $this->productRepository->filterByCategory($query, $subIds->toArray());

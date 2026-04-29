@@ -16,12 +16,12 @@ class ListProductsAction
 
     public function execute(ListProductsDTO $dto): array
     {
-        $query = $this->productService->buildBaseProductQuery();
+        $query = $this->productService->buildBaseProductQuery($dto->storeId);
 
-        $descendants = $this->productService->getCategoryDescendants();
+        $descendants = $this->productService->getCategoryDescendants($dto->storeId);
 
         if ($dto->categorySlug) {
-            $category = $this->productService->findCategoryBySlugOrFail($dto->categorySlug);
+            $category = $this->productService->findCategoryBySlugOrFail($dto->categorySlug, $dto->storeId);
             $descendantsWithSelf = $category->allDescendantIds();
 
             $query->whereHas('category', function ($query) use ($descendantsWithSelf) {

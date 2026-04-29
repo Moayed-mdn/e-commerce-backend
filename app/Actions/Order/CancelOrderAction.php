@@ -24,7 +24,7 @@ class CancelOrderAction
 
     public function execute(CancelOrderDTO $dto): Order
     {
-        $order = $this->orderRepository->findById($dto->orderId);
+        $order = $this->orderRepository->findById($dto->orderId, $dto->storeId);
 
         if (!$order || $order->user_id !== $dto->userId) {
             throw new \Illuminate\Auth\Access\AuthorizationException(__('error.unauthorized_order_access'));

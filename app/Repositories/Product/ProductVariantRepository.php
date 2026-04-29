@@ -6,19 +6,23 @@ use App\Models\ProductVariant;
 
 class ProductVariantRepository
 {
-    public function findById(int $id): ProductVariant
+    public function findById(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::findOrFail($id);
+        return ProductVariant::where('store_id', $storeId)->findOrFail($id);
     }
 
-    public function findByIdWithProduct(int $id): ProductVariant
+    public function findByIdWithProduct(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::with(['product.translations'])->findOrFail($id);
+        return ProductVariant::where('store_id', $storeId)
+            ->with(['product.translations'])
+            ->findOrFail($id);
     }
 
-    public function findWithLock(int $id): ProductVariant
+    public function findWithLock(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::lockForUpdate()->findOrFail($id);
+        return ProductVariant::where('store_id', $storeId)
+            ->lockForUpdate()
+            ->findOrFail($id);
     }
 
     public function incrementStock(ProductVariant $variant, int $quantity): void

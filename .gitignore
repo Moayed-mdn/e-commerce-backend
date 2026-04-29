@@ -1,11 +1,10 @@
-```gitignore
+```
 # Compiled and build artifacts
 *.pyc
 __pycache__/
 *.o
 *.obj
 *.class
-*.exe
 *.dll
 *.so
 *.a
@@ -16,7 +15,7 @@ vendor/
 node_modules/
 .env
 .env.local
-.env.*
+*.env.*
 
 # Logs and temp files
 *.log
@@ -28,44 +27,17 @@ node_modules/
 .vscode/
 .idea/
 
-# Coverage and testing
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
 .coverage
 coverage/
 htmlcov/
-
-# OS specific
-.DS_Store
-Thumbs.db
 
 # Build directories
 dist/
 build/
 target/
-.gradle/
-
-# Python specific
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-.Python
-*.so
-.PyInstaller/
-.pytest_cache/
-.mypy_cache/
-.tox/
-.coverage*
-
-# PHP specific
-*.php~
-*.php.bak
-*.phar
-vendor/composer/
-composer.lock
-
-# Laravel specific (if applicable)
-storage/
-bootstrap/cache/
-!.env.example
-!.env
 ```
