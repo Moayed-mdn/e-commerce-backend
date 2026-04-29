@@ -15,8 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->api(append:[
-                \App\Http\Middleware\SetLocale::class,
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+        $middleware->alias([
+            'store.context' => \App\Http\Middleware\StoreContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

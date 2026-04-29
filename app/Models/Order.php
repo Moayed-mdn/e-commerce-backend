@@ -13,6 +13,7 @@ class Order extends Model
 
     protected $fillable = [
         'order_number',
+        'store_id',
         'user_id',
         'guest_email',                    // ← NEW
         'shipping_address_id',
@@ -71,6 +72,11 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function store(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Store::class);
     }
 
     // ── Auto-generate order number ─────────────────────────────

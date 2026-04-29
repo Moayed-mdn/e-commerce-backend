@@ -10,11 +10,16 @@ class Cart extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id'];
+    protected $fillable = ['user_id', 'store_id'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function store(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function items()

@@ -34,4 +34,8 @@ enum ErrorCode: string
 
     // --- Product (PRD) ---
     case PRD_001 = 'PRD_001'; // Product not found
+
+    // --- Store (STR) ---
+    case STR_001 = 'STR_001'; // Store not found
+    case STR_002 = 'STR_002'; // Unauthorized store access
 }

@@ -68,11 +68,6 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new CustomResetPassword($token));
     }
 
-    public function cart()
-    {
-        return $this->hasOne(Cart::class);
-    }
-
     public function addresses()
     {
         return $this->hasMany(Address::class);
@@ -125,5 +120,24 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return Storage::disk('public')->url($this->avatar);
+    }
+
+    public function stores(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'store_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function carts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function cartForStore(int $storeId): ?\App\Models\Cart
+    {
+        return $this->carts()
+            ->where('store_id', $storeId)
+            ->first();
     }
 }
