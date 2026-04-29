@@ -1,33 +1,73 @@
 ```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
 vendor/
+node_modules/
+.npm/
+.yarn/
+.bower/
+composer.lock
+package-lock.json
+yarn.lock
+
+# Build and distribution
+dist/
+build/
+target/
+*.jar
+*.war
+*.zip
+*.tar.gz
 
 # Logs and temp files
 *.log
 *.tmp
+*.swp
+*.swo
+*.bak
+*.backup
 
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
+.env.local.*
 
-# IDE
+# Editors and IDEs
 .vscode/
 .idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
 
-# PHP specific
-*.php~
-*.swp
-*.swo
+# Testing and coverage
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+*.pytest*
+nyc_output/
 
-# Build and cache
-bootstrap/cache/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-public/storage
-
-# Tests
-.phpunit.result.cache
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```

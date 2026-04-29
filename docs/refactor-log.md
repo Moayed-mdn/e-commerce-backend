@@ -329,3 +329,41 @@
 - CreateStoreDTO::fromRequest() extracts ownerId from $request->user()->id
 - UpdateStoreDTO::fromRequest() accepts storeId as second parameter from route
 - CreateStoreAction attaches owner to store_user pivot with role 'store_admin'
+
+---
+## Configure Spatie Permissions + Seed Roles and Test Store — 2026-04-29
+### What I Did:
+- Updated config/permission.php to enable teams feature ('teams' => true)
+- Created app/Enums/PermissionEnum.php with all permission constants
+- Created app/Enums/RoleEnum.php with all role constants
+- Created database/seeders/PermissionSeeder.php to seed permissions and roles
+- Created database/seeders/StoreSeeder.php to seed test store and users
+- Updated database/seeders/DatabaseSeeder.php to call PermissionSeeder and StoreSeeder
+- Updated app/Models/User.php to add HasRoles trait from Spatie
+- Updated app/Actions/Store/ValidateStoreMembershipAction.php to use RoleEnum constant
+
+### Files Created:
+- `app/Enums/PermissionEnum.php` — Defines all permission constants (user.*, product.*, order.*, store.*, dashboard.*)
+- `app/Enums/RoleEnum.php` — Defines all role constants (super_admin, store_admin, staff, customer)
+- `database/seeders/PermissionSeeder.php` — Seeds all permissions and roles, assigns permissions to roles using syncPermissions()
+- `database/seeders/StoreSeeder.php` — Seeds test store and 4 test users with appropriate role assignments and pivot attachments
+
+### Files Modified:
+- `config/permission.php` — Changed 'teams' from false to true for store-scoped permissions
+- `app/Models/User.php` — Added Spatie\Permission\Traits\HasRoles trait to the use statement and trait list
+- `app/Actions/Store/ValidateStoreMembershipAction.php` — Replaced hardcoded 'super_admin' string with RoleEnum::SUPER_ADMIN constant
+- `database/seeders/DatabaseSeeder.php` — Added PermissionSeeder::class and StoreSeeder::class at the beginning of the call array
+
+### Migrations Created:
+- None (Spatie migrations already exist at database/migrations/2026_04_29_150355_create_permission_tables.php)
+
+### Notes:
+- super_admin role gets ALL permissions
+- store_admin role gets user, product, order, store, and dashboard permissions (no store.delete)
+- staff role gets limited permissions: product.view, order.view, order.update_status, dashboard.view
+- customer role has no permissions assigned
+- For store-scoped roles (store_admin, staff), roles are assigned with team scope using $store->id
+- For global roles (super_admin, customer), roles are assigned without team scope
+- All users except customer are attached to the test store via store_user pivot table
+- Passwords for all test users are bcrypt('password')
+- No hardcoded role or permission strings anywhere — all use PermissionEnum and RoleEnum constants
