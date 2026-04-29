@@ -21,6 +21,7 @@ use App\Http\Resources\ProductCardResource;
 use App\Http\Resources\ProductDetailResource;
 use App\Http\Resources\RelatedProductResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -31,10 +32,10 @@ class ProductController extends Controller
         private GetRelatedProductsAction $getRelatedProductsAction,
     ) {}
 
-    public function index(FilterProductsRequest $request): JsonResponse
+    public function index(Request $request, int $store): JsonResponse
     {
         $result = $this->listProductsAction->execute(
-            ListProductsDTO::fromRequest($request)
+            ListProductsDTO::fromRequest($request, $store)
         );
 
         $paginator = $result['paginator'];
@@ -55,10 +56,10 @@ class ProductController extends Controller
         );
     }
 
-    public function indexByCategory(GetProductsByCategoryRequest $request): JsonResponse
+    public function indexByCategory(Request $request, int $store, string $slug): JsonResponse
     {
         $result = $this->getProductsByCategoryAction->execute(
-            GetProductsByCategoryDTO::fromRequest($request)
+            GetProductsByCategoryDTO::fromRequest($request, $store, $slug)
         );
 
         $paginator = $result['paginator'];
@@ -80,19 +81,19 @@ class ProductController extends Controller
         );
     }
 
-    public function show(GetProductDetailRequest $request): JsonResponse
+    public function show(Request $request, int $store, string $slug): JsonResponse
     {
         $product = $this->getProductDetailAction->execute(
-            GetProductDetailDTO::fromRequest($request)
+            GetProductDetailDTO::fromRequest($request, $store, $slug)
         );
 
         return $this->success(new ProductDetailResource($product));
     }
 
-    public function related(GetRelatedProductsRequest $request): JsonResponse
+    public function related(Request $request, int $store, string $slug): JsonResponse
     {
         $relatedProducts = $this->getRelatedProductsAction->execute(
-            GetRelatedProductsDTO::fromRequest($request)
+            GetRelatedProductsDTO::fromRequest($request, $store, $slug)
         );
 
         return $this->success(RelatedProductResource::collection($relatedProducts));
