@@ -9,15 +9,17 @@ use App\Http\Requests\Address\ListAddressesRequest;
 class ListAddressesDTO
 {
     public function __construct(
+        public int $storeId,
         public int $userId,
         public ?string $type = null,
     ) {}
 
-    public static function fromRequest(ListAddressesRequest $request): self
+    public static function fromRequest(ListAddressesRequest $request, int $storeId): self
     {
         return new self(
-            $request->user()->id,
-            $request->input('type')
+            storeId: $storeId,
+            userId: $request->user()->id,
+            type: $request->input('type')
         );
     }
 }

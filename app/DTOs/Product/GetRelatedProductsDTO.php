@@ -9,11 +9,15 @@ use App\Http\Requests\Product\GetRelatedProductsRequest;
 class GetRelatedProductsDTO
 {
     public function __construct(
+        public int $storeId,
         public string $slug,
     ) {}
 
-    public static function fromRequest(GetRelatedProductsRequest $request): self
+    public static function fromRequest(GetRelatedProductsRequest $request, int $storeId): self
     {
-        return new self((string) $request->route('slug'));
+        return new self(
+            storeId: $storeId,
+            slug: (string) $request->route('slug'),
+        );
     }
 }

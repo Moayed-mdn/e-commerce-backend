@@ -16,8 +16,8 @@ class GetRelatedProductsAction
 
     public function execute(GetRelatedProductsDTO $dto): Collection
     {
-        $currentProduct = $this->productService->findProductBySlugOrFail($dto->slug);
+        $currentProduct = $this->productService->findProductBySlugOrFail($dto->slug, $dto->storeId);
 
-        return $this->productService->getRelatedProducts($currentProduct);
+        return $this->productService->getRelatedProducts($currentProduct, $dto->storeId);
     }
 }

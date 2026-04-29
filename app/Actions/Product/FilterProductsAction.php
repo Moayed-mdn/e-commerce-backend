@@ -19,17 +19,17 @@ class FilterProductsAction
 
     public function execute(FilterProductsDTO $dto): FilterResult
     {
-        $query = $this->productRepository->buildBaseQuery();
+        $query = $this->productRepository->buildBaseQuery($dto->storeId);
 
         // Get filter ranges before applying filters
         $filterRanges = $this->productRepository->getFilterRanges($query);
 
         // Get root categories for descendants
-        $descendants = $this->categoryRepository->getRootCategories();
+        $descendants = $this->categoryRepository->getRootCategories($dto->storeId);
 
         // Apply category filter if provided
         if ($dto->categorySlug !== null) {
-            $category = $this->categoryRepository->findBySlugOrFail($dto->categorySlug);
+            $category = $this->categoryRepository->findBySlugOrFail($dto->categorySlug, $dto->storeId);
             $descendantsWithSelf = $category->allDescendantIds()->push($category->id);
             $query = $this->productRepository->filterByCategory($query, $descendantsWithSelf->toArray());
         }

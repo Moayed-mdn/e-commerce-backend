@@ -9,6 +9,7 @@ use App\Http\Requests\Product\FilterProductsByCategoryRequest;
 class FilterProductsByCategoryDTO
 {
     public function __construct(
+        public int $storeId,
         public string $slug,
         public ?string $categorySlug,
         public ?float $minPrice,
@@ -18,9 +19,10 @@ class FilterProductsByCategoryDTO
         public int $perPage,
     ) {}
 
-    public static function fromRequest(string $slug, FilterProductsByCategoryRequest $request): self
+    public static function fromRequest(string $slug, FilterProductsByCategoryRequest $request, int $storeId): self
     {
         return new self(
+            storeId: $storeId,
             slug: $slug,
             categorySlug: $request->filled('category_slug') ? $request->string('category_slug') : null,
             minPrice: $request->filled('min_price') ? (float) $request->get('min_price') : null,

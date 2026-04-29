@@ -16,6 +16,6 @@ class ListAddressesAction
 
     public function execute(ListAddressesDTO $dto): LengthAwarePaginator
     {
-        return $this->addressService->getUserAddresses($dto->userId, $dto->type);
+        return $this->addressService->getUserAddresses($dto->storeId, $dto->userId, $dto->type);
     }
 }

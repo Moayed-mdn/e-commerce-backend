@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 class AddressRepository
 {
-    public function getByUser(int $userId, ?string $type = null): Collection
+    public function getByUser(int $userId, int $storeId, ?string $type = null): Collection
     {
-        $query = Address::where('user_id', $userId);
+        $query = Address::where('user_id', $userId)
+            ->where('store_id', $storeId);
 
         if ($type) {
             $query->where('type', $type);
@@ -18,13 +19,14 @@ class AddressRepository
         return $query->get();
     }
 
-    public function find(int $id): Address
+    public function find(int $id, int $storeId): Address
     {
-        return Address::findOrFail($id);
+        return Address::where('store_id', $storeId)->findOrFail($id);
     }
 
-    public function create(array $data): Address
+    public function create(array $data, int $storeId): Address
     {
+        $data['store_id'] = $storeId;
         return Address::create($data);
     }
 
@@ -39,26 +41,31 @@ class AddressRepository
         $address->delete();
     }
 
-    public function setDefault(int $userId, string $type, int $addressId): void
+    public function setDefault(int $userId, string $type, int $addressId, int $storeId): void
     {
         Address::where('user_id', $userId)
+            ->where('store_id', $storeId)
             ->where('type', $type)
             ->update(['is_default' => false]);
 
-        Address::where('id', $addressId)->update(['is_default' => true]);
+        Address::where('id', $addressId)
+            ->where('store_id', $storeId)
+            ->update(['is_default' => true]);
     }
 
-    public function unsetDefaultForType(int $userId, string $type, int $excludeId): void
+    public function unsetDefaultForType(int $userId, string $type, int $excludeId, int $storeId): void
     {
         Address::where('user_id', $userId)
+            ->where('store_id', $storeId)
             ->where('type', $type)
             ->where('id', '!=', $excludeId)
             ->update(['is_default' => false]);
     }
 
-    public function getNextDefault(int $userId, string $type, int $excludeId): ?Address
+    public function getNextDefault(int $userId, string $type, int $excludeId, int $storeId): ?Address
     {
         return Address::where('user_id', $userId)
+            ->where('store_id', $storeId)
             ->where('type', $type)
             ->where('id', '!=', $excludeId)
             ->first();

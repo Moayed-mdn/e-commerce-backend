@@ -9,15 +9,17 @@ use Illuminate\Http\Request;
 class GetOrderDTO
 {
     public function __construct(
+        public int $storeId,
         public int $orderId,
         public int $userId,
     ) {}
 
-    public static function fromRequest(\App\Http\Requests\Order\GetOrderRequest $request): self
+    public static function fromRequest(\App\Http\Requests\Order\GetOrderRequest $request, int $storeId): self
     {
         return new self(
-            (int) $request->route('orderNumber'),
-            $request->user()->id,
+            storeId: $storeId,
+            orderId: (int) $request->route('orderNumber'),
+            userId: $request->user()->id,
         );
     }
 }

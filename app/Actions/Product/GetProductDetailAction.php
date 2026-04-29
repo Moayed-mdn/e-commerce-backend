@@ -16,7 +16,7 @@ class GetProductDetailAction
 
     public function execute(GetProductDetailDTO $dto): Product
     {
-        $product = $this->productService->findProductBySlugOrFail($dto->slug);
+        $product = $this->productService->findProductBySlugOrFail($dto->slug, $dto->storeId);
 
         $product->load([
             'translations',

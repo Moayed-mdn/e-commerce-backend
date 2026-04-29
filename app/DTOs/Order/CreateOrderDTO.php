@@ -9,6 +9,7 @@ use App\Http\Requests\Order\StoreOrderRequest;
 class CreateOrderDTO
 {
     public function __construct(
+        public int $storeId,
         public int $userId,
         public int $shippingAddressId,
         public int $billingAddressId,
@@ -16,14 +17,15 @@ class CreateOrderDTO
         public string $shippingMethod,
     ) {}
 
-    public static function fromRequest(StoreOrderRequest $request): self
+    public static function fromRequest(StoreOrderRequest $request, int $storeId): self
     {
         return new self(
-            $request->user()->id,
-            $request->integer('shipping_address_id'),
-            $request->integer('billing_address_id'),
-            $request->integer('payment_method_id'),
-            (string) $request->string('shipping_method'),
+            storeId: $storeId,
+            userId: $request->user()->id,
+            shippingAddressId: $request->integer('shipping_address_id'),
+            billingAddressId: $request->integer('billing_address_id'),
+            paymentMethodId: $request->integer('payment_method_id'),
+            shippingMethod: (string) $request->string('shipping_method'),
         );
     }
 }

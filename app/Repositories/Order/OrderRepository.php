@@ -9,18 +9,20 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class OrderRepository
 {
-    public function getUserOrders(int $userId): LengthAwarePaginator
+    public function getUserOrders(int $userId, int $storeId): LengthAwarePaginator
     {
         return Order::query()
             ->where('user_id', $userId)
+            ->where('store_id', $storeId)
             ->with(['items', 'shippingAddress', 'billingAddress', 'paymentMethod'])
             ->latest()
             ->paginate(10);
     }
 
-    public function findById(int $id): ?Order
+    public function findById(int $id, int $storeId): ?Order
     {
         return Order::query()
+            ->where('store_id', $storeId)
             ->with([
                 'items.productVariant.product.images',
                 'shippingAddress',
@@ -30,8 +32,9 @@ class OrderRepository
             ->find($id);
     }
 
-    public function create(array $data): Order
+    public function create(array $data, int $storeId): Order
     {
+        $data['store_id'] = $storeId;
         return Order::create($data);
     }
 

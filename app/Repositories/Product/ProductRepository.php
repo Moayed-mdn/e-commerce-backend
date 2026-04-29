@@ -11,11 +11,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    public function buildBaseQuery(): Builder
+    public function buildBaseQuery(int $storeId): Builder
     {
         $locale = app()->getLocale();
 
         return Product::active()
+            ->where('store_id', $storeId)
             ->leftJoin('product_translations', function ($join) use ($locale) {
                 $join->on('products.id', '=', 'product_translations.product_id')
                     ->where('product_translations.locale', $locale);
@@ -109,17 +110,17 @@ class ProductRepository
         return $query->paginate($perPage);
     }
 
-    public function findById(int $id): ?Product
+    public function findById(int $id, int $storeId): ?Product
     {
-        return Product::find($id);
+        return Product::where('store_id', $storeId)->find($id);
     }
 
-    public function findBySlug(string $slug): ?Product
+    public function findBySlug(string $slug, int $storeId): ?Product
     {
-        return Product::findBySlug($slug);
+        return Product::where('store_id', $storeId)->findBySlug($slug);
     }
 
-    public function findRelatedProducts(Product $currentProduct, int $limit = 8): Collection
+    public function findRelatedProducts(Product $currentProduct, int $storeId, int $limit = 8): Collection
     {
         $currentProduct->load(['category', 'tags']);
 
@@ -128,6 +129,7 @@ class ProductRepository
             'activeVariants.images',
             'defaultVariant.images',
         ])
+            ->where('store_id', $storeId)
             ->where('id', '!=', $currentProduct->id)
             ->where('is_active', true);
 
@@ -153,6 +155,7 @@ class ProductRepository
                 'activeVariants.images',
                 'defaultVariant.images',
             ])
+                ->where('store_id', $storeId)
                 ->where('id', '!=', $currentProduct->id)
                 ->where('is_active', true)
                 ->whereNotIn('id', $relatedProducts->pluck('id'))

@@ -7,6 +7,7 @@ use App\Http\Requests\Address\UpdateAddressRequest;
 class UpdateAddressDTO
 {
     public function __construct(
+        public int $storeId,
         public int $addressId,
         public int $userId,
         public string $firstName,
@@ -22,9 +23,10 @@ class UpdateAddressDTO
         public bool $isDefault,
     ) {}
 
-    public static function fromRequest(UpdateAddressRequest $request): self
+    public static function fromRequest(UpdateAddressRequest $request, int $storeId): self
     {
         return new self(
+            storeId: $storeId,
             addressId: (int) $request->route('address'),
             userId: $request->user()->id,
             firstName: $request->input('first_name'),

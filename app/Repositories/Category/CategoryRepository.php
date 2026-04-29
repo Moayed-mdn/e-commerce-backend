@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Collection;
 
 class CategoryRepository
 {
-    public function getRootCategories(?string $type = null): Collection
+    public function getRootCategories(int $storeId, ?string $type = null): Collection
     {
         $query = Category::query()
+            ->where('store_id', $storeId)
             ->with(['children', 'parent'])
-            ->withCount(['products' => function ($q) {
-                $q->where('status', 'active');
+            ->withCount(['products' => function ($q) use ($storeId) {
+                $q->where('status', 'active')
+                    ->where('store_id', $storeId);
             }])
             ->whereNull('parent_id');
 
@@ -25,35 +27,39 @@ class CategoryRepository
         return $query->get();
     }
 
-    public function getChildCategories(int $parentId): Collection
+    public function getChildCategories(int $parentId, int $storeId): Collection
     {
         return Category::query()
+            ->where('store_id', $storeId)
             ->where('parent_id', $parentId)
             ->with(['children', 'parent'])
-            ->withCount(['products' => function ($q) {
-                $q->where('status', 'active');
+            ->withCount(['products' => function ($q) use ($storeId) {
+                $q->where('status', 'active')
+                    ->where('store_id', $storeId);
             }])
             ->get();
     }
 
-    public function findById(int $id): ?Category
+    public function findById(int $id, int $storeId): ?Category
     {
         return Category::query()
+            ->where('store_id', $storeId)
             ->with(['children', 'parent'])
-            ->withCount(['products' => function ($q) {
-                $q->where('status', 'active');
+            ->withCount(['products' => function ($q) use ($storeId) {
+                $q->where('status', 'active')
+                    ->where('store_id', $storeId);
             }])
             ->find($id);
     }
 
-    public function findBySlugOrFail(string $slug): Category
+    public function findBySlugOrFail(string $slug, int $storeId): Category
     {
-        return Category::findByLocalizedSlugOrFail($slug);
+        return Category::where('store_id', $storeId)->findByLocalizedSlugOrFail($slug);
     }
 
-    public function findBySlug(string $slug): ?Category
+    public function findBySlug(string $slug, int $storeId): ?Category
     {
-        return Category::findByLocalizedSlug($slug);
+        return Category::where('store_id', $storeId)->findByLocalizedSlug($slug);
     }
 
     public function flattenDescendantsWithTranslations(Category $category, string $locale): array

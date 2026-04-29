@@ -11,13 +11,14 @@ class DeleteAddressAction
         private AddressRepository $addressRepository
     ) {}
 
-    public function execute(Address $address): void
+    public function execute(Address $address, int $storeId): void
     {
         if ($address->is_default) {
             $newDefault = $this->addressRepository->getNextDefault(
                 $address->user_id,
                 $address->type,
-                $address->id
+                $address->id,
+                $storeId
             );
 
             if ($newDefault) {

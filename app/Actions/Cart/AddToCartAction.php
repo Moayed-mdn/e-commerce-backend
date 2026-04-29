@@ -20,8 +20,11 @@ class AddToCartAction
     public function execute(AddToCartDTO $dto): \App\Models\Cart
     {
         return DB::transaction(function () use ($dto) {
+            $user = \App\Models\User::findOrFail($dto->userId);
+
             $cart = $this->cartRepository->getOrCreate(
-                \App\Models\User::findOrFail($dto->userId)
+                $user,
+                $dto->storeId,
             );
 
             $variant = $this->productVariantRepository->findWithLock($dto->productVariantId);

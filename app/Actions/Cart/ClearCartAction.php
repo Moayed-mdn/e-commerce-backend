@@ -14,7 +14,8 @@ class ClearCartAction
     public function execute(ClearCartDTO $dto): void
     {
         $cart = $this->cartRepository->findByUser(
-            \App\Models\User::findOrFail($dto->userId)
+            \App\Models\User::findOrFail($dto->userId),
+            $dto->storeId
         );
 
         if ($cart) {

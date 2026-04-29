@@ -15,6 +15,6 @@ class GetBestSellersAction
 
     public function execute(GetBestSellersDTO $dto): array
     {
-        return $this->bestSellerService->getCachedAllParents($dto->limit);
+        return $this->bestSellerService->getCachedAllParents($dto->storeId, $dto->limit);
     }
 }
