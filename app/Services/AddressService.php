@@ -9,6 +9,7 @@ use App\DTOs\Address\UpdateAddressDTO;
 use App\Models\Address;
 use App\Repositories\Address\AddressRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class AddressService
 {
@@ -16,12 +17,12 @@ class AddressService
         private AddressRepository $addressRepository,
     ) {}
 
-    public function getUserAddresses(int $userId, ?string $type = null): LengthAwarePaginator
+    public function getUserAddresses(int $storeId, int $userId, ?string $type = null): Collection
     {
-        return $this->addressRepository->getUserAddresses($userId, $type);
+        return $this->addressRepository->getByUser($userId, $storeId, $type);
     }
 
-    public function storeAddress(StoreAddressDTO $dto): Address
+    public function storeAddress(int $storeId, StoreAddressDTO $dto): Address
     {
         $data = [
             'user_id' => $dto->userId,
@@ -40,10 +41,16 @@ class AddressService
         ];
 
         if ($dto->isDefault) {
-            $this->addressRepository->setAsDefaultForType($dto->userId, $dto->type);
+            $this->addressRepository->setDefault($dto->userId, $dto->type, 0, $storeId);
         }
 
-        return $this->addressRepository->create($data);
+        $address = $this->addressRepository->create($data, $storeId);
+
+        if ($dto->isDefault) {
+            $this->addressRepository->setDefault($dto->userId, $dto->type, $address->id, $storeId);
+        }
+
+        return $address;
     }
 
     public function updateAddress(Address $address, UpdateAddressDTO $dto): Address
@@ -63,19 +70,43 @@ class AddressService
         ];
 
         if ($dto->isDefault) {
-            $this->addressRepository->setAsDefaultForType($address->user_id, $address->type);
+            $this->addressRepository->unsetDefaultForType($address->user_id, $address->type, $address->id, $dto->storeId);
         }
 
-        return $this->addressRepository->update($address, $data);
+        $updated = $this->addressRepository->update($address, $data);
+
+        if ($dto->isDefault) {
+            $this->addressRepository->setDefault($address->user_id, $address->type, $address->id, $dto->storeId);
+        }
+
+        return $updated;
     }
 
-    public function deleteAddress(Address $address): bool
+    public function deleteAddress(Address $address, int $storeId): bool
     {
+        if ($address->is_default) {
+            $newDefault = $this->addressRepository->getNextDefault(
+                $address->user_id,
+                $address->type,
+                $address->id,
+                $storeId
+            );
+
+            if ($newDefault) {
+                $newDefault->update(['is_default' => true]);
+            }
+        }
+
         return $this->addressRepository->delete($address);
     }
 
-    public function setAsDefault(Address $address): void
+    public function setAsDefault(Address $address, int $storeId): void
     {
-        $this->addressRepository->setAsDefault($address);
+        $this->addressRepository->setDefault(
+            $address->user_id,
+            $address->type,
+            $address->id,
+            $storeId
+        );
     }
 }
