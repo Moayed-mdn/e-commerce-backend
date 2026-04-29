@@ -248,3 +248,38 @@
 - No try/catch blocks added to controller
 - All responses use $this->success() or $this->paginated() via ApiResponserTrait
 - The {address} route parameter uses Laravel model binding with Address model
+
+---
+## Fix Checkout Routes and Controller — 2026-04-29
+### What I Did:
+- Audited existing checkout controller and found CheckoutController with createSession() and status() methods
+- Created routes/api/v1/stores/checkout.php with initiate and confirm routes under store scope
+- Registered checkout.php in routes/api.php alongside cart, orders, products, and addresses
+- Updated CheckoutController to rename createSession() to initiate() and add int $store parameter
+- Added confirm() method to handle payment confirmation with int $store parameter
+- Updated CreateCheckoutDTO to include storeId as first constructor parameter
+- Passed $store to CreateCheckoutDTO::fromRequest() in the initiate() method
+- Left StripeWebhookController completely untouched as required
+
+### Files Created:
+- `routes/api/v1/stores/checkout.php` — Store-scoped checkout routes (initiate and confirm) with auth:sanctum and store.context middleware
+
+### Files Modified:
+- `routes/api.php` — Added require for checkout.php route file
+- `app/Http/Controllers/Api/Payment/CheckoutController.php` — Renamed createSession() to initiate(), added int $store parameter to initiate() and confirm(), added Request import, passed $store to DTO
+- `app/DTOs/Payment/CreateCheckoutDTO.php` — Added int $storeId as first constructor parameter, updated fromRequest() signature to accept storeId
+
+### Migrations Created:
+- None
+
+### Notes:
+- Route names use prefix stores.checkout. as specified (stores.checkout.initiate, stores.checkout.confirm)
+- All routes are under /api/v1/stores/{store}/checkout prefix
+- Middleware auth:sanctum and store.context applied to all checkout routes
+- Controller remains thin with no business logic added
+- No try/catch blocks added to controller
+- All responses use $this->success() via ApiResponserTrait
+- Stripe webhook route at /api/stripe/webhook was NOT modified
+- StripeWebhookController was NOT modified
+- The status() method was preserved but is not used by the new store-scoped routes (it's for guest checkout lookup)
+- CreateCheckoutDTO now has storeId as first parameter following architecture pattern

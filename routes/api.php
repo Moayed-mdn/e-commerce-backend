@@ -21,3 +21,4 @@ require 'api/v1/stores/cart.php';
 require 'api/v1/stores/orders.php';
 require 'api/v1/stores/products.php';
 require 'api/v1/stores/addresses.php';
+require 'api/v1/stores/checkout.php';
