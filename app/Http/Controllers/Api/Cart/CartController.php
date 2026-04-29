@@ -31,46 +31,48 @@ class CartController extends Controller
         private ClearCartAction $clearCartAction,
     ) {}
 
-    public function show(Request $request): JsonResponse
-    {
+    public function show(
+        Request $request, 
+        int $store,
+    ): JsonResponse {
         $cart = $this->getCartAction->execute(
-            GetCartDTO::fromRequest($request)
+            GetCartDTO::fromRequest($request, $store)
         );
 
         return $this->success(new CartResource($cart));
     }
 
-    public function addItem(AddItemRequest $request): JsonResponse
+    public function addItem(AddItemRequest $request, int $store): JsonResponse
     {
         $cart = $this->addToCartAction->execute(
-            AddToCartDTO::fromRequest($request)
+            AddToCartDTO::fromRequest($request, $store)
         );
 
         return $this->success(new CartResource($cart));
     }
 
-    public function updateItem(UpdateItemRequest $request): JsonResponse
+    public function updateItem(UpdateItemRequest $request, int $store): JsonResponse
     {
         $this->updateCartItemAction->execute(
-            UpdateCartItemDTO::fromRequest($request)
+            UpdateCartItemDTO::fromRequest($request, $store)
         );
 
-        return $this->show($request);
+        return $this->show($request, $store);
     }
 
-    public function removeItem(RemoveItemRequest $request): JsonResponse
+    public function removeItem(RemoveItemRequest $request, int $store): JsonResponse
     {
         $this->removeCartItemAction->execute(
-            RemoveCartItemDTO::fromRequest($request)
+            RemoveCartItemDTO::fromRequest($request, $store)
         );
 
-        return $this->show($request);
+        return $this->show($request, $store);
     }
 
-    public function clear(ClearRequest $request): JsonResponse
+    public function clear(ClearRequest $request, int $store): JsonResponse
     {
         $this->clearCartAction->execute(
-            ClearCartDTO::fromRequest($request)
+            ClearCartDTO::fromRequest($request, $store)
         );
 
         return $this->success(null, __('cart.cleared'));

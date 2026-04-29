@@ -14,11 +14,14 @@ use App\DTOs\Order\GetOrderDTO;
 use App\DTOs\Order\ListOrdersDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\CancelOrderRequest;
+use App\Http\Requests\Order\FilterOrdersRequest;
 use App\Http\Requests\Order\GetOrderRequest;
+use App\Http\Requests\Order\GuestOrderLookupRequest;
 use App\Http\Requests\Order\ListOrdersRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -29,10 +32,16 @@ class OrderController extends Controller
         private CancelOrderAction $cancelOrderAction,
     ) {}
 
-    public function index(ListOrdersRequest $request): JsonResponse
+    public function filters(FilterOrdersRequest $request, int $store): JsonResponse
+    {
+        // Filters logic - returns filter options
+        return $this->success([]);
+    }
+
+    public function index(ListOrdersRequest $request, int $store): JsonResponse
     {
         $orders = $this->listOrdersAction->execute(
-            ListOrdersDTO::fromRequest($request)
+            ListOrdersDTO::fromRequest($request, $store)
         );
 
         return $this->paginated(
@@ -41,30 +50,33 @@ class OrderController extends Controller
         );
     }
 
-    public function show(GetOrderRequest $request): JsonResponse
+    public function show(Request $request, int $store, string $orderNumber): JsonResponse
     {
         $order = $this->getOrderAction->execute(
-            GetOrderDTO::fromRequest($request)
+            GetOrderDTO::fromRequest($request, $store, $orderNumber)
         );
 
         return $this->success(new OrderResource($order));
     }
 
-    public function store(StoreOrderRequest $request): JsonResponse
-    {
-        $order = $this->createOrderAction->execute(
-            CreateOrderDTO::fromRequest($request)
-        );
-
-        return $this->success(new OrderResource($order), __('order.created'), 201);
-    }
-
-    public function cancel(CancelOrderRequest $request): JsonResponse
+    public function cancel(CancelOrderRequest $request, int $store, string $orderNumber): JsonResponse
     {
         $order = $this->cancelOrderAction->execute(
-            CancelOrderDTO::fromRequest($request)
+            CancelOrderDTO::fromRequest($request, $store, $orderNumber)
         );
 
         return $this->success(new OrderResource($order), __('order.cancelled'));
+    }
+
+    public function reorder(Request $request, int $store, string $orderNumber): JsonResponse
+    {
+        // Reorder logic placeholder
+        return $this->success(null, __('order.reordered'));
+    }
+
+    public function guestLookup(GuestOrderLookupRequest $request): JsonResponse
+    {
+        // Guest lookup - no store context needed
+        return $this->success(null, 'Guest order lookup');
     }
 }

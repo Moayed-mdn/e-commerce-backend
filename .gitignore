@@ -1,4 +1,4 @@
-```gitignore
+```
 # Compiled and build artifacts
 *.pyc
 __pycache__/
@@ -25,16 +25,11 @@ venv/
 *.swp
 *.swo
 
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
 # Editors
 .vscode/
 .idea/
 
-# System files
+# OS generated files
 .DS_Store
 Thumbs.db
 
@@ -44,18 +39,14 @@ build/
 target/
 .gradle/
 
-# Python specific
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-.Python
-*.so
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# Cache directories
+# Python specific
 .mypy_cache/
 .pytest_cache/
-.hypothesis/
 
 # Compressed files
 *.zip

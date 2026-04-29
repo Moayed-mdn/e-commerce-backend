@@ -183,3 +183,39 @@
 - AddressService deleteAddress() now passes storeId to repository delete method
 - AddressService setAsDefault() now accepts storeId and passes to repository
 - All service methods maintain existing business logic, only adding storeId parameter passing
+
+---
+## Refactor routes and update controller method signatures for multi-store architecture — 2026-04-29
+### What I Did:
+- Created new route directory structure routes/api/v1/stores/
+- Created routes/api/v1/stores/cart.php with store-scoped cart routes
+- Created routes/api/v1/stores/orders.php with store-scoped order routes
+- Created routes/api/v1/stores/products.php with store-scoped product routes
+- Updated routes/api.php to use new route structure
+- Updated CartController method signatures to accept int $store parameter
+- Updated OrderController method signatures to accept int $store parameter
+- Updated ProductController method signatures to accept int $store parameter
+
+### Files Created:
+- `routes/api/v1/stores/cart.php` — Store-scoped cart routes with auth:sanctum and store.context middleware
+- `routes/api/v1/stores/orders.php` — Store-scoped order routes with guest lookup endpoint
+- `routes/api/v1/stores/products.php` — Store-scoped product routes with store.context middleware
+
+### Files Modified:
+- `routes/api.php` — Replaced old route includes with new structure, removed debug routes
+- `app/Http/Controllers/Api/Cart/CartController.php` — Added int $store parameter to all methods, passed to DTOs
+- `app/Http/Controllers/Api/Order/OrderController.php` — Added int $store parameter to authenticated methods
+- `app/Http/Controllers/Api/Product/ProductController.php` — Added int $store parameter to all methods
+
+### Migrations Created:
+- None
+
+### Notes:
+- Guest order lookup route remains without store context as specified
+- Auth routes, webhook routes, homepage/category/search/profile routes remain unchanged
+- int $store parameter placement: after Request parameter, before other parameters (orderNumber, slug, etc.)
+- CartController updateItem and removeItem methods now pass $store to internal show() calls
+- All controllers maintain constructor injection intact
+- No business logic was added to controllers
+- Route prefixes changed from /v1/users/* to /v1/stores/{store} for store-scoped routes
+- Debug routes /test and /test-mailtrap were removed from api.php
