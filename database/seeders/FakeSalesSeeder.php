@@ -63,12 +63,14 @@ class FakeSalesSeeder extends Seeder
                 $qty = rand(1, 5);
                 $price = $variant->price;
                 $subtotal += $price * $qty;
-
+                $total = $price * $qty;
+                
                 OrderItem::create([
                     'order_id'          => $order->id,
                     'product_id'        => $product->id,
                     'product_variant_id'=> $variant->id,
-
+                    'subtotal'          => $price * $qty,
+                    'total'             => $total,
                     'product_name'      => $product->translation(app()->getLocale())->name,
                     'sku'               => $variant->sku,
                     'unit_price'        => $price,
