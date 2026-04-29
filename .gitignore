@@ -1,1 +1,33 @@
-Nothing should be ignored based on the provided file changes, as they consist only of source code and configuration files (.php, .md).
+```
+# Dependencies
+vendor/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# PHP specific
+*.php~
+*.swp
+*.swo
+
+# Build and cache
+bootstrap/cache/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+public/storage
+
+# Tests
+.phpunit.result.cache
+```

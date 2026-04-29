@@ -283,3 +283,49 @@
 - StripeWebhookController was NOT modified
 - The status() method was preserved but is not used by the new store-scoped routes (it's for guest checkout lookup)
 - CreateCheckoutDTO now has storeId as first parameter following architecture pattern
+---
+## Create Store Management API — 2026-04-29
+### What I Did:
+- Created routes/api/v1/stores/store-management.php with POST, GET, and PUT store routes
+- Registered store-management.php in routes/api.php at the /api/v1/ level (outside {store} group)
+- Created CreateStoreDTO with name, slug, ownerId properties and fromRequest() method
+- Created UpdateStoreDTO with storeId as first parameter, nullable name, slug, isActive properties
+- Created CreateStoreRequest with validation rules for name and slug
+- Created UpdateStoreRequest with sometimes rules for name, slug, is_active
+- Created CreateStoreAction that uses StoreRepository to create stores
+- Created UpdateStoreAction that uses StoreRepository to update stores
+- Created StoreRepository with create(), findById(), and update() methods
+- Created StoreResource exposing id, name, slug, is_active, owner_id, created_at
+- Created StoreController with create(), show(), and update() methods
+
+### Files Created:
+- `routes/api/v1/stores/store-management.php` — Store management routes (POST /stores, GET /stores/{store}, PUT /stores/{store})
+- `app/DTOs/Store/CreateStoreDTO.php` — DTO for creating stores with name, slug, ownerId
+- `app/DTOs/Store/UpdateStoreDTO.php` — DTO for updating stores with storeId as first param
+- `app/Http/Requests/Store/CreateStoreRequest.php` — Form request validation for store creation
+- `app/Http/Requests/Store/UpdateStoreRequest.php` — Form request validation for store updates
+- `app/Actions/Store/CreateStoreAction.php` — Action to create stores via repository
+- `app/Actions/Store/UpdateStoreAction.php` — Action to update stores via repository
+- `app/Repositories/Store/StoreRepository.php` — Repository for store CRUD operations with transaction support
+- `app/Http/Resources/Store/StoreResource.php` — API resource for store responses
+- `app/Http/Controllers/Api/Store/StoreController.php` — Thin controller for store management endpoints
+
+### Files Modified:
+- `routes/api.php` — Added require for store-management.php route file outside the {store} group
+
+### Migrations Created:
+- None
+
+### Notes:
+- POST /api/v1/stores route has only auth:sanctum middleware (no store.context since store doesn't exist yet)
+- GET and PUT /api/v1/stores/{store} routes have both auth:sanctum and store.context middleware
+- Route names use prefix stores. (stores.create, stores.show, stores.update)
+- StoreRepository::create() wraps store creation and pivot attachment in DB transaction
+- StoreRepository::findById() throws StoreNotFoundException if store not found
+- StoreRepository::update() only updates non-null fields from DTO
+- StoreController::show() retrieves store from app('currentStore') resolved by store.context middleware
+- All controllers remain thin with no business logic, no try/catch blocks
+- All responses use $this->success() via ApiResponserTrait
+- CreateStoreDTO::fromRequest() extracts ownerId from $request->user()->id
+- UpdateStoreDTO::fromRequest() accepts storeId as second parameter from route
+- CreateStoreAction attaches owner to store_user pivot with role 'store_admin'
