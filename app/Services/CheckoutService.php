@@ -5,11 +5,12 @@ namespace App\Services;
 
 use App\Exceptions\Order\OutOfStockException;
 use App\Exceptions\Payment\StripeServiceException;
-use App\Models\Cart;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\ProductVariant;
 use App\Models\User;
+use App\Repositories\Cart\CartRepository;
+use App\Repositories\Order\OrderRepository;
+use App\Repositories\OrderItem\OrderItemRepository;
+use App\Repositories\Product\ProductVariantRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
@@ -17,8 +18,11 @@ use Stripe\Stripe;
 
 class CheckoutService
 {
-    public function __construct()
-    {
+    public function __construct(
+        private CartRepository $cartRepository,
+        private OrderRepository $orderRepository,
+        private ProductVariantRepository $productVariantRepository,
+    ) {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -86,12 +90,7 @@ class CheckoutService
         $prepared = [];
 
         foreach ($rawItems as $item) {
-            $variant = ProductVariant::with([
-                'product.translations',
-                'attributeValues.translations',
-                'attributeValues.attribute.translations',
-                'images',
-            ])->findOrFail($item['product_variant_id']);
+            $variant = $this->productVariantRepository->findByIdWithFullRelations($item['product_variant_id']);
 
             // Check active
             if (!$variant->is_active) {
@@ -177,8 +176,7 @@ class CheckoutService
             $total = $subtotal + $shippingAmount;
 
             // ── 2. Create pending Order ────────────────────────
-            $order = Order::create([
-                'store_id'         => $storeId,
+            $order = $this->orderRepository->create([
                 'user_id'          => $user?->id,
                 'guest_email'      => $guestEmail,
                 'subtotal'         => $subtotal,
@@ -190,7 +188,7 @@ class CheckoutService
                 'status'           => 'pending',
                 'payment_status'   => 'pending',
                 'shipping_method'  => 'free',
-            ]);
+            ], $storeId);
 
             // ── 3. Create OrderItems ───────────────────────────
             foreach ($validatedItems as $item) {
@@ -306,7 +304,7 @@ class CheckoutService
             return;
         }
 
-        $order = Order::with('items')->find($orderId);
+        $order = $this->orderRepository->findByIdWithItems($orderId);
 
         if (!$order) {
             Log::warning('Stripe webhook: order not found', ['order_id' => $orderId]);
@@ -353,7 +351,7 @@ class CheckoutService
 
             // ── 4. Deduct stock ────────────────────────────────
             foreach ($order->items as $item) {
-                $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                $variant = $this->productVariantRepository->findWithLockForUpdate($item->product_variant_id);
 
                 if ($variant) {
                     $newQuantity = max(0, $variant->quantity - $item->quantity);
@@ -367,7 +365,7 @@ class CheckoutService
 
             // ── 5. Clear cart (for logged-in users) ────────────
             if ($order->user_id) {
-                $cart = Cart::where('user_id', $order->user_id)->first();
+                $cart = $this->cartRepository->findByUserId($order->user_id);
                 if ($cart) {
                     $cart->items()->delete();
                 }
@@ -390,7 +388,7 @@ class CheckoutService
 
         if (!$orderId) return;
 
-        $order = Order::find($orderId);
+        $order = $this->orderRepository->findById($orderId);
 
         if ($order && $order->payment_status === 'pending') {
             $order->markAsFailed();
@@ -409,8 +407,7 @@ class CheckoutService
         try {
             $session = \Stripe\Checkout\Session::retrieve($sessionId);
 
-            $order = \App\Models\Order::where('stripe_checkout_session_id', $sessionId)
-                ->first();
+            $order = $this->orderRepository->findByStripeSessionId($sessionId);
 
             return [
                 'payment_status' => $session->payment_status,  // 'paid', 'unpaid', 'no_payment_required'

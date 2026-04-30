@@ -40,4 +40,19 @@ class ProductVariantRepository
     {
         $variant->decrement('quantity', $quantity);
     }
+
+    public function findByIdWithFullRelations(int $id): ProductVariant
+    {
+        return ProductVariant::with([
+            'product.translations',
+            'attributeValues.translations',
+            'attributeValues.attribute.translations',
+            'images',
+        ])->findOrFail($id);
+    }
+
+    public function findWithLockForUpdate(int $id): ProductVariant
+    {
+        return ProductVariant::lockForUpdate()->find($id);
+    }
 }

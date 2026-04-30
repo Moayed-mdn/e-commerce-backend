@@ -59,4 +59,25 @@ class OrderRepository
             $item->productVariant->increment('quantity', $item->quantity);
         }
     }
+
+    public function findByStripeSessionId(string $sessionId): ?Order
+    {
+        return Order::where('stripe_checkout_session_id', $sessionId)->first();
+    }
+
+    public function findByIdWithItems(int $id): ?Order
+    {
+        return Order::with('items')->find($id);
+    }
+
+    public function create(array $data, int $storeId): Order
+    {
+        $data['store_id'] = $storeId;
+        return Order::create($data);
+    }
+
+    public function findById(int $id): ?Order
+    {
+        return Order::find($id);
+    }
 }
