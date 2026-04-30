@@ -683,3 +683,34 @@
 - confirm: HomePageController has int $store on both methods (bestSeller and hero)
 - Search is public (no auth:sanctum) — homepage endpoints are also public with only store.context middleware
 - HeroBanner table needs store_id column added via migration (currently missing — this is a pre-existing schema issue that should be addressed separately)
+
+---
+## Add store_id to hero_banners Table — 2026-04-30
+### What I Did:
+- Audited HeroBanner model and confirmed it lacked store_id in fillable and had no store() relationship
+- Updated migration 2026_04_30_000001_add_store_id_to_hero_banners_table.php to add nullable() to store_id column
+- Added composite index on [store_id, id] to the migration
+- Updated down() method to drop indexes in correct order (composite first, then single)
+- Updated HeroBanner model to add 'store_id' to fillable array
+- Added store() belongsTo relationship to HeroBanner model with proper return type hint
+
+### Files Created:
+- None (migration already existed from previous work)
+
+### Files Modified:
+- `database/migrations/2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Added nullable() to store_id column, added composite index on [store_id, id], fixed down() method to drop indexes in correct order
+- `app/Models/HeroBanner.php` — Added 'store_id' to fillable array, added store() belongsTo relationship returning Store model
+
+### Migrations Created:
+- `2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Adds nullable store_id foreign key to hero_banners table with cascadeOnDelete, single index on store_id, and composite index on [store_id, id]
+
+### Notes:
+- confirm: migration file uses nullable() for store_id to accommodate existing rows without store association
+- confirm: migration file uses cascadeOnDelete() on the foreign key constraint
+- confirm: migration file places store_id after('id') column as specified
+- confirm: migration file adds both required indexes (single on store_id, composite on [store_id, id])
+- confirm: HeroBanner model has 'store_id' in fillable array
+- confirm: HeroBanner model has store() relationship returning BelongsTo<Store>
+- confirm: No existing migration files were modified — only the new migration was updated
+- confirm: No raw SQL or DB::statement used — all schema changes use Blueprint methods
+- Migration cannot be executed in this environment (PHP not available) but is syntactically correct and follows all architecture rules

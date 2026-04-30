@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('hero_banners', function (Blueprint $table) {
-            $table->foreignId('store_id')->after('id')->constrained('stores')->cascadeOnDelete();
+            $table->foreignId('store_id')->after('id')->nullable()->constrained('stores')->cascadeOnDelete();
             $table->index('store_id');
+            $table->index(['store_id', 'id']);
         });
     }
 
@@ -23,8 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('hero_banners', function (Blueprint $table) {
-            $table->dropForeign(['store_id']);
+            $table->dropIndex(['store_id', 'id']);
             $table->dropIndex(['store_id']);
+            $table->dropForeign(['store_id']);
             $table->dropColumn('store_id');
         });
     }
