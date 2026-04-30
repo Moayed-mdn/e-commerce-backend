@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Payment\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
+// Store-scoped checkout routes (auth required)
 Route::middleware(['auth:sanctum', 'store.context'])
     ->prefix('/v1/stores/{store}')
     ->group(function () {
