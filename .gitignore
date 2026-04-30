@@ -1,1 +1,83 @@
-(docs/admin-api.md is just a markdown documentation file - no build artifacts, dependencies, or temp files in the changes, so no ignores needed)
+```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Dependencies
+vendor/
+node_modules/
+.npm/
+.yarn/
+.bower-cache/
+.bower-registry/
+.jspm/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.~*
+
+# Environment specific
+.env
+.env.local
+.env.*
+!.env.example
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.atom/
+*.vs/
+*.project
+*.iml
+*.ipr
+*.iws
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# PHP specific
+*.php~
+phpunit.xml.dist
+.coverage
+htmlcov/
+.php_cs.cache
+
+# Laravel specific (if applicable)
+bootstrap/cache/
+bootstrap/cache/*
+storage/framework/cache/
+storage/logs/
+public/storage
+composer.lock
+
+# Build and distribution
+dist/
+build/
+target/
+*.tar
+*.tar.*
+*.zip
+*.gz
+*.rar
+*.7z
+```
