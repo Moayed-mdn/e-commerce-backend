@@ -10,6 +10,8 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
+            PermissionSeeder::class,
+            StoreSeeder::class,
             BrandSeeder::class,       // ← NEW (must be before products)
             CategorySeeder::class,
             ProductSeeder::class,

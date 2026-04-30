@@ -1,33 +1,59 @@
 ```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
 vendor/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Logs and temp files
+# Build directories
+build/
+dist/
+target/
+
+# Logs
 *.log
-*.tmp
 
-# Environment
+# Environment specific
 .env
 .env.local
-*.env.*
+.env.*
 
-# IDE
+# IDE and editor files
 .vscode/
 .idea/
-
-# PHP specific
-*.php~
 *.swp
 *.swo
+*~
+.DS_Store
+Thumbs.db
 
-# Build and cache
-bootstrap/cache/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-public/storage
+# Testing and coverage
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
 
-# Tests
-.phpunit.result.cache
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+Thumbs.db
 ```
