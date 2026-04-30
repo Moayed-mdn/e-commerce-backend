@@ -360,3 +360,159 @@ Create operations use `DB::transaction()` to ensure atomicity across product + v
 - [x] super_admin bypasses store membership check
 - [x] Admin resources domain-grouped under Resources/Admin/Product/
 - [x] Create uses DB::transaction() for atomicity
+
+---
+
+## Phase 3.3 — Admin Orders API
+
+### Endpoints
+
+| Method | URL | Permission | Description |
+|--------|-----|------------|-------------|
+| GET    | /api/v1/admin/stores/{store}/orders | order.view | List store orders paginated |
+| GET    | /api/v1/admin/stores/{store}/orders/{order} | order.view | Get single order detail |
+| PATCH  | /api/v1/admin/stores/{store}/orders/{order}/status | order.update_status | Update order status |
+| PATCH  | /api/v1/admin/stores/{store}/orders/{order}/cancel | order.cancel | Cancel an order |
+| PATCH  | /api/v1/admin/stores/{store}/orders/{order}/refund | order.refund | Refund an order |
+
+---
+
+### Files Created
+
+#### Controller
+- `app/Http/Controllers/Api/Admin/Order/AdminOrderController.php`
+
+#### DTOs
+- `app/DTOs/Admin/Order/ListOrdersDTO.php`
+- `app/DTOs/Admin/Order/GetOrderDTO.php`
+- `app/DTOs/Admin/Order/UpdateOrderStatusDTO.php`
+- `app/DTOs/Admin/Order/CancelOrderDTO.php`
+- `app/DTOs/Admin/Order/RefundOrderDTO.php`
+
+#### Actions
+- `app/Actions/Admin/Order/ListOrdersAction.php`
+- `app/Actions/Admin/Order/GetOrderAction.php`
+- `app/Actions/Admin/Order/UpdateOrderStatusAction.php`
+- `app/Actions/Admin/Order/CancelOrderAction.php`
+- `app/Actions/Admin/Order/RefundOrderAction.php`
+
+#### Repository
+- `app/Repositories/Admin/Order/AdminOrderRepository.php`
+
+#### Requests
+- `app/Http/Requests/Admin/Order/ListOrdersRequest.php`
+- `app/Http/Requests/Admin/Order/GetOrderRequest.php`
+- `app/Http/Requests/Admin/Order/UpdateOrderStatusRequest.php`
+- `app/Http/Requests/Admin/Order/CancelOrderRequest.php`
+- `app/Http/Requests/Admin/Order/RefundOrderRequest.php`
+
+#### Resources
+- `app/Http/Resources/Admin/Order/AdminOrderResource.php`
+- `app/Http/Resources/Admin/Order/AdminOrderDetailResource.php`
+
+#### Exceptions
+- `app/Exceptions/Order/OrderNotFoundException.php`
+
+---
+
+### ErrorCodes Used
+
+| Code | Value | Meaning |
+|------|-------|---------|
+| ORD_001 | `'ORD_001'` | Order not found |
+| ORD_002 | `'ORD_002'` | Order cancellation failed |
+| ORD_003 | `'ORD_003'` | Refund failed |
+
+---
+
+### Localization Keys Added
+
+#### `lang/en/admin.php`
+- `'order_status_updated' => 'Order status updated successfully.'`
+- `'order_cancelled'      => 'Order has been cancelled.'`
+- `'order_refunded'       => 'Order has been refunded.'`
+
+#### `lang/ar/admin.php`
+- `'order_status_updated' => 'تم تحديث حالة الطلب بنجاح.'`
+- `'order_cancelled'      => 'تم إلغاء الطلب.'`
+- `'order_refunded'       => 'تم استرداد مبلغ الطلب.'`
+
+---
+
+### Middleware Stack
+
+```
+auth:sanctum → store.context → permission:{permission}
+```
+
+---
+
+### Super Admin Bypass
+
+Every action checks:
+
+```php
+if (!auth()->user()->hasRole(RoleEnum::SUPER_ADMIN)) {
+    if (!auth()->user()->stores()->where('store_id', $dto->storeId)->exists()) {
+        throw new UnauthorizedStoreAccessException();
+    }
+}
+```
+
+`super_admin` bypasses store membership check in ALL Admin Order actions.
+
+---
+
+### Store Scoping
+
+```php
+Order::where('store_id', $storeId)->paginate();
+Order::where('store_id', $storeId)->findOrFail($orderId);
+```
+
+---
+
+### Response Format
+
+#### List Orders
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": [ ...AdminOrderResource ],
+  "meta": { ...pagination }
+}
+```
+
+#### Single Order
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": { ...AdminOrderDetailResource }
+}
+```
+
+#### Status Update / Cancel / Refund
+```json
+{
+  "status": true,
+  "message": "Order status updated successfully.",
+  "data": { ...AdminOrderResource }
+}
+```
+
+---
+
+### Architecture Compliance
+
+- [x] storeId is first param in every DTO
+- [x] storeId comes from route param only
+- [x] No DB queries outside AdminOrderRepository
+- [x] No business logic in controller
+- [x] No try/catch in controller or actions
+- [x] No hardcoded strings — PermissionEnum + __() used
+- [x] No response()->json() — ApiResponserTrait used
+- [x] All queries scoped by store_id
+- [x] super_admin bypasses store membership check
+- [x] Admin resources domain-grouped under Resources/Admin/Order/
