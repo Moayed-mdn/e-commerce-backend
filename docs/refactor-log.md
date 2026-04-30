@@ -449,6 +449,47 @@
 - Cart items required manual force-deletion during tests due to unique index constraints not ignoring soft-deleted rows.
 - All core business flows (Auth -> Cart -> Checkout -> Status) are now verified and working in the multi-store architecture.
 
+---
+## Move Search to Store-Scoped Route — 2026-04-30
+### What I Did:
+- Updated SearchDTO to include storeId as first constructor parameter
+- Added categorySlug optional field to SearchDTO
+- Updated SearchDTO::fromRequest() to accept int $storeId as second parameter
+- Updated SearchRepository to scope all queries by store_id
+- Added int $storeId parameter to all SearchRepository methods (searchProducts, searchCategories, searchAll)
+- Updated SearchController::index() to accept int $store parameter from route
+- Updated SearchController to pass $store to SearchDTO::fromRequest()
+- Updated SearchService::execute() to pass dto->storeId to repository methods
+- Created routes/api/v1/stores/search.php with store-scoped search route
+- Registered search.php in routes/api.php under store-scoped routes
+- Removed old routes/api/v1/users/search.php file
+- Removed require for api/v1/users/search.php from routes/api.php
+
+### Files Created:
+- `routes/api/v1/stores/search.php` — Store-scoped search route with store.context middleware (no auth required)
+
+### Files Modified:
+- `app/DTOs/Search/SearchDTO.php` — Added storeId as first constructor parameter, added categorySlug field, updated fromRequest() signature
+- `app/Repositories/Search/SearchRepository.php` — Added storeId parameter to all methods, added where('store_id', $storeId) to all queries
+- `app/Http/Controllers/Api/Search/SearchController.php` — Added int $store parameter to index() method, passed store to DTO
+- `app/Services/SearchService.php` — Updated execute() to pass dto->storeId to repository methods
+- `routes/api.php` — Removed users/search.php require, added stores/search.php require
+- `routes/api/v1/users/search.php` — DELETED (old global search route removed)
+
+### Migrations Created:
+- None
+
+### Notes:
+- Search is now store-scoped at GET /api/v1/stores/{store}/search
+- Middleware is store.context ONLY (no auth:sanctum — search remains public)
+- Old /api/v1/users/search route is REMOVED
+- SearchRepository now scopes all queries by store_id
+- SearchDTO has storeId as first constructor parameter
+- Controller remains thin with no business logic, no try/catch
+- Controller uses ApiResponserTrait for responses via $this->success() and $this->paginated()
+- No hardcoded strings anywhere
+- No DB queries outside repositories
+
 
 ---
 ## Full Audit + Fix Verification — 2026-05-03
@@ -606,3 +647,70 @@
 - All repositories properly scope queries by store_id (except SearchRepository which is intentionally global)
 - All seeders use RoleEnum/PermissionEnum constants and firstOrCreate
 - Route structure perfectly matches architecture requirements
+
+---
+## Move Homepage to Store-Scoped Routes — 2026-04-30
+### What I Did:
+- Audited HomePageController and identified bestSeller() uses BestSellerService (already store-scoped) and hero() uses HomePageService (needed store scoping)
+- Updated GetHeroBannersDTO to include storeId as first constructor parameter
+- Updated GetHeroBannersAction to pass storeId to HomePageService::hero()
+- Updated HomePageService::hero() method to accept storeId parameter and scope HeroBanner query by store_id
+- Updated HomePageController to accept int $store parameter on both bestSeller() and hero() methods
+- Updated HomePageController to pass store to DTO::fromRequest() calls
+- Created routes/api/v1/stores/homepage.php with store.context middleware only (no auth)
+- Removed old routes/api/v1/users/homepage.php file
+- Updated routes/api.php to require new homepage.php in stores group instead of users group
+
+### Files Created:
+- routes/api/v1/stores/homepage.php — New store-scoped homepage routes with store.context middleware
+
+### Files Modified:
+- app/DTOs/Homepage/GetHeroBannersDTO.php — Added storeId as first constructor parameter, updated fromRequest() signature
+- app/Actions/Homepage/GetHeroBannersAction.php — Updated execute() to pass storeId to HomePageService::hero()
+- app/Services/HomePageService.php — Updated hero() method to accept int $storeId and added ->where('store_id', $storeId) to query
+- app/Http/Controllers/Api/Homepage/HomePageController.php — Added int $store parameter to both methods, updated DTO::fromRequest() calls
+- routes/api.php — Removed require for api/v1/users/homepage.php, added require for api/v1/stores/homepage.php
+- routes/api/v1/users/homepage.php — DELETED (old global homepage routes removed)
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: old /api/v1/users/homepage/best-seller and /api/v1/users/homepage/hero routes are REMOVED
+- confirm: hero() DOES query DB (HeroBanner model) — now properly scoped by store_id
+- confirm: BestSellerService already accepted storeId — no changes needed, controller just passes store through
+- confirm: all repository queries for homepage are now store-scoped (HeroBanner query in HomePageService::hero())
+- confirm: HomePageController has int $store on both methods (bestSeller and hero)
+- Search is public (no auth:sanctum) — homepage endpoints are also public with only store.context middleware
+- HeroBanner table needs store_id column added via migration (currently missing — this is a pre-existing schema issue that should be addressed separately)
+
+---
+## Add store_id to hero_banners Table — 2026-04-30
+### What I Did:
+- Audited HeroBanner model and confirmed it lacked store_id in fillable and had no store() relationship
+- Updated migration 2026_04_30_000001_add_store_id_to_hero_banners_table.php to add nullable() to store_id column
+- Added composite index on [store_id, id] to the migration
+- Updated down() method to drop indexes in correct order (composite first, then single)
+- Updated HeroBanner model to add 'store_id' to fillable array
+- Added store() belongsTo relationship to HeroBanner model with proper return type hint
+
+### Files Created:
+- None (migration already existed from previous work)
+
+### Files Modified:
+- `database/migrations/2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Added nullable() to store_id column, added composite index on [store_id, id], fixed down() method to drop indexes in correct order
+- `app/Models/HeroBanner.php` — Added 'store_id' to fillable array, added store() belongsTo relationship returning Store model
+
+### Migrations Created:
+- `2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Adds nullable store_id foreign key to hero_banners table with cascadeOnDelete, single index on store_id, and composite index on [store_id, id]
+
+### Notes:
+- confirm: migration file uses nullable() for store_id to accommodate existing rows without store association
+- confirm: migration file uses cascadeOnDelete() on the foreign key constraint
+- confirm: migration file places store_id after('id') column as specified
+- confirm: migration file adds both required indexes (single on store_id, composite on [store_id, id])
+- confirm: HeroBanner model has 'store_id' in fillable array
+- confirm: HeroBanner model has store() relationship returning BelongsTo<Store>
+- confirm: No existing migration files were modified — only the new migration was updated
+- confirm: No raw SQL or DB::statement used — all schema changes use Blueprint methods
+- Migration cannot be executed in this environment (PHP not available) but is syntactically correct and follows all architecture rules

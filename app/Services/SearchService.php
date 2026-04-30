@@ -19,15 +19,15 @@ class SearchService
         return match ($dto->type) {
             'products' => [
                 'type' => 'products',
-                'results' => $this->repository->searchProducts($dto->query, $dto->limit, $dto->page),
+                'results' => $this->repository->searchProducts($dto->query, $dto->storeId, $dto->limit, $dto->page),
             ],
             'categories' => [
                 'type' => 'categories',
-                'results' => $this->repository->searchCategories($dto->query, $dto->limit, $dto->page),
+                'results' => $this->repository->searchCategories($dto->query, $dto->storeId, $dto->limit, $dto->page),
             ],
             default => [
                 'type' => 'all',
-                'results' => $this->repository->searchAll($dto->query, $dto->limit, $dto->page),
+                'results' => $this->repository->searchAll($dto->query, $dto->storeId, $dto->limit, $dto->page),
             ],
         };
     }

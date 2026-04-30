@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HeroBanner extends Model
 {
     use SoftDeletes;
     protected $fillable = [
+        'store_id',
         'cat_url',
         'position',
         'visual_type',
@@ -20,6 +22,12 @@ class HeroBanner extends Model
         'starts_at',
         'ends_at',
     ];
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
     public function translations(){
 
         return $this->hasMany(HeroBannerTranslation::class);

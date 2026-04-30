@@ -22,19 +22,19 @@ class HomePageController extends Controller
         private GetHeroBannersAction $getHeroBannersAction,
     ) {}
 
-    public function bestSeller(GetBestSellersRequest $request): JsonResponse
+    public function bestSeller(GetBestSellersRequest $request, int $store): JsonResponse
     {
         $dtos = $this->getBestSellersAction->execute(
-            GetBestSellersDTO::fromRequest($request)
+            GetBestSellersDTO::fromRequest($request, $store)
         );
 
         return $this->success(BestSellerResource::collection($dtos));
     }
 
-    public function hero(GetHeroBannersRequest $request): JsonResponse
+    public function hero(GetHeroBannersRequest $request, int $store): JsonResponse
     {
         $banners = $this->getHeroBannersAction->execute(
-            GetHeroBannersDTO::fromRequest($request)
+            GetHeroBannersDTO::fromRequest($request, $store)
         );
 
         return $this->success(HeroBannerResource::collection($banners));

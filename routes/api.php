@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Route;
 require 'api/v1/users/auth.php';
 
 // Public (no store context)
-require 'api/v1/users/homepage.php';
 require 'api/v1/users/category.php';
-require 'api/v1/users/search.php';
 
 // Profile (no store context)
 require 'api/v1/users/profile.php';
@@ -30,6 +28,8 @@ require 'api/v1/stores/orders.php';
 require 'api/v1/stores/products.php';
 require 'api/v1/stores/addresses.php';
 require 'api/v1/stores/checkout.php';
+require 'api/v1/stores/search.php';
+require 'api/v1/stores/homepage.php';
 
 // Store management routes (outside {store} group - POST has no store context yet)
 require 'api/v1/stores/store-management.php';
