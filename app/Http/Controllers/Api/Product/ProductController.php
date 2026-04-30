@@ -32,7 +32,7 @@ class ProductController extends Controller
         private GetRelatedProductsAction $getRelatedProductsAction,
     ) {}
 
-    public function index(Request $request, int $store): JsonResponse
+    public function index(FilterProductsRequest $request, int $store): JsonResponse
     {
         $result = $this->listProductsAction->execute(
             ListProductsDTO::fromRequest($request, $store)
@@ -56,7 +56,7 @@ class ProductController extends Controller
         );
     }
 
-    public function indexByCategory(Request $request, int $store, string $slug): JsonResponse
+    public function indexByCategory(GetProductsByCategoryRequest $request, int $store, string $slug): JsonResponse
     {
         $result = $this->getProductsByCategoryAction->execute(
             GetProductsByCategoryDTO::fromRequest($request, $store, $slug)
@@ -81,7 +81,7 @@ class ProductController extends Controller
         );
     }
 
-    public function show(Request $request, int $store, string $slug): JsonResponse
+    public function show(GetProductDetailRequest $request, int $store, string $slug): JsonResponse
     {
         $product = $this->getProductDetailAction->execute(
             GetProductDetailDTO::fromRequest($request, $store, $slug)
@@ -90,7 +90,7 @@ class ProductController extends Controller
         return $this->success(new ProductDetailResource($product));
     }
 
-    public function related(Request $request, int $store, string $slug): JsonResponse
+    public function related(GetRelatedProductsRequest $request, int $store, string $slug): JsonResponse
     {
         $relatedProducts = $this->getRelatedProductsAction->execute(
             GetRelatedProductsDTO::fromRequest($request, $store, $slug)

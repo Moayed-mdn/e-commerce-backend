@@ -15,7 +15,7 @@ class CategoryRepository
             ->where('store_id', $storeId)
             ->with(['children', 'parent'])
             ->withCount(['products' => function ($q) use ($storeId) {
-                $q->where('status', 'active')
+                $q->where('is_active', true)
                     ->where('store_id', $storeId);
             }])
             ->whereNull('parent_id');
@@ -34,7 +34,7 @@ class CategoryRepository
             ->where('parent_id', $parentId)
             ->with(['children', 'parent'])
             ->withCount(['products' => function ($q) use ($storeId) {
-                $q->where('status', 'active')
+                $q->where('is_active', true)
                     ->where('store_id', $storeId);
             }])
             ->get();
@@ -46,7 +46,7 @@ class CategoryRepository
             ->where('store_id', $storeId)
             ->with(['children', 'parent'])
             ->withCount(['products' => function ($q) use ($storeId) {
-                $q->where('status', 'active')
+                $q->where('is_active', true)
                     ->where('store_id', $storeId);
             }])
             ->find($id);

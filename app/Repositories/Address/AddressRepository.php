@@ -36,9 +36,9 @@ class AddressRepository
         return $address->fresh();
     }
 
-    public function delete(Address $address): void
+    public function delete(Address $address): bool
     {
-        $address->delete();
+        return (bool) $address->delete();
     }
 
     public function setDefault(int $userId, string $type, int $addressId, int $storeId): void

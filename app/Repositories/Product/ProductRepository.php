@@ -117,7 +117,7 @@ class ProductRepository
 
     public function findBySlug(string $slug, int $storeId): ?Product
     {
-        return Product::where('store_id', $storeId)->findBySlug($slug);
+        return Product::where('store_id', $storeId)->findBySlug($slug)->first();
     }
 
     public function findRelatedProducts(Product $currentProduct, int $storeId, int $limit = 8): Collection

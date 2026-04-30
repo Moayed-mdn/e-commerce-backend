@@ -27,7 +27,7 @@ class AddToCartAction
                 $dto->storeId,
             );
 
-            $variant = $this->productVariantRepository->findWithLock($dto->productVariantId);
+            $variant = $this->productVariantRepository->findWithLock($dto->productVariantId, $dto->storeId);
 
             if (!$variant->is_active || $variant->quantity < $dto->quantity) {
                 throw new OutOfStockException(__('cart.variant_not_available'));
@@ -44,7 +44,7 @@ class AddToCartAction
 
                 $this->cartItemRepository->updateQuantity($existingItem, $newQty);
             } else {
-                $this->cartItemRepository->create($cart, $dto->productVariantId, $dto->quantity);
+                $this->cartItemRepository->create($cart, $dto->productVariantId, $dto->quantity, (float) $variant->price);
             }
 
             return $cart->load(['items.productVariant']);

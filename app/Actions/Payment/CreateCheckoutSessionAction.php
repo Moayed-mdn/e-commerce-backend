@@ -16,10 +16,11 @@ class CreateCheckoutSessionAction
     public function execute(CreateCheckoutDTO $dto): array
     {
         if ($dto->user) {
-            return $this->checkoutService->createSessionForUser($dto->user);
+            return $this->checkoutService->createSessionForUser($dto->user, $dto->storeId);
         }
 
         return $this->checkoutService->createSessionForGuest(
+            $dto->storeId,
             $dto->items,
             $dto->email
         );

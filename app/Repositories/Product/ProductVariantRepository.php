@@ -8,19 +8,25 @@ class ProductVariantRepository
 {
     public function findById(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::where('store_id', $storeId)->findOrFail($id);
+        return ProductVariant::whereHas('product', function ($q) use ($storeId) {
+            $q->where('store_id', $storeId);
+        })->findOrFail($id);
     }
 
     public function findByIdWithProduct(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::where('store_id', $storeId)
+        return ProductVariant::whereHas('product', function ($q) use ($storeId) {
+            $q->where('store_id', $storeId);
+        })
             ->with(['product.translations'])
             ->findOrFail($id);
     }
 
     public function findWithLock(int $id, int $storeId): ProductVariant
     {
-        return ProductVariant::where('store_id', $storeId)
+        return ProductVariant::whereHas('product', function ($q) use ($storeId) {
+            $q->where('store_id', $storeId);
+        })
             ->lockForUpdate()
             ->findOrFail($id);
     }

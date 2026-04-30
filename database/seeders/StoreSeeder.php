@@ -12,15 +12,6 @@ class StoreSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create the test store
-        $store = Store::firstOrCreate(
-            ['slug' => 'test-store'],
-            [
-                'name' => 'Test Store',
-                'is_active' => true,
-            ]
-        );
-
         // Create users (one per role)
         $superAdminUser = User::firstOrCreate(
             ['email' => 'super@test.com'],
@@ -54,17 +45,29 @@ class StoreSeeder extends Seeder
             ]
         );
 
+        // Create the test store
+        $store = Store::firstOrCreate(
+            ['slug' => 'test-store'],
+            [
+                'name' => 'Test Store',
+                'owner_id' => $storeAdminUser->id,
+                'is_active' => true,
+            ]
+        );
+
         // Assign Spatie roles
-        // super_admin -> global role (no team scope)
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($store->id);
+
+        // super_admin -> global role
         $superAdminUser->assignRole(RoleEnum::SUPER_ADMIN);
 
-        // store_admin -> store-scoped role (with team scope)
-        $storeAdminUser->assignRole(RoleEnum::STORE_ADMIN, $store->id);
+        // store_admin -> store-scoped role
+        $storeAdminUser->assignRole(RoleEnum::STORE_ADMIN);
 
-        // staff -> store-scoped role (with team scope)
-        $staffUser->assignRole(RoleEnum::STAFF, $store->id);
+        // staff -> store-scoped role
+        $staffUser->assignRole(RoleEnum::STAFF);
 
-        // customer -> global role (no team scope)
+        // customer -> global role
         $customerUser->assignRole(RoleEnum::CUSTOMER);
 
         // Attach users to store via pivot table (except customer)

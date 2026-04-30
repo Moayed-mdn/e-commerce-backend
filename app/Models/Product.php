@@ -94,39 +94,33 @@ class Product extends Model
         return $this->translation($locale)?->{$key};
     }
 
+    // ── Static Finders ─────────────────────────────────────────
+
+    /**
+     * Find a product by its localized slug.
+     */
     // ── Scopes ─────────────────────────────────────────────────
 
     public function scopeActive($q)
     {
-        return $q->where('products.is_active', 1);
+        return $q->where('is_active', true);
     }
 
     // ── Static Finders ─────────────────────────────────────────
 
     /**
      * Find a product by its localized slug.
-     * Searches product_translations for the current locale first,
-     * then falls back to any locale.
      */
-    public static function findBySlug(string $slug, ?string $locale = null): ?self
+    public function scopeFindBySlug(\Illuminate\Database\Eloquent\Builder $query, string $slug, ?string $locale = null): \Illuminate\Database\Eloquent\Builder
     {
         $locale = $locale ?? app()->getLocale();
 
-        // Try exact locale match first
-        $translation = ProductTranslation::where('slug', $slug)
-            ->where('locale', $locale)
-            ->first();
-
-        // Fallback: any locale
-        if (!$translation) {
-            $translation = ProductTranslation::where('slug', $slug)->first();
-        }
-
-        if (!$translation) {
-            return null;
-        }
-
-        return static::find($translation->product_id);
+        return $query->whereHas('translations', function ($q) use ($slug, $locale) {
+            $q->where('slug', $slug)
+                ->where('locale', $locale);
+        })->orWhereHas('translations', function ($q) use ($slug) {
+            $q->where('slug', $slug);
+        });
     }
 
     /**

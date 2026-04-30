@@ -13,6 +13,14 @@ require 'api/v1/users/search.php';
 // Profile (no store context)
 require 'api/v1/users/profile.php';
 
+// Guest checkout status (no auth, no store context)
+Route::prefix('/v1/users/checkout')
+    ->controller(\App\Http\Controllers\Api\Payment\CheckoutController::class)
+    ->withoutMiddleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/status/{sessionId}', 'status');
+    });
+
 // Stripe webhook (no store context)
 require 'api/v1/stripe/webhook.php';
 

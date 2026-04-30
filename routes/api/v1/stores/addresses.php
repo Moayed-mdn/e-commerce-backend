@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Address\AddressController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'store.context'])
+    ->prefix('/v1/stores/{store}')
     ->group(function () {
         Route::prefix('addresses')
             ->controller(AddressController::class)

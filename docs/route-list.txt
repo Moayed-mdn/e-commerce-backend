@@ -1,0 +1,47 @@
+
+  GET|HEAD  / ........................................................................................................................................ 
+  POST      api/stripe/webhook ............................................................................ Api\Payment\StripeWebhookController@handle
+  GET|HEAD  api/v1/stores/{store}/cart .................................................................................. Api\Cart\CartController@show
+  DELETE    api/v1/stores/{store}/cart/clear ........................................................................... Api\Cart\CartController@clear
+  POST      api/v1/stores/{store}/cart/items ......................................................................... Api\Cart\CartController@addItem
+  PATCH     api/v1/stores/{store}/cart/items/{itemId} ............................................................. Api\Cart\CartController@updateItem
+  DELETE    api/v1/stores/{store}/cart/items/{itemId} ............................................................. Api\Cart\CartController@removeItem
+  GET|HEAD  api/v1/stores/{store}/orders ............................................................................. Api\Order\OrderController@index
+  GET|HEAD  api/v1/stores/{store}/orders/filters ................................................................... Api\Order\OrderController@filters
+  GET|HEAD  api/v1/stores/{store}/orders/{orderNumber} ................................................................ Api\Order\OrderController@show
+  POST      api/v1/stores/{store}/orders/{orderNumber}/cancel ....................................................... Api\Order\OrderController@cancel
+  POST      api/v1/stores/{store}/orders/{orderNumber}/reorder ..................................................... Api\Order\OrderController@reorder
+  GET|HEAD  api/v1/stores/{store}/products ............................................. v1.stores.product.index › Api\Product\ProductController@index
+  GET|HEAD  api/v1/stores/{store}/products/category/{slug} ................ v1.stores.product.category › Api\Product\ProductController@indexByCategory
+  GET|HEAD  api/v1/stores/{store}/products/{slug} ........................................ v1.stores.product.show › Api\Product\ProductController@show
+  GET|HEAD  api/v1/stores/{store}/products/{slug}/related .......................... v1.stores.product.related › Api\Product\ProductController@related
+  POST      api/v1/users/auth/email/resend .............................. v1.users.auth.email.resend › Api\Auth\AuthController@resendVerificationEmail
+  GET|HEAD  api/v1/users/auth/email/verify/{id}/{hash} ....................... v1.users.auth.verification.verify › Api\Auth\AuthController@verifyEmail
+  GET|HEAD  api/v1/users/auth/google/callback ................................................ v1.users.auth. › Api\Auth\SocialAuthController@callback
+  GET|HEAD  api/v1/users/auth/google/redirect ................................................ v1.users.auth. › Api\Auth\SocialAuthController@redirect
+  POST      api/v1/users/auth/login .............................................................. v1.users.auth.login › Api\Auth\AuthController@login
+  POST      api/v1/users/auth/logout ........................................................... v1.users.auth.logout › Api\Auth\AuthController@logout
+  GET|HEAD  api/v1/users/auth/me ....................................................................... v1.users.auth.me › Api\Auth\AuthController@me
+  POST      api/v1/users/auth/password/forgot ......................... v1.users.auth.password.forgot › Api\Auth\PasswordResetController@sendResetLink
+  POST      api/v1/users/auth/register ..................................................... v1.users.auth.register › Api\Auth\AuthController@register
+  GET|HEAD  api/v1/users/categories/{category}/breadcrumb .................. v1.users.category.breadcrumb › Api\Category\CategoryController@breadcrumb
+  GET|HEAD  api/v1/users/homepage/best-seller .............................. v1.users.homepage.bestSeller › Api\Homepage\HomePageController@bestSeller
+  GET|HEAD  api/v1/users/homepage/hero ................................................. v1.users.homepage.hero › Api\Homepage\HomePageController@hero
+  POST      api/v1/users/orders/guest/lookup ................................................................... Api\Order\OrderController@guestLookup
+  GET|HEAD  api/v1/users/profile ..................................................................................... Api\Auth\ProfileController@show
+  DELETE    api/v1/users/profile .................................................................................. Api\Auth\ProfileController@destroy
+  POST      api/v1/users/profile/avatar ...................................................................... Api\Auth\ProfileController@updateAvatar
+  PUT       api/v1/users/profile/info .......................................................................... Api\Auth\ProfileController@updateInfo
+  PUT       api/v1/users/profile/password .................................................................. Api\Auth\ProfileController@updatePassword
+  GET|HEAD  api/v1/users/search ............................................................ v1.users.search.index › Api\Search\SearchController@index
+  GET|HEAD  docs/api ................................................................................................................ scramble.docs.ui
+  GET|HEAD  docs/api.json ..................................................................................................... scramble.docs.document
+  GET|POST|HEAD graphql .............................................................................. graphql › Nuwave\Lighthouse › GraphQLController
+  GET|HEAD  graphql-playground .......................................... graphql-playground › MLL\GraphQLPlayground › GraphQLPlaygroundController@get
+  GET|HEAD  sanctum/csrf-cookie .................................................... sanctum.csrf-cookie › Laravel\Sanctum › CsrfCookieController@show
+  GET|HEAD  scalar .................................................................................... scalar › Scalar\Controllers › ScalarController
+  GET|HEAD  storage/{path} ............................................................................................................. storage.local
+  GET|HEAD  up ....................................................................................................................................... 
+
+                                                                                                                                   Showing [43] routes
+

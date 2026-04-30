@@ -27,7 +27,7 @@ class UpdateAddressDTO
     {
         return new self(
             storeId: $storeId,
-            addressId: (int) $request->route('address'),
+            addressId: $request->route('address') instanceof \App\Models\Address ? $request->route('address')->id : (int) $request->route('address'),
             userId: $request->user()->id,
             firstName: $request->input('first_name'),
             lastName: $request->input('last_name'),

@@ -27,9 +27,9 @@ class CheckoutService
      * Reads cart from the database.
      * @throws Exception
      */
-    public function createSessionForUser(User $user): array
+    public function createSessionForUser(User $user, int $storeId): array
     {
-        $cart = $user->cart;
+        $cart = $user->cartForStore($storeId);
 
         if (!$cart || $cart->items->isEmpty()) {
             throw new \App\Exceptions\BaseApiException(
@@ -54,7 +54,7 @@ class CheckoutService
             ])->toArray()
         );
 
-        return $this->createCheckoutSession($validatedItems, $user);
+        return $this->createCheckoutSession($validatedItems, $storeId, $user);
     }
 
     /**
@@ -62,7 +62,7 @@ class CheckoutService
      * Cart items are passed from the frontend (localStorage).
      * @throws Exception
      */
-    public function createSessionForGuest(array $items, ?string $email = null): array
+    public function createSessionForGuest(int $storeId, array $items, ?string $email = null): array
     {
         if (empty($items)) {
             throw new \App\Exceptions\BaseApiException(
@@ -74,7 +74,7 @@ class CheckoutService
 
         $validatedItems = $this->validateAndPrepareItems($items);
 
-        return $this->createCheckoutSession($validatedItems, null, $email);
+        return $this->createCheckoutSession($validatedItems, $storeId, null, $email);
     }
 
     /**
@@ -167,9 +167,9 @@ class CheckoutService
     /**
      * Create the pending Order, then the Stripe Checkout Session.
      */
-    private function createCheckoutSession(array $validatedItems, ?User $user, ?string $guestEmail = null): array
+    private function createCheckoutSession(array $validatedItems, int $storeId, ?User $user, ?string $guestEmail = null): array
     {
-        return DB::transaction(function () use ($validatedItems, $user, $guestEmail) {
+        return DB::transaction(function () use ($validatedItems, $storeId, $user, $guestEmail) {
 
             // ── 1. Calculate totals ────────────────────────────
             $subtotal = collect($validatedItems)->sum(fn($i) => $i['unit_price'] * $i['quantity']);
@@ -178,6 +178,7 @@ class CheckoutService
 
             // ── 2. Create pending Order ────────────────────────
             $order = Order::create([
+                'store_id'         => $storeId,
                 'user_id'          => $user?->id,
                 'guest_email'      => $guestEmail,
                 'subtotal'         => $subtotal,
@@ -202,6 +203,8 @@ class CheckoutService
                     'unit_price'              => $item['unit_price'],
                     'unit_discount_percentage' => 0,
                     'quantity'                => $item['quantity'],
+                    'subtotal'                => $item['unit_price'] * $item['quantity'],
+                    'total'                   => $item['unit_price'] * $item['quantity'],
                     'attributes'              => $item['attributes'],
                 ]);
             }

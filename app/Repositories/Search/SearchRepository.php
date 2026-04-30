@@ -15,11 +15,13 @@ class SearchRepository
     public function searchProducts(string $query, int $limit, int $page): LengthAwarePaginator
     {
         return Product::query()
-            ->where('status', 'active')
+            ->where('is_active', true)
             ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                  ->orWhere('description', 'LIKE', "%{$query}%")
-                  ->orWhere('sku', 'LIKE', "%{$query}%");
+                $q->whereHas('translations', function ($sq) use ($query) {
+                    $sq->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('description', 'LIKE', "%{$query}%");
+                })
+                ->orWhere('sku', 'LIKE', "%{$query}%");
             })
             ->paginate($limit, ['*'], 'page', $page);
     }
@@ -28,7 +30,9 @@ class SearchRepository
     {
         return Category::query()
             ->where('is_active', true)
-            ->where('name', 'LIKE', "%{$query}%")
+            ->whereHas('translations', function ($sq) use ($query) {
+                $sq->where('name', 'LIKE', "%{$query}%");
+            })
             ->paginate($limit, ['*'], 'page', $page);
     }
 
@@ -37,18 +41,22 @@ class SearchRepository
         $adjustedLimit = (int) ceil($limit / 2);
 
         $products = Product::query()
-            ->where('status', 'active')
+            ->where('is_active', true)
             ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                  ->orWhere('description', 'LIKE', "%{$query}%")
-                  ->orWhere('sku', 'LIKE', "%{$query}%");
+                $q->whereHas('translations', function ($sq) use ($query) {
+                    $sq->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('description', 'LIKE', "%{$query}%");
+                })
+                ->orWhere('sku', 'LIKE', "%{$query}%");
             })
             ->limit($adjustedLimit)
             ->get();
 
         $categories = Category::query()
             ->where('is_active', true)
-            ->where('name', 'LIKE', "%{$query}%")
+            ->whereHas('translations', function ($sq) use ($query) {
+                $sq->where('name', 'LIKE', "%{$query}%");
+            })
             ->limit($adjustedLimit)
             ->get();
 
