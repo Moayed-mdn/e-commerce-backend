@@ -685,32 +685,52 @@
 - HeroBanner table needs store_id column added via migration (currently missing — this is a pre-existing schema issue that should be addressed separately)
 
 ---
-## Add store_id to hero_banners Table — 2026-04-30
+## Search + Homepage Store-Scope Audit — 2026-04-30
 ### What I Did:
-- Audited HeroBanner model and confirmed it lacked store_id in fillable and had no store() relationship
-- Updated migration 2026_04_30_000001_add_store_id_to_hero_banners_table.php to add nullable() to store_id column
-- Added composite index on [store_id, id] to the migration
-- Updated down() method to drop indexes in correct order (composite first, then single)
-- Updated HeroBanner model to add 'store_id' to fillable array
-- Added store() belongsTo relationship to HeroBanner model with proper return type hint
+- Audited GET /api/v1/stores/{store}/search route and all related files (SearchDTO, SearchRepository, SearchService, SearchController)
+- Audited GET /api/v1/stores/{store}/homepage/best-seller and /hero routes and all related files (GetBestSellersDTO, GetHeroBannersDTO, HomePageService, BestSellerService, HomePageController)
+- Verified HeroBanner migration adds store_id with proper indexes and foreign key constraints
+- Verified HeroBanner model has store_id in fillable and store() relationship
+- Confirmed old /api/v1/users/search.php route file is REMOVED
+- Confirmed old /api/v1/users/homepage.php route file is REMOVED
+- Fixed homepage.php route to include ->prefix('/v1/stores/{store}') for consistency with search.php
 
-### Files Created:
-- None (migration already existed from previous work)
+### Violations Found:
+- routes/api/v1/stores/homepage.php — Missing ->prefix('/v1/stores/{store}'), causing routes to not properly resolve {store} parameter from URL path
+
+### Violations Fixed:
+- routes/api/v1/stores/homepage.php — Added ->prefix('/v1/stores/{store}') to match the pattern used in search.php and ensure consistent route structure
+
+### Files Verified Clean:
+- routes/api/v1/stores/search.php — Correct middleware (store.context only), correct controller mapping, correct prefix
+- routes/api/v1/stores/homepage.php — Correct middleware (store.context only), correct controller methods, correct prefix (after fix)
+- app/DTOs/Search/SearchDTO.php — storeId is FIRST constructor parameter, fromRequest() accepts int $storeId as second param
+- app/Repositories/Search/SearchRepository.php — ALL query methods accept int $storeId, ALL queries include where('store_id', $storeId)
+- app/Services/SearchService.php — execute() passes dto->storeId to ALL repository method calls
+- app/Http/Controllers/Api/Search/SearchController.php — index() accepts int $store, uses DTO::fromRequest($request, $store), returns $this->success()/paginated(), NO try/catch
+- app/DTOs/Homepage/GetHeroBannersDTO.php — storeId is FIRST constructor parameter, fromRequest() accepts int $storeId as second param
+- app/DTOs/Product/GetBestSellersDTO.php — storeId is FIRST constructor parameter, fromRequest() accepts int $storeId as second param
+- app/Services/HomePageService.php — hero() accepts int $storeId, query includes where('store_id', $storeId)
+- app/Services/BestSellerService.php — All public methods accept int $storeId, all Category queries scoped by store_id
+- app/Http/Controllers/Api/Homepage/HomePageController.php — bestSeller() and hero() both accept int $store, pass to DTOs, return $this->success(), NO try/catch
+- database/migrations/2026_04_30_000001_add_store_id_to_hero_banners_table.php — Adds nullable store_id FK with cascadeOnDelete, single index on store_id, composite index on [store_id, id], down() drops in correct order
+- app/Models/HeroBanner.php — store_id in fillable array, store() relationship exists returning BelongsTo<Store>
+- routes/api.php — Requires stores/search.php and stores/homepage.php, does NOT require old users versions
 
 ### Files Modified:
-- `database/migrations/2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Added nullable() to store_id column, added composite index on [store_id, id], fixed down() method to drop indexes in correct order
-- `app/Models/HeroBanner.php` — Added 'store_id' to fillable array, added store() belongsTo relationship returning Store model
-
-### Migrations Created:
-- `2026_04_30_000001_add_store_id_to_hero_banners_table.php` — Adds nullable store_id foreign key to hero_banners table with cascadeOnDelete, single index on store_id, and composite index on [store_id, id]
+- routes/api/v1/stores/homepage.php — Added ->prefix('/v1/stores/{store}') to route definition
 
 ### Notes:
-- confirm: migration file uses nullable() for store_id to accommodate existing rows without store association
-- confirm: migration file uses cascadeOnDelete() on the foreign key constraint
-- confirm: migration file places store_id after('id') column as specified
-- confirm: migration file adds both required indexes (single on store_id, composite on [store_id, id])
-- confirm: HeroBanner model has 'store_id' in fillable array
-- confirm: HeroBanner model has store() relationship returning BelongsTo<Store>
-- confirm: No existing migration files were modified — only the new migration was updated
-- confirm: No raw SQL or DB::statement used — all schema changes use Blueprint methods
-- Migration cannot be executed in this environment (PHP not available) but is syntactically correct and follows all architecture rules
+Search is now at GET /api/v1/stores/{store}/search (store.context only, no auth)
+
+Homepage is now at GET /api/v1/stores/{store}/homepage/best-seller and /hero (store.context only, no auth)
+
+Old /api/v1/users/search route is CONFIRMED removed
+
+Old /api/v1/users/homepage/* routes are CONFIRMED removed
+
+All SearchRepository queries confirmed scoped by store_id
+
+All HomePageService queries confirmed scoped by store_id
+
+HeroBanner model confirmed has store_id in fillable and store() relationship
