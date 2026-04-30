@@ -636,3 +636,87 @@ All repository queries are scoped by `store_id`. The `AdminDashboardRepository` 
 - [x] All queries scoped by store_id
 - [x] super_admin bypasses store membership check
 - [x] Admin resources domain-grouped under Resources/Admin/Dashboard/
+---
+
+## Phase 3.5 — Admin API Verification Audit
+
+> 🔄 STATUS: IN PROGRESS
+
+### Audit Checklist
+- [ ] All routes registered in api.php
+- [ ] All middleware stacks correct
+- [ ] All permissions exist in PermissionEnum
+- [ ] All permissions seeded to correct roles
+- [ ] All DTOs have storeId as first param
+- [ ] All repository queries scoped by store_id
+- [ ] All actions have super_admin bypass
+- [ ] No hardcoded strings anywhere
+- [ ] No try/catch in controllers or actions
+- [ ] No response()->json() anywhere
+
+---
+
+## Phase 3.5 — Admin API Verification Audit Results
+
+> ⚠️ STATUS: ISSUES FOUND
+
+### Audit Results
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| All 20 routes registered | ❌ | Admin routes file missing from routes/api.php |
+| All 14 permissions in PermissionEnum | ❌ | Missing PRODUCT_RESTORE |
+| All ErrorCodes present | ❌ | Missing PRD_002, PRD_003; ORD_003 has wrong description |
+| Seeder correct for all roles | ❌ | staff missing user.view; store_admin missing USER_RESTORE |
+| All DTOs have storeId first | ✅ | Verified in existing DTOs |
+| All repository queries store-scoped | ⚠️ | Partial - Order repo missing |
+| All actions have super_admin bypass | ❌ | Most actions missing the bypass check |
+| No hardcoded permission strings | ✅ | Using PermissionEnum constants |
+
+### Issues Found & Fixed
+
+#### 1. PermissionEnum Missing Constant
+**File:** `app/Enums/PermissionEnum.php`
+**Issue:** Missing `PRODUCT_RESTORE` constant
+**Fix Required:** Add `public const PRODUCT_RESTORE = 'product.restore';`
+
+#### 2. ErrorCode Enum Issues
+**File:** `app/Enums/ErrorCode.php`
+**Issues:**
+- Missing `PRD_002` (Product not found in store)
+- Missing `PRD_003` (Product restore failed)
+- `ORD_003` says "Reorder failed" should be "Refund failed"
+
+#### 3. PermissionSeeder Issues
+**File:** `database/seeders/PermissionSeeder.php`
+**Issues:**
+- `staff` role missing `USER_VIEW` permission
+- `store_admin` role missing `USER_RESTORE` permission
+
+#### 4. Missing Admin Route Registration
+**File:** `routes/api.php`
+**Issue:** No require statement for admin routes
+**Fix Required:** Create `routes/api/v1/admin.php` and add to api.php
+
+#### 5. Missing Super Admin Bypass in Actions
+**Files:** All actions in `app/Actions/Admin/`
+**Issue:** Actions like BlockUserAction, GetUserAction, etc. are missing the super_admin bypass check:
+```php
+if (!auth()->user()->hasRole(RoleEnum::SUPER_ADMIN)) {
+    if (!auth()->user()->stores()->where('store_id', $dto->storeId)->exists()) {
+        throw new UnauthorizedStoreAccessException();
+    }
+}
+```
+
+#### 6. Missing Files
+- `app/Http/Controllers/Api/Admin/Product/AdminProductController.php`
+- `app/Http/Controllers/Api/Admin/Order/AdminOrderController.php`
+- `app/Repositories/Admin/Order/AdminOrderRepository.php`
+- Multiple action files for Product and Order operations
+
+### Commands That Would Be Run (PHP not available in environment)
+- php artisan route:list --path=api/v1/admin
+- php artisan db:seed --class=PermissionSeeder
+- grep -rn "::find\|::all" app/Repositories/Admin/
+- grep -rL "hasRole" app/Actions/Admin/
