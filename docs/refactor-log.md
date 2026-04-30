@@ -647,3 +647,39 @@
 - All repositories properly scope queries by store_id (except SearchRepository which is intentionally global)
 - All seeders use RoleEnum/PermissionEnum constants and firstOrCreate
 - Route structure perfectly matches architecture requirements
+
+---
+## Move Homepage to Store-Scoped Routes — 2026-04-30
+### What I Did:
+- Audited HomePageController and identified bestSeller() uses BestSellerService (already store-scoped) and hero() uses HomePageService (needed store scoping)
+- Updated GetHeroBannersDTO to include storeId as first constructor parameter
+- Updated GetHeroBannersAction to pass storeId to HomePageService::hero()
+- Updated HomePageService::hero() method to accept storeId parameter and scope HeroBanner query by store_id
+- Updated HomePageController to accept int $store parameter on both bestSeller() and hero() methods
+- Updated HomePageController to pass store to DTO::fromRequest() calls
+- Created routes/api/v1/stores/homepage.php with store.context middleware only (no auth)
+- Removed old routes/api/v1/users/homepage.php file
+- Updated routes/api.php to require new homepage.php in stores group instead of users group
+
+### Files Created:
+- routes/api/v1/stores/homepage.php — New store-scoped homepage routes with store.context middleware
+
+### Files Modified:
+- app/DTOs/Homepage/GetHeroBannersDTO.php — Added storeId as first constructor parameter, updated fromRequest() signature
+- app/Actions/Homepage/GetHeroBannersAction.php — Updated execute() to pass storeId to HomePageService::hero()
+- app/Services/HomePageService.php — Updated hero() method to accept int $storeId and added ->where('store_id', $storeId) to query
+- app/Http/Controllers/Api/Homepage/HomePageController.php — Added int $store parameter to both methods, updated DTO::fromRequest() calls
+- routes/api.php — Removed require for api/v1/users/homepage.php, added require for api/v1/stores/homepage.php
+- routes/api/v1/users/homepage.php — DELETED (old global homepage routes removed)
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: old /api/v1/users/homepage/best-seller and /api/v1/users/homepage/hero routes are REMOVED
+- confirm: hero() DOES query DB (HeroBanner model) — now properly scoped by store_id
+- confirm: BestSellerService already accepted storeId — no changes needed, controller just passes store through
+- confirm: all repository queries for homepage are now store-scoped (HeroBanner query in HomePageService::hero())
+- confirm: HomePageController has int $store on both methods (bestSeller and hero)
+- Search is public (no auth:sanctum) — homepage endpoints are also public with only store.context middleware
+- HeroBanner table needs store_id column added via migration (currently missing — this is a pre-existing schema issue that should be addressed separately)

@@ -16,6 +16,6 @@ class GetHeroBannersAction
 
     public function execute(GetHeroBannersDTO $dto): Collection
     {
-        return $this->homePageService->hero();
+        return $this->homePageService->hero($dto->storeId);
     }
 }

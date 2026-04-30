@@ -82,10 +82,11 @@ class HomePageService
         return $result;
     }
 
-    function hero()
+    function hero(int $storeId)
     {
         $now = Carbon::now();
         $banners = HeroBanner::query()
+            ->where('store_id', $storeId)
             ->where('is_active', true)
             ->with('translations')
             ->where(function ($q) use ($now) {
