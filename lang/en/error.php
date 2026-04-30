@@ -22,4 +22,7 @@ return [
     // Store Messages
     'store_not_found' => 'Store not found or inactive.',
     'unauthorized_store' => 'You are not authorized to access this store.',
+
+    // User Messages
+    'user_not_found' => 'User not found.',
 ];

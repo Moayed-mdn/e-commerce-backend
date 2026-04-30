@@ -22,4 +22,7 @@ return [
     // Store Messages
     'store_not_found' => 'المتجر غير موجود أو غير نشط.',
     'unauthorized_store' => 'ليس لديك صلاحية للوصول إلى هذا المتجر.',
+
+    // User Messages
+    'user_not_found' => 'المستخدم غير موجود.',
 ];
