@@ -521,12 +521,118 @@ Order::where('store_id', $storeId)->findOrFail($orderId);
 
 ## Phase 3.4 — Admin Dashboard API
 
-> 🔄 STATUS: IN PROGRESS
-
-### Endpoints Planned
+### Endpoints
 
 | Method | URL | Permission | Description |
 |--------|-----|------------|-------------|
 | GET | /api/v1/admin/stores/{store}/dashboard/stats | dashboard.view | Store stats (revenue, orders, customers) |
 | GET | /api/v1/admin/stores/{store}/dashboard/recent-orders | dashboard.view | Recent orders for store |
 | GET | /api/v1/admin/stores/{store}/dashboard/top-products | dashboard.view | Top selling products in store |
+
+---
+
+### Files Created
+
+#### Controller
+- `app/Http/Controllers/Api/Admin/Dashboard/AdminDashboardController.php`
+
+#### DTOs
+- `app/DTOs/Admin/Dashboard/GetStatsDTO.php`
+- `app/DTOs/Admin/Dashboard/GetRecentOrdersDTO.php`
+- `app/DTOs/Admin/Dashboard/GetTopProductsDTO.php`
+
+#### Actions
+- `app/Actions/Admin/Dashboard/GetStatsAction.php`
+- `app/Actions/Admin/Dashboard/GetRecentOrdersAction.php`
+- `app/Actions/Admin/Dashboard/GetTopProductsAction.php`
+
+#### Repository
+- `app/Repositories/Admin/Dashboard/AdminDashboardRepository.php`
+
+#### Requests
+- `app/Http/Requests/Admin/Dashboard/GetStatsRequest.php`
+- `app/Http/Requests/Admin/Dashboard/GetRecentOrdersRequest.php`
+- `app/Http/Requests/Admin/Dashboard/GetTopProductsRequest.php`
+
+#### Resources
+- `app/Http/Resources/Admin/Dashboard/StoreStatsResource.php`
+- `app/Http/Resources/Admin/Dashboard/RecentOrderResource.php`
+- `app/Http/Resources/Admin/Dashboard/TopProductResource.php`
+
+---
+
+### Middleware Stack
+
+All Admin Dashboard routes use:
+
+```
+auth:sanctum → store.context → permission:dashboard.view
+```
+
+---
+
+### Super Admin Bypass
+
+In every Action, before executing business logic:
+
+```php
+if (!auth()->user()->hasRole(RoleEnum::SUPER_ADMIN)) {
+    if (!auth()->user()->stores()->where('store_id', $dto->storeId)->exists()) {
+        throw new UnauthorizedStoreAccessException();
+    }
+}
+```
+
+`super_admin` bypasses store membership check in ALL Admin Dashboard actions.
+
+---
+
+### Store Scoping
+
+All repository queries are scoped by `store_id`. The `AdminDashboardRepository` handles fetching data (stats, recent orders, top products) specifically for the given store.
+
+---
+
+### Response Format
+
+#### Get Stats
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": { ...StoreStatsResource }
+}
+```
+
+#### Get Recent Orders
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": [ ...RecentOrderResource ]
+}
+```
+
+#### Get Top Products
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": [ ...TopProductResource ]
+}
+```
+
+---
+
+### Architecture Compliance
+
+- [x] storeId is first param in every DTO
+- [x] storeId comes from route param only
+- [x] No DB queries outside AdminDashboardRepository
+- [x] No business logic in controller
+- [x] No try/catch in controller or actions
+- [x] No hardcoded strings — PermissionEnum + __() used
+- [x] No response()->json() — ApiResponserTrait used
+- [x] All queries scoped by store_id
+- [x] super_admin bypasses store membership check
+- [x] Admin resources domain-grouped under Resources/Admin/Dashboard/
