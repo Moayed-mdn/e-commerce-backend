@@ -1,33 +1,70 @@
 ```
-# Dependencies
-vendor/
+# Environment files
+.env
+.env.local
+.env.*
 
-# Logs and temp files
+# Logs and temporary files
 *.log
 *.tmp
 
-# Environment
-.env
-.env.local
-*.env.*
-
-# IDE
+# Editors and IDEs
 .vscode/
 .idea/
-
-# PHP specific
-*.php~
 *.swp
 *.swo
 
-# Build and cache
-bootstrap/cache/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-public/storage
+# System files
+.DS_Store
+Thumbs.db
 
-# Tests
-.phpunit.result.cache
+# Compiled/binary files
+*.pyc
+*.class
+*.o
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
+
+# Dependencies and build artifacts
+node_modules/
+venv/
+.venv/
+__pycache__/
+dist/
+build/
+target/
+.gradle/
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage/
+
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
