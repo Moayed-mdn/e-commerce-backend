@@ -38,4 +38,10 @@ enum ErrorCode: string
     // --- Store (STR) ---
     case STR_001 = 'STR_001'; // Store not found
     case STR_002 = 'STR_002'; // Unauthorized store access
+
+    // --- User (USR) ---
+    case USR_001 = 'USR_001'; // User not found
+    case USR_002 = 'USR_002'; // User already blocked
+    case USR_003 = 'USR_003'; // User not blocked
+    case USR_004 = 'USR_004'; // User not in store
 }

@@ -22,4 +22,14 @@ return [
     // Store Messages
     'store_not_found' => 'المتجر غير موجود أو غير نشط.',
     'unauthorized_store' => 'ليس لديك صلاحية للوصول إلى هذا المتجر.',
+
+    // User Messages
+    'user_not_found' => 'المستخدم غير موجود.',
+    'user_blocked' => 'تم حظر المستخدم بنجاح.',
+    'user_unblocked' => 'تم إلغاء حظر المستخدم بنجاح.',
+    'user_deleted' => 'تم حذف المستخدم بنجاح.',
+    'user_restored' => 'تم استعادة المستخدم بنجاح.',
+    'user_already_blocked' => 'المستخدم محظور بالفعل.',
+    'user_not_blocked' => 'المستخدم غير محظور.',
+    'user_not_in_store' => 'المستخدم لا ينتمي إلى هذا المتجر.',
 ];
