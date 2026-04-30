@@ -17,9 +17,9 @@ class SearchController extends Controller
         private SearchService $searchService,
     ) {}
 
-    public function index(SearchRequest $request)
+    public function index(SearchRequest $request, int $store)
     {
-        $dto = SearchDTO::fromRequest($request);
+        $dto = SearchDTO::fromRequest($request, $store);
         $results = $this->searchService->execute($dto);
 
         if ($results['type'] === 'all') {

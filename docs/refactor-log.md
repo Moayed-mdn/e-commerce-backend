@@ -449,6 +449,47 @@
 - Cart items required manual force-deletion during tests due to unique index constraints not ignoring soft-deleted rows.
 - All core business flows (Auth -> Cart -> Checkout -> Status) are now verified and working in the multi-store architecture.
 
+---
+## Move Search to Store-Scoped Route — 2026-04-30
+### What I Did:
+- Updated SearchDTO to include storeId as first constructor parameter
+- Added categorySlug optional field to SearchDTO
+- Updated SearchDTO::fromRequest() to accept int $storeId as second parameter
+- Updated SearchRepository to scope all queries by store_id
+- Added int $storeId parameter to all SearchRepository methods (searchProducts, searchCategories, searchAll)
+- Updated SearchController::index() to accept int $store parameter from route
+- Updated SearchController to pass $store to SearchDTO::fromRequest()
+- Updated SearchService::execute() to pass dto->storeId to repository methods
+- Created routes/api/v1/stores/search.php with store-scoped search route
+- Registered search.php in routes/api.php under store-scoped routes
+- Removed old routes/api/v1/users/search.php file
+- Removed require for api/v1/users/search.php from routes/api.php
+
+### Files Created:
+- `routes/api/v1/stores/search.php` — Store-scoped search route with store.context middleware (no auth required)
+
+### Files Modified:
+- `app/DTOs/Search/SearchDTO.php` — Added storeId as first constructor parameter, added categorySlug field, updated fromRequest() signature
+- `app/Repositories/Search/SearchRepository.php` — Added storeId parameter to all methods, added where('store_id', $storeId) to all queries
+- `app/Http/Controllers/Api/Search/SearchController.php` — Added int $store parameter to index() method, passed store to DTO
+- `app/Services/SearchService.php` — Updated execute() to pass dto->storeId to repository methods
+- `routes/api.php` — Removed users/search.php require, added stores/search.php require
+- `routes/api/v1/users/search.php` — DELETED (old global search route removed)
+
+### Migrations Created:
+- None
+
+### Notes:
+- Search is now store-scoped at GET /api/v1/stores/{store}/search
+- Middleware is store.context ONLY (no auth:sanctum — search remains public)
+- Old /api/v1/users/search route is REMOVED
+- SearchRepository now scopes all queries by store_id
+- SearchDTO has storeId as first constructor parameter
+- Controller remains thin with no business logic, no try/catch
+- Controller uses ApiResponserTrait for responses via $this->success() and $this->paginated()
+- No hardcoded strings anywhere
+- No DB queries outside repositories
+
 
 ---
 ## Full Audit + Fix Verification — 2026-05-03

@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class SearchRepository
 {
-    public function searchProducts(string $query, int $limit, int $page): LengthAwarePaginator
+    public function searchProducts(string $query, int $storeId, int $limit, int $page): LengthAwarePaginator
     {
         return Product::query()
+            ->where('store_id', $storeId)
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->whereHas('translations', function ($sq) use ($query) {
@@ -26,9 +27,10 @@ class SearchRepository
             ->paginate($limit, ['*'], 'page', $page);
     }
 
-    public function searchCategories(string $query, int $limit, int $page): LengthAwarePaginator
+    public function searchCategories(string $query, int $storeId, int $limit, int $page): LengthAwarePaginator
     {
         return Category::query()
+            ->where('store_id', $storeId)
             ->where('is_active', true)
             ->whereHas('translations', function ($sq) use ($query) {
                 $sq->where('name', 'LIKE', "%{$query}%");
@@ -36,11 +38,12 @@ class SearchRepository
             ->paginate($limit, ['*'], 'page', $page);
     }
 
-    public function searchAll(string $query, int $limit, int $page): array
+    public function searchAll(string $query, int $storeId, int $limit, int $page): array
     {
         $adjustedLimit = (int) ceil($limit / 2);
 
         $products = Product::query()
+            ->where('store_id', $storeId)
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->whereHas('translations', function ($sq) use ($query) {
@@ -53,6 +56,7 @@ class SearchRepository
             ->get();
 
         $categories = Category::query()
+            ->where('store_id', $storeId)
             ->where('is_active', true)
             ->whereHas('translations', function ($sq) use ($query) {
                 $sq->where('name', 'LIKE', "%{$query}%");
