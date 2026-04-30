@@ -50,4 +50,9 @@ class CartRepository
     {
         $cart->items()->delete();
     }
+
+    public function findByUserId(int $userId): ?Cart
+    {
+        return Cart::where('user_id', $userId)->first();
+    }
 }

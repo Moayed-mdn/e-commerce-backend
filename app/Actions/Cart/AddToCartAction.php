@@ -7,6 +7,7 @@ use App\Exceptions\Order\OutOfStockException;
 use App\Repositories\Cart\CartRepository;
 use App\Repositories\Cart\CartItemRepository;
 use App\Repositories\Product\ProductVariantRepository;
+use App\Repositories\User\UserRepository;
 use Illuminate\Support\Facades\DB;
 
 class AddToCartAction
@@ -15,12 +16,13 @@ class AddToCartAction
         private CartRepository $cartRepository,
         private CartItemRepository $cartItemRepository,
         private ProductVariantRepository $productVariantRepository,
+        private UserRepository $userRepository,
     ) {}
 
     public function execute(AddToCartDTO $dto): \App\Models\Cart
     {
         return DB::transaction(function () use ($dto) {
-            $user = \App\Models\User::findOrFail($dto->userId);
+            $user = $this->userRepository->findOrFail($dto->userId);
 
             $cart = $this->cartRepository->getOrCreate(
                 $user,

@@ -1,19 +1,47 @@
-.env*
-!.env.example
-.phpactor.json
+# Dependencies
+vendor/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# PHP specific
+*.php~
+phpunit.xml.dist
+composer.lock
+
+# Build artifacts
+dist/
+build/
+target/
+coverage/
+htmlcov/
+.coverage
+
+# Cache directories
+__pycache__/
+*.pyc
+*.pyo
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing
 .phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/pail
-/vendor
-search_and_print.sh
-.marscode
+
+# IDE specific
+nbproject/
