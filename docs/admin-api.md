@@ -516,3 +516,17 @@ Order::where('store_id', $storeId)->findOrFail($orderId);
 - [x] All queries scoped by store_id
 - [x] super_admin bypasses store membership check
 - [x] Admin resources domain-grouped under Resources/Admin/Order/
+
+---
+
+## Phase 3.4 — Admin Dashboard API
+
+> 🔄 STATUS: IN PROGRESS
+
+### Endpoints Planned
+
+| Method | URL | Permission | Description |
+|--------|-----|------------|-------------|
+| GET | /api/v1/admin/stores/{store}/dashboard/stats | dashboard.view | Store stats (revenue, orders, customers) |
+| GET | /api/v1/admin/stores/{store}/dashboard/recent-orders | dashboard.view | Recent orders for store |
+| GET | /api/v1/admin/stores/{store}/dashboard/top-products | dashboard.view | Top selling products in store |
