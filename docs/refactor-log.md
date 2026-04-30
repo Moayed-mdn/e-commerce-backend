@@ -714,3 +714,20 @@
 - confirm: No existing migration files were modified — only the new migration was updated
 - confirm: No raw SQL or DB::statement used — all schema changes use Blueprint methods
 - Migration cannot be executed in this environment (PHP not available) but is syntactically correct and follows all architecture rules
+
+---
+## Refactor Homepage Routes for Multi-Store — 2026-04-30
+### What I Did:
+- Updated `routes/api/v1/stores/homepage.php` to include the store prefix.
+
+### Files Created:
+- None
+
+### Files Modified:
+- `routes/api/v1/stores/homepage.php` — Added `/v1/stores/{store}` prefix to the route group.
+
+### Migrations Created:
+- None
+
+### Notes:
+- This change aligns the homepage routes with the multi-store architecture, ensuring they are properly scoped to a specific store.

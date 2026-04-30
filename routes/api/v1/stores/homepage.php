@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Homepage\HomePageController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['store.context'])
+    ->prefix('/v1/stores/{store}')
     ->group(function () {
         Route::prefix('homepage')
             ->controller(HomePageController::class)
