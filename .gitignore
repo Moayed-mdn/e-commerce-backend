@@ -1,1 +1,55 @@
-(docs/admin-api.md) is a source file, no build artifacts, dependencies, or temp files detected.
+```php
+# Compiled and build artifacts
+*.phpc
+*.o
+*.obj
+*.out
+build/
+dist/
+
+# Dependencies
+vendor/
+composer.lock
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+coverage/
+htmlcov/
+
+# PHP specific
+*.phar
+*.so
+*.dll
+*.dylib
+
+# Laravel specific (if applicable)
+storage/
+bootstrap/cache/
+```
