@@ -175,3 +175,188 @@ Restore queries use `withTrashed()` and scope by `store_id`.
 - [x] All queries scoped by store_id
 - [x] super_admin bypasses store membership check
 - [x] Admin resources domain-grouped under Resources/Admin/User/
+
+---
+
+## Phase 3.2 — Admin Products API
+
+### Endpoints
+
+| Method | URL | Permission | Description |
+|--------|-----|------------|-------------|
+| GET    | /api/v1/admin/stores/{store}/products | product.view | List store products paginated |
+| GET    | /api/v1/admin/stores/{store}/products/{product} | product.view | Get single product with variants |
+| POST   | /api/v1/admin/stores/{store}/products | product.create | Create product with variants |
+| PATCH  | /api/v1/admin/stores/{store}/products/{product} | product.update | Update product details |
+| DELETE | /api/v1/admin/stores/{store}/products/{product} | product.delete | Soft delete product |
+| PATCH  | /api/v1/admin/stores/{store}/products/{product}/restore | product.restore | Restore soft-deleted product |
+
+---
+
+### Files Created
+
+#### Controller
+- `app/Http/Controllers/Api/Admin/Product/AdminProductController.php`
+
+#### DTOs
+- `app/DTOs/Admin/Product/ListProductsDTO.php`
+- `app/DTOs/Admin/Product/GetProductDTO.php`
+- `app/DTOs/Admin/Product/CreateProductDTO.php`
+- `app/DTOs/Admin/Product/UpdateProductDTO.php`
+- `app/DTOs/Admin/Product/DeleteProductDTO.php`
+- `app/DTOs/Admin/Product/RestoreProductDTO.php`
+
+#### Actions
+- `app/Actions/Admin/Product/ListProductsAction.php`
+- `app/Actions/Admin/Product/GetProductAction.php`
+- `app/Actions/Admin/Product/CreateProductAction.php`
+- `app/Actions/Admin/Product/UpdateProductAction.php`
+- `app/Actions/Admin/Product/DeleteProductAction.php`
+- `app/Actions/Admin/Product/RestoreProductAction.php`
+
+#### Repository
+- `app/Repositories/Admin/Product/AdminProductRepository.php`
+
+#### Requests
+- `app/Http/Requests/Admin/Product/ListProductsRequest.php`
+- `app/Http/Requests/Admin/Product/GetProductRequest.php`
+- `app/Http/Requests/Admin/Product/CreateProductRequest.php`
+- `app/Http/Requests/Admin/Product/UpdateProductRequest.php`
+- `app/Http/Requests/Admin/Product/DeleteProductRequest.php`
+- `app/Http/Requests/Admin/Product/RestoreProductRequest.php`
+
+#### Resources
+- `app/Http/Resources/Admin/Product/AdminProductResource.php`
+- `app/Http/Resources/Admin/Product/AdminProductDetailResource.php`
+
+#### Exceptions
+- `app/Exceptions/Product/ProductNotFoundException.php` (created if not existed)
+
+---
+
+### ErrorCodes Added
+
+| Code | Value | Meaning |
+|------|-------|---------|
+| PRD_002 | `'PRD_002'` | Product not found in store |
+| PRD_003 | `'PRD_003'` | Product restore failed |
+
+Added to: `app/Enums/ErrorCode.php`
+
+---
+
+### Localization Keys Added
+
+#### `lang/en/admin.php`
+- `'product_created'      => 'Product created successfully.'`
+- `'product_updated'      => 'Product updated successfully.'`
+- `'product_deleted'      => 'Product deleted successfully.'`
+- `'product_restored'     => 'Product restored successfully.'`
+- `'variant_required'     => 'At least one variant is required.'`
+- `'media_upload_failed'  => 'Media upload failed.'`
+
+#### `lang/ar/admin.php`
+- `'product_created'      => 'تم إنشاء المنتج بنجاح.'`
+- `'product_updated'      => 'تم تحديث المنتج بنجاح.'`
+- `'product_deleted'      => 'تم حذف المنتج بنجاح.'`
+- `'product_restored'     => 'تم استعادة المنتج بنجاح.'`
+- `'variant_required'     => 'مطلوب متغير واحد على الأقل.'`
+- `'media_upload_failed'  => 'فشل رفع الوسائط.'`
+
+---
+
+### Middleware Stack
+
+All Admin Products routes use:
+
+```
+auth:sanctum → store.context → permission:{permission}
+```
+
+---
+
+### Super Admin Bypass
+
+In every Action, before executing business logic:
+
+```php
+if (!auth()->user()->hasRole(RoleEnum::SUPER_ADMIN)) {
+    if (!auth()->user()->stores()->where('store_id', $dto->storeId)->exists()) {
+        throw new UnauthorizedStoreAccessException();
+    }
+}
+```
+
+`super_admin` bypasses store membership check in ALL Admin Product actions.
+
+---
+
+### Store Scoping
+
+All repository queries are scoped by `store_id`:
+
+```php
+Product::where('store_id', $storeId)->paginate();
+Product::where('store_id', $storeId)->findOrFail($productId);
+Product::withTrashed()->where('store_id', $storeId)->findOrFail($productId)->restore();
+```
+
+Variants share the same `store_id` as their parent product.
+Create operations use `DB::transaction()` to ensure atomicity across product + variants + media.
+
+---
+
+### Response Format
+
+#### List Products
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": [ ...AdminProductResource ],
+  "meta": { ...pagination }
+}
+```
+
+#### Single Product
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": { ...AdminProductDetailResource }
+}
+```
+
+#### Create / Update / Restore
+```json
+{
+  "status": true,
+  "message": "Product created successfully.",
+  "data": { ...AdminProductDetailResource }
+}
+```
+
+#### Delete
+```json
+{
+  "status": true,
+  "message": "Product deleted successfully.",
+  "data": null
+}
+```
+
+---
+
+### Architecture Compliance
+
+- [x] storeId is first param in every DTO
+- [x] storeId comes from route param only
+- [x] No DB queries outside AdminProductRepository
+- [x] No business logic in controller
+- [x] No try/catch in controller or actions
+- [x] No hardcoded strings — PermissionEnum + __() used
+- [x] No response()->json() — ApiResponserTrait used
+- [x] All queries scoped by store_id
+- [x] super_admin bypasses store membership check
+- [x] Admin resources domain-grouped under Resources/Admin/Product/
+- [x] Create uses DB::transaction() for atomicity
