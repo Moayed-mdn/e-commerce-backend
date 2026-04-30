@@ -21,6 +21,7 @@ class CheckoutService
     public function __construct(
         private CartRepository $cartRepository,
         private OrderRepository $orderRepository,
+        private OrderItemRepository $orderItemRepository,
         private ProductVariantRepository $productVariantRepository,
     ) {
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -192,7 +193,7 @@ class CheckoutService
 
             // ── 3. Create OrderItems ───────────────────────────
             foreach ($validatedItems as $item) {
-                OrderItem::create([
+                $this->orderItemRepository->create([
                     'order_id'                => $order->id,
                     'product_id'              => $item['product_id'],
                     'product_variant_id'      => $item['variant']->id,

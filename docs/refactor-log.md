@@ -448,3 +448,33 @@
 - Database seeding required fixes to accommodate the strict `owner_id` requirement in the `stores` table and the Spatie Teams configuration.
 - Cart items required manual force-deletion during tests due to unique index constraints not ignoring soft-deleted rows.
 - All core business flows (Auth -> Cart -> Checkout -> Status) are now verified and working in the multi-store architecture.
+
+---
+## Fix Remaining Architecture Violations — 2026-05-03
+### What I Did:
+- Audited CheckoutService for direct Model queries violating architecture rules
+- Created create() method in OrderItemRepository to handle single order item creation
+- Injected OrderItemRepository into CheckoutService constructor
+- Replaced direct OrderItem::create() call with repository method call
+- Verified no remaining direct Model queries exist in CheckoutService
+- Confirmed AddToCartAction already uses UserRepository correctly (previously fixed)
+
+### Violations Fixed:
+- `app/Services/CheckoutService.php` — Replaced direct `OrderItem::create()` call with `$this->orderItemRepository->create()` to comply with "NO DB QUERIES OUTSIDE REPOSITORIES" rule
+
+### Files Created:
+- None (OrderItemRepository already existed, only added new method)
+
+### Files Modified:
+- `app/Repositories/OrderItem/OrderItemRepository.php` — Added `create(array $data): OrderItem` method for single order item creation
+- `app/Services/CheckoutService.php` — Injected OrderItemRepository dependency and replaced direct `OrderItem::create()` with repository call
+
+### Migrations Created:
+- None
+
+### Notes:
+- AddToCartAction was already compliant with architecture (UserRepository was previously injected)
+- The only remaining violation was the `OrderItem::create()` call in CheckoutService's `createCheckoutSession()` method
+- Stripe API calls remain in the service layer as permitted by architecture (external API calls are not DB queries)
+- The try/catch block for Stripe exceptions remains in the service layer as explicitly allowed by architecture rules
+- All database queries now properly flow through repositories as required

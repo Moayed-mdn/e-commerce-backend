@@ -17,4 +17,9 @@ class OrderItemRepository
             OrderItem::create($item);
         }
     }
+
+    public function create(array $data): OrderItem
+    {
+        return OrderItem::create($data);
+    }
 }
