@@ -545,7 +545,15 @@ useEffect is ALLOWED for:
    errors:     Record<string, string[]> | null; 
  } 
  ``` 
- 
+
+ ## API Error Contract
+
+ - All backend errors MUST include `error_code`
+ - `error_code` is required — never optional
+ - Frontend retry logic depends on `error_code` being present
+ - If `error_code` is missing → treated as network error → retried
+ - Backend MUST NOT return errors without `error_code`
+
  --- 
  
  # 11. Forms 
@@ -2569,18 +2577,25 @@ Enforced formatting. No debates on style.
    // Never retry not found errors
    if (apiError.error_code === 'SYS_002') return false;
 
-   // Only retry known retryable error categories
-   const retryableErrorCodes = [
-     'NETWORK_ERROR',  // No response from server
-     'SYS_001',        // Generic server error (500)
-   ];
 
-   if (retryableErrorCodes.includes(apiError.error_code ?? '')) {
-     return failureCount < 2;
-   }
+  // If error_code is missing (proxy failure, CDN error, malformed response)
+  // treat as network error and retry
+  if (!apiError.error_code) {
+    return failureCount < 2;
+  }
 
-   // All other errors (business logic, rate limits, etc.) — do not retry
-   return false;
+  // Only retry known retryable error categories
+  const retryableErrorCodes = [
+    'NETWORK_ERROR',  // No response from server
+    'SYS_001',        // Retryable server error (5xx)
+  ];
+
+  if (retryableErrorCodes.includes(apiError.error_code)) {
+    return failureCount < 2;
+  }
+
+  // All other errors (business logic, rate limits, etc.) — do not retry
+  return false;
  } 
  
  export const queryClient = new QueryClient({ 
