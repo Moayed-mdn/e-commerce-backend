@@ -1,20 +1,33 @@
-# Frontend Architecture (Core)
+# Frontend Architecture Rules
 
-This document contains the core philosophy, tech stack, project structure, naming conventions, and golden flow for the frontend architecture.
+This directory contains the focused architecture and coding standards for the frontend.
 
----
+# 1. Quick Reference
 
-# 1. Core Philosophy
 
-- This is a pure admin dashboard frontend
-- It connects to a Laravel + Sanctum REST API backend
-- No server-side business logic lives in Next.js
-- Next.js is responsible for: rendering, routing, auth, UI only
-- Code must be predictable, scalable, and theme-switchable
-- Every architectural decision must be traceable to a rule
-  in this document
+| Topic | File |
+|-------|------|
+| Core philosophy + structure | [README.md](./README.md) |
+| Hard rules (Start Here) | [HARD-RULES.md](./HARD-RULES.md) |
+| Styling + tokens | [STYLING.md](./STYLING.md) |
+| API layer | [API-LAYER.md](./API-LAYER.md) |
+| Data fetching | [DATA-FETCHING.md](./DATA-FETCHING.md) |
+| Authentication | [AUTH.md](./AUTH.md) |
+| State management | [STATE.md](./STATE.md) |
+| Components | [COMPONENTS.md](./COMPONENTS.md) |
+| Forms | [FORMS.md](./FORMS.md) |
+| Internationalization | [I18N.md](./I18N.md) |
+| Routing | [ROUTING.md](./ROUTING.md) |
+| Error handling | [ERROR-HANDLING.md](./ERROR-HANDLING.md) |
+| Permissions | [PERMISSIONS.md](./PERMISSIONS.md) |
+| Performance | [PERFORMANCE.md](./PERFORMANCE.md) |
+| TypeScript | [TYPESCRIPT.md](./TYPESCRIPT.md) |
+| Config + constants | [CONFIG.md](./CONFIG.md) |
+| Testing | [TESTING.md](./TESTING.md) |
+| Security | [SECURITY.md](./SECURITY.md) |
+| Build + CI | [BUILD.md](./BUILD.md) |
 
----
+
 
 # 2. Tech Stack (FIXED — do not change)
 
@@ -111,45 +124,3 @@ src/
 ```
 
 ---
-
-# 12. Naming Conventions
-
-| Thing | Convention | Example |
-|-------|-----------|---------|
-| Pages | lowercase folders | `app/(admin)/users/page.tsx` |
-| Components | PascalCase | `UserTable.tsx` |
-| Hooks | camelCase with `use` | `useUsers.ts` |
-| Stores | camelCase with `Store` | `authStore.ts` |
-| API functions | camelCase | `getUsers.ts` |
-| Types | PascalCase | `AdminUser` |
-| Zod schemas | camelCase with `Schema` | `createUserSchema` |
-
----
-
-# 15. Golden Flow (Data)
-
-## Read Flow
-```
-Page (RSC)
- → API function (typed)
- → Pass as prop to Client Component
- → TanStack Query for refetch/pagination
- → Component renders
-```
-
-## Write Flow
-```
-Form (React Hook Form + Zod)
- → TanStack Mutation
- → API function (typed)
- → On success: invalidate query + show toast
- → On error: map API errors to form fields
-```
-
----
-
-# Final Note
-
-This architecture is strict by design.
-If a feature does not fit — extend properly.
-Consistency > convenience.

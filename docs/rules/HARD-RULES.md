@@ -5,7 +5,7 @@ This file contains the complete list of hard rules for the frontend architecture
 Every prompt MUST reference this file.
 Every rule here is enforced without exception.
 
-See the relevant file in docs/frontend/ for context on each rule.
+See the relevant file in docs/rules/ for context on each rule.
 
 ---
 
