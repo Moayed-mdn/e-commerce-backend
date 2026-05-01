@@ -2553,19 +2553,29 @@ Enforced formatting. No debates on style.
    failureCount: number, 
    error: unknown, 
  ): boolean { 
-   const apiError = error as ApiError; 
- 
-   // Never retry validation errors 
-   if (apiError?.error_code === 'VAL_001') return false; 
- 
-   // Never retry auth errors 
-   if (apiError?.error_code?.startsWith('AUTH_')) return false; 
- 
-   // Never retry not found errors 
-   if (apiError?.error_code === 'SYS_002') return false; 
- 
-   // Retry up to 2 times for network/server errors 
-   return failureCount < 2; 
+   // Defensive check — unknown errors get retried
+   if (!error || typeof error !== 'object') {
+     return failureCount < 2;
+   }
+
+   const apiError = error as Partial<ApiError>;
+
+   // Never retry validation errors
+   if (apiError.error_code === 'VAL_001') return false;
+
+   // Never retry auth errors — redirect instead
+   if (apiError.error_code?.startsWith?.('AUTH_')) return false;
+
+   // Never retry not found errors
+   if (apiError.error_code === 'SYS_002') return false;
+
+   // Explicit network error — retry up to 2 times
+   if (apiError.error_code === 'NETWORK_ERROR') {
+     return failureCount < 2;
+   }
+
+   // All other server errors — retry up to 2 times
+   return failureCount < 2;
  } 
  
  export const queryClient = new QueryClient({ 
@@ -2574,6 +2584,8 @@ Enforced formatting. No debates on style.
        staleTime:           QUERY_CONFIG.staleTime, 
        refetchOnWindowFocus: QUERY_CONFIG.refetchOnWindowFocus, 
        retry:               shouldRetry, 
+       retryDelay:          (attempt) => 
+         Math.min(1000 * 2 ** attempt, 30_000), 
      }, 
      mutations: { 
        retry: false,  // Never retry mutations automatically 
@@ -2584,6 +2596,9 @@ Enforced formatting. No debates on style.
  
  ## Rules 
  
+ - Retries use exponential backoff: 1s → 2s → 4s (max 30s)
+ - This prevents hammering a struggling server
+ - Mutations have no retry delay because mutations never retry
  - Network errors retry up to 2 times automatically 
  - Validation errors (VAL_001) NEVER retry 
  - Auth errors (AUTH_*) NEVER retry — redirect instead 
@@ -2609,6 +2624,12 @@ Enforced formatting. No debates on style.
  - Nested objects MUST have the same depth in both locales 
  - New translation keys MUST be added to BOTH locales 
    in the same commit — never one without the other 
+ - Each domain MUST have its own namespace file
+ - Cross-domain keys are FORBIDDEN
+ - common.json is for truly shared UI strings only
+   (save, cancel, loading, confirm, etc.)
+ - Never add domain-specific keys to common.json
+ - If a key belongs to users — it goes in users.json 
  
  ## Key Naming Convention 
  
@@ -2732,6 +2753,10 @@ Enforced formatting. No debates on style.
    — the raw input value updates the URL immediately 
  - useDebounce lives in src/lib/hooks/useDebounce.ts 
  - Never implement debounce inline — always use the shared hook 
+ - Query keys MUST include the debounced value — not the raw input
+ - Never pass raw search input to queryKey
+ - Stale responses are automatically cancelled by TanStack Query
+   when query key changes — this is why debounced keys matter 
  
  --- 
  
@@ -2780,4 +2805,7 @@ Enforced formatting. No debates on style.
  NO UNMATCHED TRANSLATION KEYS — en and ar must be identical. 
  NO UNDEBOUNCED SEARCH        — 300ms debounce always. 
  NO CROSS-DOMAIN HOOK CALLS   — same domain or shared only. 
+ NO INSTANT RETRIES           — exponential backoff always.
+ NO RAW INPUT IN QUERY KEYS   — debounced values only.
+ NO CROSS-NAMESPACE KEYS      — domain keys in domain files.
  ``` 
