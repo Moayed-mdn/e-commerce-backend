@@ -2563,19 +2563,24 @@ Enforced formatting. No debates on style.
    // Never retry validation errors
    if (apiError.error_code === 'VAL_001') return false;
 
-   // Never retry auth errors — redirect instead
+   // Never retry auth errors — redirect handled by Axios interceptor
    if (apiError.error_code?.startsWith?.('AUTH_')) return false;
 
    // Never retry not found errors
    if (apiError.error_code === 'SYS_002') return false;
 
-   // Explicit network error — retry up to 2 times
-   if (apiError.error_code === 'NETWORK_ERROR') {
+   // Only retry known retryable error categories
+   const retryableErrorCodes = [
+     'NETWORK_ERROR',  // No response from server
+     'SYS_001',        // Generic server error (500)
+   ];
+
+   if (retryableErrorCodes.includes(apiError.error_code ?? '')) {
      return failureCount < 2;
    }
 
-   // All other server errors — retry up to 2 times
-   return failureCount < 2;
+   // All other errors (business logic, rate limits, etc.) — do not retry
+   return false;
  } 
  
  export const queryClient = new QueryClient({ 
@@ -2594,18 +2599,31 @@ Enforced formatting. No debates on style.
  }); 
  ``` 
  
- ## Rules 
- 
- - Retries use exponential backoff: 1s → 2s → 4s (max 30s)
- - This prevents hammering a struggling server
- - Mutations have no retry delay because mutations never retry
- - Network errors retry up to 2 times automatically 
- - Validation errors (VAL_001) NEVER retry 
- - Auth errors (AUTH_*) NEVER retry — redirect instead 
- - Not found errors (SYS_002) NEVER retry 
- - Mutations NEVER retry automatically 
- - The queryClient instance is created once and shared 
- 
+## Rules
+
+- Network errors (`NETWORK_ERROR`) retry up to 2 times
+- Generic server errors (`SYS_001`) retry up to 2 times
+- Validation errors (`VAL_001`) NEVER retry
+- Auth errors (`AUTH_*`) NEVER retry — Axios interceptor handles redirect
+- Not found errors (`SYS_002`) NEVER retry
+- All business logic errors NEVER retry — they will not resolve on retry
+- All unknown error codes NEVER retry — whitelist only
+- Retries use exponential backoff: 1s → 2s → 4s (max 30s)
+- Mutations NEVER retry automatically
+- The `queryClient` instance is created once and shared
+
+## Timeout + Retry Duration Warning
+
+With 10s timeout and 2 retries plus backoff:
+- Attempt 1: up to 10s
+- Wait: 1s
+- Attempt 2: up to 10s
+- Wait: 2s
+- Attempt 3: up to 10s
+- Worst case total: ~33 seconds
+
+Document this in loading UX. Show a user-friendly message
+after the first failure, not only after all retries are exhausted.
  --- 
  
  # 57. i18n Key Consistency Rules 
@@ -2754,7 +2772,9 @@ Enforced formatting. No debates on style.
  - useDebounce lives in src/lib/hooks/useDebounce.ts 
  - Never implement debounce inline — always use the shared hook 
  - Query keys MUST include the debounced value — not the raw input
- - Never pass raw search input to queryKey
+ - Never pass non-debounced values to queryKey
+ - The raw input value MUST sync to URL immediately
+ - The debounced value is what triggers the API call
  - Stale responses are automatically cancelled by TanStack Query
    when query key changes — this is why debounced keys matter 
  
@@ -2806,6 +2826,6 @@ Enforced formatting. No debates on style.
  NO UNDEBOUNCED SEARCH        — 300ms debounce always. 
  NO CROSS-DOMAIN HOOK CALLS   — same domain or shared only. 
  NO INSTANT RETRIES           — exponential backoff always.
- NO RAW INPUT IN QUERY KEYS   — debounced values only.
+ NO NON-DEBOUNCED VALUES IN QUERY KEYS — debounced values only.
  NO CROSS-NAMESPACE KEYS      — domain keys in domain files.
  ``` 
