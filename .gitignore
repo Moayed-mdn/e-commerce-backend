@@ -1,18 +1,36 @@
-```php
-/vendor/
-/node_modules/
-/public/hot
-/public/storage
-/storage/*.key
-/.env
-/.env.local
-/.env.*
-/coverage/
-/.phpunit.result.cache
-.php_cs.cache
-.idea/
-.vscode/
+```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+
+# Dependencies
+vendor/
+node_modules/
+
+# Logs and temp files
 *.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
 .DS_Store
 Thumbs.db
+
+# Laravel specific
+bootstrap/cache/
+storage/logs/
+storage/framework/
+public/storage/
+
+# Composer/Packages
+composer.lock
 ```

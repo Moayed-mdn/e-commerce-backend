@@ -16,6 +16,13 @@ class GetUserAction
 
     public function execute(GetUserDTO $dto): User
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN)) {
+            if (!$authUser->stores()->where('store_id', $dto->storeId)->exists()) {
+                throw new UnauthorizedStoreAccessException();
+            }
+        }
+
         $user = $this->repository->findInStore($dto->userId, $dto->storeId);
 
         return $user;
