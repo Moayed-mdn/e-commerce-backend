@@ -20,9 +20,11 @@ use App\Http\Resources\Admin\User\AdminUserDetailResource;
 use App\Http\Resources\Admin\User\AdminUserResource;
 use Illuminate\Http\Request;
 
+use Illuminate\Http\JsonResponse;
+
 class AdminUserController extends Controller
 {
-    public function index(ListUsersRequest $request, ListUsersAction $action, int $store)
+    public function index(ListUsersRequest $request, ListUsersAction $action, int $store): JsonResponse
     {
         $dto = ListUsersDTO::fromRequest($request, $store);
         $users = $action->execute($dto);
@@ -33,7 +35,7 @@ class AdminUserController extends Controller
         );
     }
 
-    public function show(Request $request, GetUserAction $action, int $store, int $user)
+    public function show(Request $request, GetUserAction $action, int $store, int $user): JsonResponse
     {
         $dto = GetUserDTO::fromRequest($request, $store, $user);
         $userModel = $action->execute($dto);
@@ -41,7 +43,7 @@ class AdminUserController extends Controller
         return $this->success(new AdminUserDetailResource($userModel));
     }
 
-    public function block(Request $request, BlockUserAction $action, int $store, int $user)
+    public function block(Request $request, BlockUserAction $action, int $store, int $user): JsonResponse
     {
         $dto = BlockUserDTO::fromRequest($request, $store, $user);
         $blockedUser = $action->execute($dto);
@@ -52,7 +54,7 @@ class AdminUserController extends Controller
         );
     }
 
-    public function unblock(Request $request, UnblockUserAction $action, int $store, int $user)
+    public function unblock(Request $request, UnblockUserAction $action, int $store, int $user): JsonResponse
     {
         $dto = UnblockUserDTO::fromRequest($request, $store, $user);
         $unblockedUser = $action->execute($dto);
@@ -63,7 +65,7 @@ class AdminUserController extends Controller
         );
     }
 
-    public function destroy(Request $request, DeleteUserAction $action, int $store, int $user)
+    public function destroy(Request $request, DeleteUserAction $action, int $store, int $user): JsonResponse
     {
         $dto = DeleteUserDTO::fromRequest($request, $store, $user);
         $action->execute($dto);
@@ -71,7 +73,7 @@ class AdminUserController extends Controller
         return $this->success(null, __('admin.user_deleted'));
     }
 
-    public function restore(Request $request, RestoreUserAction $action, int $store, int $user)
+    public function restore(Request $request, RestoreUserAction $action, int $store, int $user): JsonResponse
     {
         $dto = RestoreUserDTO::fromRequest($request, $store, $user);
         $restoredUser = $action->execute($dto);

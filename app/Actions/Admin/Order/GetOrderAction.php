@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Actions\Admin\User;
+namespace App\Actions\Admin\Order;
 
-use App\DTOs\Admin\User\UnblockUserDTO;
+use App\DTOs\Admin\Order\GetOrderDTO;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
-use App\Models\User;
-use App\Repositories\Admin\User\AdminUserRepository;
-
+use App\Models\Order;
+use App\Repositories\Admin\Order\AdminOrderRepository;
 use Illuminate\Support\Facades\Auth;
 
-class UnblockUserAction
+class GetOrderAction
 {
     public function __construct(
-        private AdminUserRepository $repository,
+        private AdminOrderRepository $repository,
     ) {}
 
-    public function execute(UnblockUserDTO $dto): User
+    public function execute(GetOrderDTO $dto): Order
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
@@ -26,8 +25,7 @@ class UnblockUserAction
             }
         }
 
-        $user = $this->repository->findInStore($dto->userId, $dto->storeId);
-
-        return $this->repository->unblock($user);
+        return $this->repository->findInStore($dto->orderId, $dto->storeId)
+            ->load(['user', 'items.product', 'shippingAddress', 'billingAddress']);
     }
 }

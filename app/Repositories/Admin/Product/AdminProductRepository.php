@@ -101,7 +101,7 @@ class AdminProductRepository
      */
     public function createTranslation(int $productId, array $translationData): void
     {
-        $product = Product::findOrFail($productId);
+        $product = Product::query()->findOrFail($productId);
         $product->translations()->create($translationData);
     }
 
@@ -110,7 +110,7 @@ class AdminProductRepository
      */
     public function upsertTranslation(int $productId, string $locale, array $translationData): void
     {
-        $product = Product::findOrFail($productId);
+        $product = Product::query()->findOrFail($productId);
         $product->translations()->updateOrCreate(
             ['locale' => $locale],
             $translationData
@@ -122,7 +122,7 @@ class AdminProductRepository
      */
     public function deleteTranslations(int $productId): void
     {
-        $product = Product::findOrFail($productId);
+        $product = Product::query()->findOrFail($productId);
         $product->translations()->delete();
     }
 }

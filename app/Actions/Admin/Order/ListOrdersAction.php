@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Actions\Admin\Product;
+namespace App\Actions\Admin\Order;
 
-use App\DTOs\Admin\Product\ListProductsDTO;
-use App\Repositories\Admin\Product\AdminProductRepository;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-
-use Illuminate\Support\Facades\Auth;
+use App\DTOs\Admin\Order\ListOrdersDTO;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
+use App\Repositories\Admin\Order\AdminOrderRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
-class ListProductsAction
+class ListOrdersAction
 {
     public function __construct(
-        private AdminProductRepository $repository,
+        private AdminOrderRepository $repository,
     ) {}
 
-    public function execute(ListProductsDTO $dto): LengthAwarePaginator
+    public function execute(ListOrdersDTO $dto): LengthAwarePaginator
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();

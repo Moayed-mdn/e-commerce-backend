@@ -11,10 +11,11 @@ class PermissionEnum
     public const USER_RESTORE = 'user.restore';
 
     // Product Management
-    public const PRODUCT_CREATE = 'product.create';
-    public const PRODUCT_UPDATE = 'product.update';
-    public const PRODUCT_DELETE = 'product.delete';
-    public const PRODUCT_VIEW   = 'product.view';
+    public const PRODUCT_VIEW    = 'product.view';
+    public const PRODUCT_CREATE  = 'product.create';
+    public const PRODUCT_UPDATE  = 'product.update';
+    public const PRODUCT_DELETE  = 'product.delete';
+    public const PRODUCT_RESTORE = 'product.restore';
 
     // Order Management
     public const ORDER_VIEW          = 'order.view';

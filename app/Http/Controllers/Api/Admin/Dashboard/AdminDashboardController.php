@@ -17,9 +17,11 @@ use App\Http\Resources\Admin\Dashboard\RecentOrderResource;
 use App\Http\Resources\Admin\Dashboard\TopProductResource;
 use Illuminate\Http\Request;
 
+use Illuminate\Http\JsonResponse;
+
 class AdminDashboardController extends Controller
 {
-    public function stats(GetStatsRequest $request, GetStatsAction $action, int $store)
+    public function stats(GetStatsRequest $request, GetStatsAction $action, int $store): JsonResponse
     {
         $dto = GetStatsDTO::fromRequest($request, $store);
         $stats = $action->execute($dto);
@@ -30,7 +32,7 @@ class AdminDashboardController extends Controller
         );
     }
 
-    public function recentOrders(GetRecentOrdersRequest $request, GetRecentOrdersAction $action, int $store)
+    public function recentOrders(GetRecentOrdersRequest $request, GetRecentOrdersAction $action, int $store): JsonResponse
     {
         $dto = GetRecentOrdersDTO::fromRequest($request, $store);
         $orders = $action->execute($dto);
@@ -41,7 +43,7 @@ class AdminDashboardController extends Controller
         );
     }
 
-    public function topProducts(GetTopProductsRequest $request, GetTopProductsAction $action, int $store)
+    public function topProducts(GetTopProductsRequest $request, GetTopProductsAction $action, int $store): JsonResponse
     {
         $dto = GetTopProductsDTO::fromRequest($request, $store);
         $products = $action->execute($dto);

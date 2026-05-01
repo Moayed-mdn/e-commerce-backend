@@ -33,3 +33,6 @@ require 'api/v1/stores/homepage.php';
 
 // Store management routes (outside {store} group - POST has no store context yet)
 require 'api/v1/stores/store-management.php';
+
+// Admin routes
+require 'api/v1/admin/admin.php';

@@ -1,22 +1,20 @@
 <?php
 
-namespace App\Actions\Admin\User;
+namespace App\Actions\Admin\Product;
 
-use App\DTOs\Admin\User\UnblockUserDTO;
+use App\DTOs\Admin\Product\DeleteProductDTO;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
-use App\Models\User;
-use App\Repositories\Admin\User\AdminUserRepository;
-
+use App\Repositories\Admin\Product\AdminProductRepository;
 use Illuminate\Support\Facades\Auth;
 
-class UnblockUserAction
+class DeleteProductAction
 {
     public function __construct(
-        private AdminUserRepository $repository,
+        private AdminProductRepository $repository,
     ) {}
 
-    public function execute(UnblockUserDTO $dto): User
+    public function execute(DeleteProductDTO $dto): void
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
@@ -26,8 +24,7 @@ class UnblockUserAction
             }
         }
 
-        $user = $this->repository->findInStore($dto->userId, $dto->storeId);
-
-        return $this->repository->unblock($user);
+        $product = $this->repository->findInStore($dto->productId, $dto->storeId);
+        $this->repository->softDelete($product);
     }
 }
