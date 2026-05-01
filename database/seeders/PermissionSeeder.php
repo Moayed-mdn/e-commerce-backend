@@ -83,9 +83,9 @@ class PermissionSeeder extends Seeder
 
         // Assign permissions to staff
         $staff->syncPermissions([
+            PermissionEnum::USER_VIEW,
             PermissionEnum::PRODUCT_VIEW,
             PermissionEnum::ORDER_VIEW,
-            PermissionEnum::ORDER_UPDATE_STATUS,
             PermissionEnum::DASHBOARD_VIEW,
         ]);
 

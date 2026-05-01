@@ -17,7 +17,7 @@ enum ErrorCode: string
     // --- Order (ORD) ---
     case ORD_001 = 'ORD_001'; // Order not found
     case ORD_002 = 'ORD_002'; // Order cancellation failed
-    case ORD_003 = 'ORD_003'; // Reorder failed
+    case ORD_003 = 'ORD_003'; // Refund failed
 
     // --- Payment (PMT) ---
     case PMT_001 = 'PMT_001'; // Payment failed
@@ -34,6 +34,8 @@ enum ErrorCode: string
 
     // --- Product (PRD) ---
     case PRD_001 = 'PRD_001'; // Product not found
+    case PRD_002 = 'PRD_002'; // Product not found in store
+    case PRD_003 = 'PRD_003'; // Product restore failed
 
     // --- Store (STR) ---
     case STR_001 = 'STR_001'; // Store not found
