@@ -1,5 +1,55 @@
 ---
-## Multi-Store Architecture Migrations — 2026-04-28
+## Fix Resource Mismatches Against Frontend Contract — 2026-05-02
+### What I Did:
+- Fixed StoreStatsResource to return all 8 fields expected by frontend (total_revenue, total_orders, total_customers, total_products, revenue_change, orders_change, customers_change, products_change)
+- Updated GetStatsAction to return flat array with correct field names and proper type casting
+- Added getTotalProducts() method to AdminDashboardRepository for counting products by store_id
+- Fixed RecentOrderResource to return customer object with id/name/email instead of customer_name string; added payment_status and currency fields
+- Fixed TopProductResource to include status (derived from is_active) and currency fields
+- Fixed AdminOrderResource to rename user to customer, add store_id, fulfillment_status, currency, notes, phone, updated_at fields
+- Fixed AdminOrderDetailResource to rename user to customer, items to line_items, tax_amount to tax, shipping_amount to shipping; added product_id, sku, price/total calculation, store_id, fulfillment_status, currency, notes, updated_at
+- Fixed AdminUserResource to return role as single string (first role name) instead of array; added store_id as flat field; added email_verified_at and updated_at
+- Fixed AdminUserDetailResource to return role as single string; added store_id as flat field; removed getStoreRole() helper method; reorganized fields to match frontend contract
+- Fixed AdminProductResource completely: added store_id, slug, status as string ('active'/'draft'), price/sku/quantity mapped from default active variant, images array from first variant's primary image, updated_at
+- Fixed AdminProductDetailResource completely: added store_id, slug, status as string, price/compare_at_price/cost_per_item/sku/barcode/quantity/track_quantity/weight/weight_unit from default variant, images flattened from all variants, updated_at
+
+### Files Modified:
+- `app/Http/Resources/Admin/Dashboard/StoreStatsResource.php` — Replaced toArray() to return all 8 DashboardStats fields with proper type casting
+- `app/Actions/Admin/Dashboard/GetStatsAction.php` — Changed return array structure to flat format with 8 fields matching frontend contract
+- `app/Repositories/Admin/Dashboard/AdminDashboardRepository.php` — Added getTotalProducts() method to count products scoped by store_id
+- `app/Http/Resources/Admin/Dashboard/RecentOrderResource.php` — Replaced toArray() to return customer object, payment_status, currency
+- `app/Http/Resources/Admin/Dashboard/TopProductResource.php` — Added status (from is_active) and currency fields
+- `app/Http/Resources/Admin/Order/AdminOrderResource.php` — Renamed user to customer, added store_id/fulfillment_status/currency/notes/phone/updated_at
+- `app/Http/Resources/Admin/Order/AdminOrderDetailResource.php` — Renamed user→customer, items→line_items, tax_amount→tax, shipping_amount→shipping; added product_id/sku/price/total/store_id/fulfillment_status/currency/notes/updated_at
+- `app/Http/Resources/Admin/User/AdminUserResource.php` — Changed roles array to single role string; added store_id flat field; added email_verified_at/updated_at
+- `app/Http/Resources/Admin/User/AdminUserDetailResource.php` — Changed roles to single role string; added store_id flat field; removed getStoreRole() method; added updated_at
+- `app/Http/Resources/Admin/Product/AdminProductResource.php` — Complete rewrite to match AdminProduct list shape with variant-mapped price/sku/quantity/status/images
+- `app/Http/Resources/Admin/Product/AdminProductDetailResource.php` — Complete rewrite to match AdminProduct full shape with all variant-derived fields
+
+### Files Created:
+- None
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: StoreStatsResource now returns all 8 expected fields
+- confirm: RecentOrderResource now returns customer object not customer_name
+- confirm: TopProductResource now returns status and currency
+- confirm: AdminOrderResource renamed user to customer, items to line_items (in detail resource)
+- confirm: AdminOrderDetailResource renamed tax_amount to tax, shipping_amount to shipping
+- confirm: AdminUserResource now returns role as single string not array
+- confirm: AdminUserResource now returns store_id as flat field
+- confirm: AdminProductResource now returns status as string not boolean
+- confirm: AdminProductResource price/sku/quantity mapped from default variant
+- confirm: AdminProductDetailResource returns full frontend-compatible shape
+- All monetary values are cast to (float)
+- All count values are cast to (int)
+- All relationships use whenLoaded() properly
+- No passwords or remember_tokens exposed
+- Repository queries are properly scoped by store_id
+
+---
 ### What I Did:
 - Created docs/refactor-log.md to track all migration changes
 - Created 2026_04_01_000001_create_stores_table.php migration for stores table

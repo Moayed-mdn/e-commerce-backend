@@ -15,41 +15,26 @@ class AdminUserDetailResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'email'      => $this->email,
-            'is_active'  => $this->is_active ?? true,
-            'deleted_at' => $this->deleted_at,
-            'roles'      => $this->whenLoaded('roles',
-                fn() => $this->roles->pluck('name')
+            'id'                => $this->id,
+            'name'              => $this->name,
+            'email'             => $this->email,
+            'phone'             => $this->phone ?? null,
+            'role'              => $this->whenLoaded('roles',
+                fn() => $this->roles->first()?->name ?? 'customer'
             ),
-            'created_at' => $this->created_at,
-            'phone'      => $this->when(
-                $this->phone !== null,
-                $this->phone
+            'store_id'          => $this->when(
+                $this->relationLoaded('stores'),
+                fn() => $this->stores->first()?->id
             ),
-            'store_role' => $this->when(
-                $this->relationLoaded('stores') || isset($this->pivot),
-                fn() => $this->getStoreRole()
-            ),
-            'orders_count' => $this->when(
+            'is_active'         => $this->is_active ?? true,
+            'deleted_at'        => $this->deleted_at,
+            'email_verified_at' => $this->email_verified_at,
+            'orders_count'      => $this->when(
                 $this->relationLoaded('orders'),
                 fn() => $this->orders->count()
             ),
+            'created_at'        => $this->created_at,
+            'updated_at'        => $this->updated_at,
         ];
-    }
-
-    private function getStoreRole(): ?string
-    {
-        if (isset($this->pivot)) {
-            return $this->pivot->role ?? null;
-        }
-
-        $store = $this->stores?->first();
-        if ($store && $store->pivot) {
-            return $store->pivot->role ?? null;
-        }
-
-        return null;
     }
 }

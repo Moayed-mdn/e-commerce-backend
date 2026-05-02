@@ -16,14 +16,18 @@ class RecentOrderResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'            => $this->id,
-            'order_number'  => $this->order_number,
-            'status'        => $this->status,
-            'total'         => (float) $this->total,
-            'created_at'    => $this->created_at,
-            'customer_name' => $this->whenLoaded('user',
-                fn() => $this->user->name
-            ),
+            'id'             => $this->id,
+            'order_number'   => $this->order_number,
+            'status'         => $this->status,
+            'payment_status' => $this->payment_status,
+            'total'          => (float) $this->total,
+            'currency'       => $this->currency ?? 'usd',
+            'created_at'     => $this->created_at,
+            'customer'       => $this->whenLoaded('user', fn() => [
+                'id'    => $this->user->id,
+                'name'  => $this->user->name,
+                'email' => $this->user->email,
+            ]),
         ];
     }
 }

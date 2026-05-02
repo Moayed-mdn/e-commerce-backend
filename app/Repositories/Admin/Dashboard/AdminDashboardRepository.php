@@ -27,6 +27,11 @@ class AdminDashboardRepository
             ->count('user_id');
     }
 
+    public function getTotalProducts(int $storeId): int
+    {
+        return Product::where('store_id', $storeId)->count();
+    }
+
     public function getOrdersThisMonth(int $storeId): int
     {
         return Order::where('store_id', $storeId)

@@ -15,13 +15,21 @@ class AdminUserResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'is_active' => $this->is_active ?? true,
-            'deleted_at' => $this->deleted_at,
-            'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
-            'created_at' => $this->created_at,
+            'id'                => $this->id,
+            'name'              => $this->name,
+            'email'             => $this->email,
+            'role'              => $this->whenLoaded('roles',
+                fn() => $this->roles->first()?->name ?? 'customer'
+            ),
+            'store_id'          => $this->when(
+                $this->relationLoaded('stores'),
+                fn() => $this->stores->first()?->id
+            ),
+            'is_active'         => $this->is_active ?? true,
+            'deleted_at'        => $this->deleted_at,
+            'email_verified_at' => $this->email_verified_at,
+            'created_at'        => $this->created_at,
+            'updated_at'        => $this->updated_at,
         ];
     }
 }
