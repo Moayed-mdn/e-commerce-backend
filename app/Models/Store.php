@@ -14,6 +14,9 @@ class Store extends Model
         'owner_id',
         'name',
         'slug',
+        'domain',
+        'currency',
+        'timezone',
         'is_active',
     ];
 

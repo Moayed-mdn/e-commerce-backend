@@ -19,38 +19,34 @@ class AdminProductResource extends JsonResource
             fn() => $this->variants->sum('quantity')
         );
 
-        $primaryImage = $this->whenLoaded('variants', function () {
+        $thumbnail = $this->whenLoaded('variants', function () {
             foreach ($this->variants as $variant) {
                 if ($variant->relationLoaded('images')) {
                     $img = $variant->images
                         ->where('is_primary', true)
                         ->first()
                         ?? $variant->images->first();
-                    if ($img) return $img;
+                    if ($img) {
+                        return asset($img->image_url);
+                    }
                 }
             }
             return null;
         });
 
         return [
-            'id'               => $this->id,
-            'store_id'         => $this->store_id,
-            'name'             => $this->name,
-            'slug'             => $this->slug ?? '',
-            'status'           => $this->is_active ? 'active' : 'draft',
-            'price'            => $defaultVariant
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'status'     => $this->is_active ? 'active' : 'draft',
+            'price'      => $defaultVariant
                 ? (float) $defaultVariant->price
                 : 0,
-            'sku'              => $defaultVariant?->sku ?? null,
-            'quantity'         => $totalStock ?? 0,
-            'images'           => $primaryImage ? [[
-                'id'       => $primaryImage->id,
-                'url'      => asset($primaryImage->image_url),
-                'alt'      => $primaryImage->alt_text ?? null,
-                'position' => $primaryImage->position ?? 0,
-            ]] : [],
-            'created_at'       => $this->created_at,
-            'updated_at'       => $this->updated_at,
+            'stock'      => $totalStock ?? 0,
+            'thumbnail'  => $thumbnail ?? null,
+            'category'   => $this->whenLoaded('category',
+                fn() => $this->category?->name
+            ),
+            'created_at' => $this->created_at,
         ];
     }
 }

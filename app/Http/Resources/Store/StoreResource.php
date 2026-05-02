@@ -10,12 +10,15 @@ class StoreResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'is_active' => $this->is_active,
-            'owner_id' => $this->owner_id,
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'slug'       => $this->slug,
+            'domain'     => $this->domain,
+            'currency'   => $this->currency ?? 'USD',
+            'timezone'   => $this->timezone ?? 'UTC',
+            'status'     => $this->is_active ? 'active' : 'inactive',
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

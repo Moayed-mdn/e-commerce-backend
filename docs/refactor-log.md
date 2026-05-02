@@ -1,4 +1,65 @@
 ---
+## Add domain, currency, timezone to stores — 2026-05-03
+### What I Did:
+- Created migration to add domain, currency, timezone columns to stores table
+- Added columns after slug with proper defaults (currency='USD', timezone='UTC')
+- Made domain nullable for stores without custom domains
+- Updated Store model fillable array to include new fields
+- Added optional validation rules for domain, currency, timezone in UpdateStoreRequest
+- Added nullable domain, currency, timezone properties to UpdateStoreDTO
+- Updated fromRequest() method to extract these fields from request
+
+### Files Created:
+- `database/migrations/2026_05_03_000001_add_domain_currency_timezone_to_stores_table.php` — adds domain (nullable), currency (default USD), timezone (default UTC) columns
+
+### Files Modified:
+- `app/Models/Store.php` — added domain, currency, timezone to fillable
+- `app/Http/Requests/Store/UpdateStoreRequest.php` — added optional validation rules
+- `app/DTOs/Store/UpdateStoreDTO.php` — added domain, currency, timezone fields
+
+### Migrations Created:
+- `2026_05_03_000001_add_domain_currency_timezone_to_stores_table.php`
+
+### Notes:
+- confirm: migration ran successfully
+- confirm: currency defaults to 'USD', timezone defaults to 'UTC'
+- confirm: domain is nullable
+- confirm: Store model fillable updated
+
+---
+## Fix Remaining Resource Mismatches — 2026-05-03
+### What I Did:
+- Fixed AdminUserResource: added orders_count field, confirmed email_verified_at present
+- Fixed AdminUserDetailResource: confirmed email_verified_at present in correct position
+- Fixed AdminOrderResource: added financial fields (subtotal, tax, shipping, discount_amount), added empty line_items array for list view
+- Fixed AdminOrderDetailResource: added items_count field
+- Fixed AdminProductResource: converted to lightweight list shape (removed store_id/slug/sku/quantity, added stock/thumbnail/category, simplified structure)
+- Fixed StoreResource: removed owner_id, changed is_active to status string, added domain/currency/timezone with defaults
+
+### Files Modified:
+- `app/Http/Resources/Admin/User/AdminUserResource.php` — added orders_count field
+- `app/Http/Resources/Admin/User/AdminUserDetailResource.php` — confirmed email_verified_at position
+- `app/Http/Resources/Admin/Order/AdminOrderResource.php` — added financial fields and line_items
+- `app/Http/Resources/Admin/Order/AdminOrderDetailResource.php` — added items_count
+- `app/Http/Resources/Admin/Product/AdminProductResource.php` — lightweight list shape
+- `app/Http/Resources/Store/StoreResource.php` — mapped is_active to status, added domain/currency/timezone
+
+### Files Created:
+- None
+
+### Migrations Created:
+- None (migration done in previous prompt)
+
+### Notes:
+- confirm: AdminUserResource now returns email_verified_at and orders_count
+- confirm: AdminOrderResource now returns all AdminOrder fields including financials
+- confirm: AdminOrderResource line_items returns [] in list view
+- confirm: AdminOrderDetailResource now returns items_count
+- confirm: AdminProductResource returns lightweight list shape (id, name, status, price, stock, thumbnail, category, created_at)
+- confirm: StoreResource returns status string not is_active boolean
+- confirm: StoreResource returns domain, currency, timezone with defaults
+
+---
 ## Fix Resource Mismatches Against Frontend Contract — 2026-05-02
 ### What I Did:
 - Fixed StoreStatsResource to return all 8 fields expected by frontend (total_revenue, total_orders, total_customers, total_products, revenue_change, orders_change, customers_change, products_change)

@@ -10,12 +10,18 @@ class UpdateStoreDTO
         public int $storeId,
         public ?string $name,
         public ?string $slug,
+        public ?string $domain,
+        public ?string $currency,
+        public ?string $timezone,
         public ?bool $isActive,
     ) {}
 
     public static function fromRequest(UpdateStoreRequest $request, int $storeId): self
     {
         return new self(
+            domain: $request->string('domain', null),
+            currency: $request->string('currency', null),
+            timezone: $request->string('timezone', null),
             storeId: $storeId,
             name: $request->string('name', null),
             slug: $request->string('slug', null),
