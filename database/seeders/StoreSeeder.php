@@ -18,6 +18,7 @@ class StoreSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ]
         );
 
@@ -26,6 +27,7 @@ class StoreSeeder extends Seeder
             [
                 'name' => 'Store Admin',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ]
         );
 
@@ -34,6 +36,7 @@ class StoreSeeder extends Seeder
             [
                 'name' => 'Staff User',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ]
         );
 
@@ -42,6 +45,7 @@ class StoreSeeder extends Seeder
             [
                 'name' => 'Customer User',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ]
         );
 
