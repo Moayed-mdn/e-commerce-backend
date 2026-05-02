@@ -9,19 +9,26 @@ class AdminOrderResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'             => $this->id,
-            'order_number'   => $this->order_number,
-            'status'         => $this->status,
-            'payment_status' => $this->payment_status,
-            'total'          => (float) $this->total,
-            'items_count'    => $this->whenLoaded('items',
+            'id'                  => $this->id,
+            'store_id'            => $this->store_id,
+            'order_number'        => $this->order_number,
+            'status'              => $this->status,
+            'payment_status'      => $this->payment_status,
+            'fulfillment_status'  => $this->fulfillment_status ?? 'unfulfilled',
+            'total'               => (float) $this->total,
+            'currency'            => $this->currency ?? 'usd',
+            'notes'               => $this->notes ?? null,
+            'customer'            => $this->whenLoaded('user', fn() => [
+                'id'    => $this->user->id,
+                'name'  => $this->user->name,
+                'email' => $this->user->email,
+                'phone' => $this->user->phone ?? null,
+            ]),
+            'items_count'         => $this->whenLoaded('items',
                 fn() => $this->items->sum('quantity')
             ),
-            'user'           => $this->whenLoaded('user', fn() => [
-                'id'   => $this->user->id,
-                'name' => $this->user->name,
-            ]),
-            'created_at'     => $this->created_at,
+            'created_at'          => $this->created_at,
+            'updated_at'          => $this->updated_at,
         ];
     }
 }

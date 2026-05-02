@@ -9,32 +9,40 @@ class AdminOrderDetailResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'              => $this->id,
-            'order_number'    => $this->order_number,
-            'status'          => $this->status,
-            'payment_status'  => $this->payment_status,
-            'subtotal'        => (float) $this->subtotal,
-            'tax_amount'      => (float) $this->tax_amount,
-            'shipping_amount' => (float) $this->shipping_amount,
-            'discount_amount' => (float) $this->discount_amount,
-            'total'           => (float) $this->total,
-            'user'            => $this->whenLoaded('user', fn() => [
+            'id'                 => $this->id,
+            'store_id'           => $this->store_id,
+            'order_number'       => $this->order_number,
+            'status'             => $this->status,
+            'payment_status'     => $this->payment_status,
+            'fulfillment_status' => $this->fulfillment_status ?? 'unfulfilled',
+            'subtotal'           => (float) $this->subtotal,
+            'tax'                => (float) $this->tax_amount,
+            'shipping'           => (float) $this->shipping_amount,
+            'discount_amount'    => (float) $this->discount_amount,
+            'total'              => (float) $this->total,
+            'currency'           => $this->currency ?? 'usd',
+            'notes'              => $this->notes ?? null,
+            'customer'           => $this->whenLoaded('user', fn() => [
                 'id'    => $this->user->id,
                 'name'  => $this->user->name,
                 'email' => $this->user->email,
+                'phone' => $this->user->phone ?? null,
             ]),
-            'items'           => $this->whenLoaded('items', fn() =>
+            'line_items'         => $this->whenLoaded('items', fn() =>
                 $this->items->map(fn($item) => [
                     'id'           => $item->id,
+                    'product_id'   => $item->product_id,
                     'product_name' => $item->product_name,
+                    'sku'          => $item->sku ?? null,
                     'quantity'     => $item->quantity,
-                    'unit_price'   => (float) $item->unit_price,
-                    'subtotal'     => round(
+                    'price'        => (float) $item->unit_price,
+                    'total'        => round(
                         (float) $item->unit_price * $item->quantity, 2
                     ),
                 ])
             ),
-            'created_at'      => $this->created_at,
+            'created_at'         => $this->created_at,
+            'updated_at'         => $this->updated_at,
         ];
     }
 }

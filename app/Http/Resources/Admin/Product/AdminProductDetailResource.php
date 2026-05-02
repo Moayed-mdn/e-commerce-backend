@@ -8,14 +8,58 @@ class AdminProductDetailResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $defaultVariant = $this->whenLoaded('variants',
+            fn() => $this->variants
+                ->where('is_active', true)
+                ->sortBy('price')
+                ->first()
+                ?? $this->variants->first()
+        );
+
+        $totalStock = $this->whenLoaded('variants',
+            fn() => $this->variants->sum('quantity')
+        );
+
+        $allImages = $this->whenLoaded('variants', function () {
+            return $this->variants->flatMap(function ($variant) {
+                if (!$variant->relationLoaded('images')) return [];
+                return $variant->images->map(fn($img) => [
+                    'id'       => $img->id,
+                    'url'      => asset($img->image_url),
+                    'alt'      => $img->alt_text ?? null,
+                    'position' => $img->position ?? 0,
+                ]);
+            })->values();
+        });
+
         return [
-            'id'          => $this->id,
-            'name'        => $this->name,
-            'description' => $this->description,
-            'category_id' => $this->category_id,
-            'brand_id'    => $this->brand_id,
-            'is_active'   => $this->is_active,
-            'variants'    => $this->whenLoaded('variants', fn() =>
+            'id'               => $this->id,
+            'store_id'         => $this->store_id,
+            'name'             => $this->name,
+            'slug'             => $this->slug ?? '',
+            'description'      => $this->description ?? null,
+            'status'           => $this->is_active ? 'active' : 'draft',
+            'price'            => $defaultVariant
+                ? (float) $defaultVariant->price
+                : 0,
+            'compare_at_price' => $defaultVariant
+                ? ($defaultVariant->compare_at_price
+                    ? (float) $defaultVariant->compare_at_price
+                    : null)
+                : null,
+            'cost_per_item'    => $defaultVariant
+                ? ($defaultVariant->cost_per_item
+                    ? (float) $defaultVariant->cost_per_item
+                    : null)
+                : null,
+            'sku'              => $defaultVariant?->sku ?? null,
+            'barcode'          => $defaultVariant?->barcode ?? null,
+            'quantity'         => $totalStock ?? 0,
+            'track_quantity'   => true,
+            'weight'           => $defaultVariant?->weight ?? null,
+            'weight_unit'      => $defaultVariant?->weight_unit ?? null,
+            'images'           => $allImages ?? [],
+            'variants'         => $this->whenLoaded('variants', fn() =>
                 $this->variants->map(fn($v) => [
                     'id'               => $v->id,
                     'sku'              => $v->sku,
@@ -24,14 +68,6 @@ class AdminProductDetailResource extends JsonResource
                     'is_active'        => $v->is_active,
                     'manufacture_date' => $v->manufacture_date,
                     'expiry_date'      => $v->expiry_date,
-                    'images'           => $v->relationLoaded('images')
-                        ? $v->images->map(fn($img) => [
-                            'id'         => $img->id,
-                            'url'        => asset($img->image_url),
-                            'alt_text'   => $img->alt_text,
-                            'is_primary' => $img->is_primary,
-                        ])
-                        : [],
                     'attributes'       => $v->relationLoaded('attributeValues')
                         ? $v->attributeValues->map(fn($av) => [
                             'name'  => $av->attribute->code ?? '',
@@ -40,7 +76,10 @@ class AdminProductDetailResource extends JsonResource
                         : [],
                 ])
             ),
-            'created_at'  => $this->created_at,
+            'category_id'      => $this->category_id,
+            'brand_id'         => $this->brand_id,
+            'created_at'       => $this->created_at,
+            'updated_at'       => $this->updated_at,
         ];
     }
 }

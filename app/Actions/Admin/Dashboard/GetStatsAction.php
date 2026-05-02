@@ -26,19 +26,14 @@ class GetStatsAction
         }
 
         return [
-            'revenue' => [
-                'total'      => $this->repository->getTotalRevenue($dto->storeId),
-                'this_month' => $this->repository->getRevenueThisMonth($dto->storeId),
-                'last_month' => $this->repository->getRevenueLastMonth($dto->storeId),
-            ],
-            'orders' => [
-                'total'      => $this->repository->getTotalOrders($dto->storeId),
-                'this_month' => $this->repository->getOrdersThisMonth($dto->storeId),
-                'last_month' => $this->repository->getOrdersLastMonth($dto->storeId),
-            ],
-            'customers' => [
-                'total' => $this->repository->getTotalCustomers($dto->storeId),
-            ],
+            'total_revenue'      => (float) $this->repository->getTotalRevenue($dto->storeId),
+            'total_orders'       => (int)   $this->repository->getTotalOrders($dto->storeId),
+            'total_customers'    => (int)   $this->repository->getTotalCustomers($dto->storeId),
+            'total_products'     => (int)   $this->repository->getTotalProducts($dto->storeId),
+            'revenue_change'     => 0.0,
+            'orders_change'      => 0.0,
+            'customers_change'   => 0.0,
+            'products_change'    => 0.0,
         ];
     }
 }
