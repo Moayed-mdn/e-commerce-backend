@@ -17,6 +17,14 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'has_password'      => !is_null($this->password),
             'has_google_linked' => !is_null($this->google_id),
+            'stores' => $this->whenLoaded('stores', function () {
+                return $this->stores->map(fn($store) => [
+                    'id'   => $store->id,
+                    'name' => $store->name,
+                    'slug' => $store->slug,
+                    'role' => $store->pivot->role,
+                ]);
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

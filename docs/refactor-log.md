@@ -731,3 +731,42 @@
 
 ### Notes:
 - This change aligns the homepage routes with the multi-store architecture, ensuring they are properly scoped to a specific store.
+
+---
+## Full Resource Audit and Fix — 2025-05-02
+### What I Did:
+- Added `stores[]` field to `UserResource` with `whenLoaded()` to return store id, name, slug, and pivot role
+- Updated `AuthController` to eager load `stores` in `login()`, `register()`, and `me()` methods before passing user to `UserResource`
+- Completely rewrote `ProductVariantResource` to remove DB queries from resource; now uses `whenLoaded()` for `images` and `attributeValues` relationships only
+- Replaced `...parent::toArray($request)` in `AdminUserDetailResource` with explicit fields to prevent exposing sensitive data like `password` and `remember_token`
+- Fixed `AdminOrderResource` to use `whenLoaded()` for `user` relationship and added `payment_status` and `items_count` fields
+- Fixed `AdminOrderDetailResource` to use `whenLoaded()` for `user` and `items`, added `payment_status`, `subtotal`, `tax_amount`, `shipping_amount`, `discount_amount`, and changed item mapping to use `product_name` column instead of `$item->product->name` relationship
+- Fixed `AdminProductResource` to use `whenLoaded()` for `category` relationship and added `variants_count` and `price_from` fields
+- Fixed `AdminProductDetailResource` to use `whenLoaded()` for `variants` and added `images` and `attributes` per variant using `relationLoaded()` checks
+- Added `order_number` field to `RecentOrderResource` so frontend can link to order detail page
+
+### Files Modified:
+- `app/Http/Resources/UserResource.php` — Added `stores[]` with id, name, slug, role using `whenLoaded()`
+- `app/Http/Controllers/Api/Auth/AuthController.php` — Added `->load('stores')` in login(), register(), me() methods
+- `app/Http/Resources/ProductVariantResource.php` — Removed DB queries, replaced with clean `whenLoaded()` patterns
+- `app/Http/Resources/Admin/User/AdminUserDetailResource.php` — Replaced `...parent::toArray()` with explicit fields, changed `orders()->count()` to `orders->count()`
+- `app/Http/Resources/Admin/Order/AdminOrderResource.php` — Added `whenLoaded()` for user, added `payment_status` and `items_count`
+- `app/Http/Resources/Admin/Order/AdminOrderDetailResource.php` — Added `whenLoaded()` for user/items, added financial fields, use `product_name` column
+- `app/Http/Resources/Admin/Product/AdminProductResource.php` — Added `whenLoaded()` for category, added `variants_count` and `price_from`
+- `app/Http/Resources/Admin/Product/AdminProductDetailResource.php` — Added `whenLoaded()` for variants, added `images` and `attributes` per variant
+- `app/Http/Resources/Admin/Dashboard/RecentOrderResource.php` — Added `order_number` field
+
+### Files Created:
+- None
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: UserResource now returns stores[] with pivot role
+- confirm: AuthController loads stores before passing to UserResource
+- confirm: ProductVariantResource no longer has any DB queries
+- confirm: AdminUserDetailResource no longer uses ...parent::toArray()
+- confirm: All admin resources use whenLoaded() for relationships
+- confirm: order_number added to RecentOrderResource
+- confirm: AdminOrderDetailResource uses product_name column not relationship
