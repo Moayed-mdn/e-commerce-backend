@@ -15,15 +15,26 @@ class AdminUserDetailResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            ...parent::toArray($request),
-            'phone' => $this->when($this->phone !== null, $this->phone),
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'email'      => $this->email,
+            'is_active'  => $this->is_active ?? true,
+            'deleted_at' => $this->deleted_at,
+            'roles'      => $this->whenLoaded('roles',
+                fn() => $this->roles->pluck('name')
+            ),
+            'created_at' => $this->created_at,
+            'phone'      => $this->when(
+                $this->phone !== null,
+                $this->phone
+            ),
             'store_role' => $this->when(
                 $this->relationLoaded('stores') || isset($this->pivot),
-                fn () => $this->getStoreRole()
+                fn() => $this->getStoreRole()
             ),
             'orders_count' => $this->when(
                 $this->relationLoaded('orders'),
-                fn () => $this->orders()->count()
+                fn() => $this->orders->count()
             ),
         ];
     }

@@ -44,7 +44,7 @@ class AuthController extends Controller
         );
 
         return $this->success([
-            'user' => new UserResource($result['user']),
+            'user' => new UserResource($result['user']->load('stores')),
             'token' => $result['token']
         ], __('auth.register_success'), 201);
     }
@@ -56,7 +56,7 @@ class AuthController extends Controller
         );
 
         return $this->success([
-            'user' => new UserResource($result['user']),
+            'user' => new UserResource($result['user']->load('stores')),
             'token' => $result['token']
         ], __('auth.login_successful'));
     }
@@ -102,6 +102,6 @@ class AuthController extends Controller
             GetMeDTO::fromRequest($request)
         );
 
-        return $this->success(new UserResource($user));
+        return $this->success(new UserResource($user->load('stores')));
     }
 }
