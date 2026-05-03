@@ -3,6 +3,7 @@ namespace App\Exceptions;
 
 use App\Enums\ErrorCode;
 use App\Exceptions\BaseApiException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +26,15 @@ class ExceptionRegistrar
                     'error_code' => ErrorCode::VAL_001->value,
                     'errors' => $e->errors(),
                 ], 422);
+            }
+
+            if ($e instanceof AuthenticationException) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage(),
+                    'error_code' => ErrorCode::AUTH_002->value,
+                    'errors' => null,
+                ], 401);
             }
 
             if ($e instanceof HttpExceptionInterface) {

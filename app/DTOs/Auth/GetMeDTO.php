@@ -10,7 +10,7 @@ use App\Models\User;
 class GetMeDTO
 {
     public function __construct(
-        public User $user,
+        public ?User $user,
     ) {}
 
     public static function fromRequest(MeRequest $request): self

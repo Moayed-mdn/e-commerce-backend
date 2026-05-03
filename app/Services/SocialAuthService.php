@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -37,11 +38,11 @@ class SocialAuthService
 
         $user = $this->findOrCreateUser($googleUser);
 
-        $token = $user->createToken('google-auth')->plainTextToken;
+        Auth::login($user);
 
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 
-        return redirect($frontendUrl . '/auth/google/callback?token=' . $token . '&user_id=' . $user->id);
+        return redirect($frontendUrl . '/auth/google/callback?user_id=' . $user->id);
     }
 
     /**

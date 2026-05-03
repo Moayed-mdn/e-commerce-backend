@@ -8,11 +8,12 @@ use App\DTOs\Auth\LoginUserDTO;
 use App\Exceptions\Auth\InvalidCredentialsException;
 use App\Exceptions\Auth\UnauthorizedException;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class LoginUserAction
 {
-    public function execute(LoginUserDTO $dto): array
+    public function execute(LoginUserDTO $dto): User
     {
         $user = User::where('email', $dto->email)->first();
 
@@ -24,11 +25,8 @@ class LoginUserAction
             throw new UnauthorizedException(__('auth.verify_email_before_login'));
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        Auth::login($user);
 
-        return [
-            'user' => $user,
-            'token' => $token,
-        ];
+        return $user;
     }
 }

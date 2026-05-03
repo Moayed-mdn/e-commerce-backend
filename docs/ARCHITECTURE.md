@@ -1493,3 +1493,55 @@ If a feature does not fit:
 
 Consistency > convenience.
 ```
+
+---
+
+## Cookie Authentication (Sanctum Stateful SPA)
+
+All authentication uses Laravel Sanctum stateful sessions.
+HttpOnly cookies — no tokens exposed to JavaScript.
+
+### How It Works
+
+1. Frontend: GET /sanctum/csrf-cookie
+   → Sets XSRF-TOKEN cookie (JS-readable)
+   → Sets ecommerce_session cookie (httpOnly)
+
+2. Frontend: POST /api/v1/users/auth/login
+   → Sends X-XSRF-TOKEN header
+   → Sends withCredentials: true
+   → Server calls Auth::attempt() + session written
+
+3. All subsequent requests
+   → Browser sends ecommerce_session cookie automatically
+   → auth:sanctum validates session
+   → No token management needed
+
+### Configuration
+
+```env
+SESSION_DRIVER=cookie
+SESSION_DOMAIN= (empty)
+SESSION_SECURE_COOKIE=false (local) / true (production)
+SESSION_COOKIE=ecommerce_session
+SANCTUM_STATEFUL_DOMAINS=localhost:3000,localhost:8000
+```
+
+```php
+// config/session.php
+'http_only' => true,
+'same_site' => 'lax',
+```
+
+### Rules
+
+- NEVER use auth:web on API routes
+- ALWAYS use auth:sanctum on API routes
+- HasApiTokens MUST remain on User model
+- Auth::attempt() in LoginUserAction — never createToken()
+- Auth::guard('web')->logout() + session invalidate in LogoutUserAction
+- statefulApi() MUST be first in withMiddleware block
+- SESSION_DOMAIN MUST be empty for localhost development
+- same_site MUST be lax for cross-origin SPA
+- NO custom Sanctum::getAccessTokenFromRequestUsing()
+- NO ->cookie() token responses

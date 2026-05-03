@@ -39,33 +39,32 @@ class AuthController extends Controller
 
     public function register(RegistgerUserRequest $request): JsonResponse
     {
-        $result = $this->registerUserAction->execute(
+        $user = $this->registerUserAction->execute(
             RegisterUserDTO::fromRequest($request)
         );
 
-        return $this->success([
-            'user' => new UserResource($result['user']->load('stores')),
-            'token' => $result['token']
-        ], __('auth.register_success'), 201);
+        return $this->success(
+            new UserResource($user->load(['stores', 'roles'])),
+            __('auth.register_success'),
+            201
+        );
     }
 
     public function login(LoginUserRequest $request): JsonResponse
     {
-        $result = $this->loginUserAction->execute(
+        $user = $this->loginUserAction->execute(
             LoginUserDTO::fromRequest($request)
         );
 
-        return $this->success([
-            'user' => new UserResource($result['user']->load('stores')),
-            'token' => $result['token']
-        ], __('auth.login_successful'));
+        return $this->success(
+            new UserResource($user->load(['stores', 'roles'])),
+            __('auth.login_successful')
+        );
     }
 
     public function logout(LogoutRequest $request): JsonResponse
     {
-        $this->logoutUserAction->execute(
-            LogoutDTO::fromRequest($request)
-        );
+        $this->logoutUserAction->execute($request);
 
         return $this->success(null, __('auth.logout_successful'));
     }
@@ -97,11 +96,15 @@ class AuthController extends Controller
     }
 
     public function me(MeRequest $request): JsonResponse
-    {
+    { return $this->success(
+            
+        );
         $user = $this->getMeAction->execute(
             GetMeDTO::fromRequest($request)
         );
 
-        return $this->success(new UserResource($user->load('stores')));
+        return $this->success(
+            new UserResource($user->load(['stores', 'roles']))
+        );
     }
 }

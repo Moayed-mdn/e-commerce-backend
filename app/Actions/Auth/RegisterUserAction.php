@@ -7,11 +7,12 @@ namespace App\Actions\Auth;
 use App\DTOs\Auth\RegisterUserDTO;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterUserAction
 {
-    public function execute(RegisterUserDTO $dto): array
+    public function execute(RegisterUserDTO $dto): User
     {
         $user = User::create([
             'name' => $dto->name,
@@ -21,11 +22,8 @@ class RegisterUserAction
 
         event(new Registered($user));
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        Auth::login($user);
 
-        return [
-            'user' => $user,
-            'token' => $token,
-        ];
+        return $user;
     }
 }
