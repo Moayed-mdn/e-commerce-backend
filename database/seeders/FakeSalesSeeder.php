@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Order;
@@ -38,6 +40,7 @@ class FakeSalesSeeder extends Seeder
                 'shipping_address_id' => null,
                 'billing_address_id'  => null,
                 'payment_method_id'   => null,
+                'store_id'            => 1,
 
                 // totals are calculated later
                 'subtotal'            => 0,
@@ -46,8 +49,8 @@ class FakeSalesSeeder extends Seeder
                 'discount_amount'     => 0,
                 'total'               => 0,
 
-                'status'              => 'delivered',
-                'payment_status'      => 'paid',
+                'status'              => OrderStatusEnum::DELIVERED,
+                'payment_status'      => PaymentStatusEnum::PAID,
             ]);
 
             $subtotal = 0;

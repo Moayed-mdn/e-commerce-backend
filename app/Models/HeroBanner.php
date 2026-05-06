@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\HeroBanner\HeroLinkTargetEnum;
+use App\Enums\HeroBanner\HeroVisualTypeEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,9 +20,21 @@ class HeroBanner extends Model
         'image_path',
         'gradient_from',
         'gradient_to',
+        'link_url',
+        'link_text',
+        'link_target',
         'is_active',
         'starts_at',
         'ends_at',
+    ];
+
+    protected $casts = [
+        'visual_type' => HeroVisualTypeEnum::class,
+        'link_target' => HeroLinkTargetEnum::class,
+        'is_active'   => 'boolean',
+        'starts_at'   => 'datetime',
+        'ends_at'     => 'datetime',
+        'position'    => 'integer',
     ];
 
     public function store(): BelongsTo

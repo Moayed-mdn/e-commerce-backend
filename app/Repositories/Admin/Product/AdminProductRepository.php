@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Admin\Product;
 
+use App\Enums\Product\ProductStatusEnum;
 use App\Exceptions\Product\ProductNotFoundException;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -23,13 +24,13 @@ class AdminProductRepository
             });
         }
 
-        if ($status === 'active') {
+        if ($status === ProductStatusEnum::ACTIVE->value) {
             $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
+        } elseif ($status === ProductStatusEnum::INACTIVE->value) {
             $query->where('is_active', false);
         }
 
-        return $query->with(['category', 'defaultVariant', 'activeVariants'])
+        return $query->with(['category', 'variants', 'variants.images', 'translations'])
             ->latest()
             ->paginate($perPage);
     }

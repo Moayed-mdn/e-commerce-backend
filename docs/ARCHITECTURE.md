@@ -104,6 +104,182 @@ All contributors (human or AI) MUST follow these rules strictly.
 
 ---
 
+# 🔥 Database Enum Rule (CRITICAL)
+
+Database-level enums are STRICTLY FORBIDDEN.
+
+---
+
+## ❌ Forbidden
+
+```php
+$table->enum('status', ['pending', 'paid', 'failed']);
+```
+
+---
+
+## ✅ Required
+
+```php
+$table->string('status');
+```
+
+---
+
+## PHP Enum Usage (MANDATORY)
+
+All domain states MUST be defined using PHP Enums.
+
+```php
+enum OrderStatusEnum: string
+{
+    case PENDING = 'pending';
+    case PAID    = 'paid';
+    case FAILED  = 'failed';
+}
+```
+
+Enums are the **single source of truth** for all valid states.
+
+---
+
+## Eloquent Casting (MANDATORY)
+
+All enum-backed fields MUST be cast in Models:
+
+```php
+protected $casts = [
+    'status' => OrderStatusEnum::class,
+];
+```
+
+---
+
+## Request Validation Rules (MANDATORY)
+
+### 1. Pure Domain Fields
+
+If a field represents a strict domain state:
+
+```php
+use Illuminate\Validation\Rule;
+
+'status' => [
+    'required',
+    Rule::in(OrderStatusEnum::values()),
+],
+```
+
+OR (preferred):
+
+```php
+use Illuminate\Validation\Rules\Enum;
+
+'status' => ['required', new Enum(OrderStatusEnum::class)],
+```
+
+---
+
+### 2. Filter Fields (SPECIAL RULE)
+
+Filter endpoints (e.g. list APIs) MAY include special values such as:
+
+* "all"
+* null
+
+#### ✅ Required Pattern:
+
+```php
+'status' => [
+    'sometimes',
+    'nullable',
+    'string',
+    Rule::in([
+        ...OrderStatusEnum::values(),
+        'all',
+    ]),
+],
+```
+
+---
+
+### 🔥 Critical Rules for Filters
+
+* "all" is NOT part of the Enum
+* "all" MUST NOT be added to any Enum
+* "all" is handled ONLY in Action/DTO logic
+
+---
+
+## Business Logic Rules (MANDATORY)
+
+### ❌ Forbidden:
+
+```php
+if ($status === 'pending')
+```
+
+### ✅ Required:
+
+```php
+if ($status === OrderStatusEnum::PENDING)
+```
+
+---
+
+## DTO Rules (RECOMMENDED)
+
+DTOs SHOULD use Enum typing where applicable:
+
+```php
+public OrderStatusEnum $status;
+```
+
+```php
+status: OrderStatusEnum::from($request->string('status')),
+```
+
+---
+
+## API Documentation Rule (IMPORTANT)
+
+Validation rules MUST expose allowed values for API documentation tools (e.g. Scalar/OpenAPI).
+
+### Rule:
+
+* Always use `Rule::in([...Enum::values()])` for filters
+* Extend with special values like `"all"` when needed
+
+This ensures:
+
+* Correct API documentation
+* Frontend discoverability
+* No duplication of enum values
+
+---
+
+## Benefits
+
+* No migration friction when adding values
+* Safe deployments (no table locks)
+* Strong typing at application level
+* Clear separation between domain and input logic
+* Accurate API documentation
+* Scalable and maintainable architecture
+
+---
+
+## Final Rule
+
+* Database stores **strings only**
+* PHP Enums define **valid domain states**
+* Requests define **allowed inputs**
+* Actions/DTOs define **behavior**
+
+Consistency is mandatory.
+
+---
+
 # 1. Core Philosophy
 
 This project follows a strict API-first architecture with clear 
@@ -1331,7 +1507,7 @@ Rules:
 * Store context MUST exist in every request
 * Must support future marketplace extension
 
-## 17.2 Store Ownership Model
+## 17.3 Store Ownership Model
 
 User ↔ Store is **MANY-TO-MANY**.
 
@@ -1345,19 +1521,22 @@ User ↔ Store is **MANY-TO-MANY**.
 $table->foreignId('store_id')
       ->constrained('stores')
       ->cascadeOnDelete();
+
 $table->foreignId('user_id')
       ->constrained('users')
       ->cascadeOnDelete();
-$table->enum('role', ['store_admin', 'staff']);
+
+$table->string('role');
+
 $table->unique(['store_id', 'user_id']);
 ```
 
-## 17.3 Required Tables
+## 17.4 Required Tables
 
 * `stores` (with `owner_id`, `slug`, `is_active`, softDeletes)
 * `store_user` (pivot with role)
 
-## 17.4 Required store_id Columns (STRICT)
+## 17.5 Required store_id Columns (STRICT)
 
 ALL of the following MUST include `store_id`:
 
@@ -1369,7 +1548,7 @@ ALL of the following MUST include `store_id`:
 * `reviews`
 * `categories` *(recommended)*
 
-## 17.5 Route Structure (ENFORCED)
+## 17.6 Route Structure (ENFORCED)
 
 ```plaintext
 /api/v1/stores/{store}/...
@@ -1383,7 +1562,7 @@ ALL of the following MUST include `store_id`:
 /api/v1/admin/users
 ```
 
-## 17.6 StoreContext Middleware
+## 17.7 StoreContext Middleware
 
 ```php
 class StoreContext

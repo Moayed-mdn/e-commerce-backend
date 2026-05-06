@@ -10,6 +10,7 @@ class ListUsersDTO
         public int $storeId,
         public ?string $search = null,
         public ?string $status = null,
+        public ?string $role = null,
         public int $perPage = 15,
         public int $page = 1,
     ) {}
@@ -20,6 +21,7 @@ class ListUsersDTO
             storeId: $storeId,
             search: $request->string('search'),
             status: $request->string('status'),
+            role: $request->string('role'),
             perPage: $request->integer('per_page', 15),
             page: $request->integer('page', 1),
         );

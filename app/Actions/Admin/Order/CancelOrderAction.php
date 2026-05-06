@@ -3,6 +3,7 @@
 namespace App\Actions\Admin\Order;
 
 use App\DTOs\Admin\Order\CancelOrderDTO;
+use App\Enums\Order\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
 use App\Models\Order;
@@ -19,7 +20,7 @@ class CancelOrderAction
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
-        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN)) {
+        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN->value)) {
             if (!$authUser->stores()->where('store_id', $dto->storeId)->exists()) {
                 throw new UnauthorizedStoreAccessException();
             }
@@ -28,7 +29,7 @@ class CancelOrderAction
         $order = $this->repository->findInStore($dto->orderId, $dto->storeId);
         
         // Logic for cancellation (e.g. inventory restock, status update)
-        $order->update(['status' => 'cancelled']);
+        $order->update(['status' => OrderStatusEnum::CANCELLED]);
         
         return $order->fresh();
     }

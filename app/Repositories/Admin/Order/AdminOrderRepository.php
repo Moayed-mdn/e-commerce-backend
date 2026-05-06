@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Admin\Order;
 
+use App\Enums\Order\OrderStatusEnum;
 use App\Exceptions\Order\OrderNotFoundException;
 use App\Models\Order;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -54,7 +55,7 @@ class AdminOrderRepository
     /**
      * Update order status
      */
-    public function updateStatus(Order $order, string $status): Order
+    public function updateStatus(Order $order, OrderStatusEnum $status): Order
     {
         $order->update(['status' => $status]);
         return $order->fresh();

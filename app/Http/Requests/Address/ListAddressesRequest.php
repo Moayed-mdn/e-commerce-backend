@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Address;
 
+use App\Enums\Address\AddressTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ListAddressesRequest extends FormRequest
 {
@@ -14,7 +16,7 @@ class ListAddressesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['nullable', 'in:shipping,billing'],
+            'type' => ['nullable', 'string', Rule::in(AddressTypeEnum::values())],
         ];
     }
 }

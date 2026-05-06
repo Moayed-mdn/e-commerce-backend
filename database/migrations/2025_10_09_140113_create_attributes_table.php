@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('attributes', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->enum('type', ['text', 'color', 'size', 'number', 'select'])->default('text');
+            $table->string('type')->default('text');
             $table->boolean('is_filterable')->default(false);
             $table->boolean('is_visible_on_product')->default(true);
             $table->unsignedInteger('sort_order')->default(0);

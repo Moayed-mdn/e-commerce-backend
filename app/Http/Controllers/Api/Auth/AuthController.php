@@ -12,19 +12,18 @@ use App\Actions\Auth\ResendVerificationEmailAction;
 use App\Actions\Auth\VerifyEmailAction;
 use App\DTOs\Auth\GetMeDTO;
 use App\DTOs\Auth\LoginUserDTO;
-use App\DTOs\Auth\LogoutDTO;
 use App\DTOs\Auth\RegisterUserDTO;
 use App\DTOs\Auth\ResendVerificationEmailDTO;
 use App\DTOs\Auth\VerifyEmailDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginUserRequest;
-use App\Http\Requests\Auth\LogoutRequest;
 use App\Http\Requests\Auth\MeRequest;
 use App\Http\Requests\Auth\RegistgerUserRequest;
 use App\Http\Requests\Auth\ResendVerificationEmailRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -44,7 +43,7 @@ class AuthController extends Controller
         );
 
         return $this->success(
-            new UserResource($user->load(['stores', 'roles'])),
+            new UserResource($user),
             __('auth.register_success'),
             201
         );
@@ -52,17 +51,20 @@ class AuthController extends Controller
 
     public function login(LoginUserRequest $request): JsonResponse
     {
-        $user = $this->loginUserAction->execute(
+        $result = $this->loginUserAction->execute(
             LoginUserDTO::fromRequest($request)
         );
 
         return $this->success(
-            new UserResource($user->load(['stores', 'roles'])),
+            [
+                'token' => $result->token,
+                'user' => new UserResource($result->user),
+            ],
             __('auth.login_successful')
         );
     }
 
-    public function logout(LogoutRequest $request): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
         $this->logoutUserAction->execute($request);
 
@@ -96,15 +98,13 @@ class AuthController extends Controller
     }
 
     public function me(MeRequest $request): JsonResponse
-    { return $this->success(
-            
-        );
+    {
         $user = $this->getMeAction->execute(
             GetMeDTO::fromRequest($request)
         );
 
         return $this->success(
-            new UserResource($user->load(['stores', 'roles']))
+            new UserResource($user)
         );
     }
 }

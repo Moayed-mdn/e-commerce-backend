@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Payment;
 
 use App\DTOs\Payment\StripeWebhookDTO;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Exceptions\Payment\StripeWebhookException;
 use App\Services\CheckoutService;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +35,7 @@ class HandleStripeWebhookAction
         switch ($event->type) {
             case 'checkout.session.completed':
                 $session = $event->data->object;
-                if ($session->payment_status === 'paid') {
+                if ($session->payment_status === PaymentStatusEnum::PAID->value) {
                     $this->checkoutService->handleCheckoutCompleted($session);
                 }
                 break;

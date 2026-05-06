@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Exceptions\Order\OrderCancellationException;
 use App\Exceptions\Payment\PaymentFailedException;
 use App\Models\Cart;
@@ -77,8 +79,8 @@ class OrderService
                 'tax_amount' => $taxAmount,
                 'total' => $total,
                 'shipping_method' => $data['shipping_method'],
-                'status' => 'pending',
-                'payment_status' => 'pending',
+                'status' => OrderStatusEnum::PENDING,
+                'payment_status' => PaymentStatusEnum::PENDING,
             ]);
 
             foreach ($cart->items as $cartItem) {
@@ -117,7 +119,7 @@ class OrderService
             $this->orderRepository->restoreProductVariants($order);
 
             // Issue Stripe refund (if paid)
-            if ($order->payment_status === 'paid' && $order->payment_intent_id) {
+            if ($order->payment_status === PaymentStatusEnum::PAID && $order->payment_intent_id) {
                 try {
                     Refund::create([
                         'payment_intent' => $order->payment_intent_id,

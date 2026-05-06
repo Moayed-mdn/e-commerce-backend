@@ -10,7 +10,7 @@ class CreateProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN) 
+        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN->value) 
             || $this->user()->hasPermissionTo('product.create', $this->route('store'));
     }
 

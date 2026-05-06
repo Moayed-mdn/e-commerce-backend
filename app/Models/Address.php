@@ -2,6 +2,7 @@
 // app/Models/Address.php
 namespace App\Models;
 
+use App\Enums\Address\AddressTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,6 +19,7 @@ class Address extends Model
 
     protected $casts = [
         'is_default' => 'boolean',
+        'type'       => AddressTypeEnum::class,
     ];
 
     public function user()

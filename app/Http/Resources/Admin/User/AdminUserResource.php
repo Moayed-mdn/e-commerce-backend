@@ -18,9 +18,7 @@ class AdminUserResource extends JsonResource
             'id'                => $this->id,
             'name'              => $this->name,
             'email'             => $this->email,
-            'role'              => $this->whenLoaded('roles',
-                fn() => $this->roles->first()?->name ?? 'customer'
-            ),
+            'role'              => $this->roles->first()?->name ?? 'customer',
             'store_id'          => $this->when(
                 $this->relationLoaded('stores'),
                 fn() => $this->stores->first()?->id

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['shipping', 'billing', 'both'])->default('shipping');
+            $table->string('type')->default('shipping');
             $table->boolean('is_default')->default(false);
             $table->string('first_name');
             $table->string('last_name');

@@ -2,6 +2,7 @@
 
 namespace App\DTOs\Admin\Order;
 
+use App\Enums\Order\OrderStatusEnum;
 use App\Http\Requests\Admin\Order\UpdateOrderStatusRequest;
 
 class UpdateOrderStatusDTO
@@ -9,7 +10,7 @@ class UpdateOrderStatusDTO
     public function __construct(
         public int $storeId,
         public int $orderId,
-        public string $status,
+        public OrderStatusEnum $status,
     ) {}
 
     public static function fromRequest(UpdateOrderStatusRequest $request, int $storeId, int $orderId): self
@@ -17,7 +18,7 @@ class UpdateOrderStatusDTO
         return new self(
             storeId: $storeId,
             orderId: $orderId,
-            status: $request->string('status'),
+            status: OrderStatusEnum::from($request->string('status')),
         );
     }
 }

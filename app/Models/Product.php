@@ -81,7 +81,7 @@ class Product extends Model
     public function translation(?string $locale = null): ?ProductTranslation
     {
         $locale = $locale ?? app()->getLocale();
-
+        
         return $this->translations->where('locale', $locale)->first()
             ?? $this->translations->first();
     }

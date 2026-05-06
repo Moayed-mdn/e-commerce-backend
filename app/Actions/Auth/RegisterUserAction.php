@@ -24,6 +24,8 @@ class RegisterUserAction
 
         Auth::login($user);
 
+        $user->load('stores');
+
         return $user;
     }
 }

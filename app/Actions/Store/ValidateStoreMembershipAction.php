@@ -11,7 +11,7 @@ class ValidateStoreMembershipAction
     public function execute(User $user, int $storeId): void
     {
         // super_admin bypasses store membership check
-        if ($user->hasRole(RoleEnum::SUPER_ADMIN)) {
+        if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
             return;
         }
 

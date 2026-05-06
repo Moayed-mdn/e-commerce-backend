@@ -75,16 +75,23 @@ class AdminDashboardRepository
 
     public function getTopProducts(int $storeId, int $limit = 10): Collection
     {
+        $locale = app()->getLocale();
+
         return DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('product_translations', function ($join) use ($locale) {
+                $join->on('products.id', '=', 'product_translations.product_id')
+                    ->where('product_translations.locale', $locale);
+            })
             ->where('products.store_id', $storeId)
             ->select(
                 'products.id',
-                'products.name',
+                'product_translations.name',
+                'products.is_active',
                 DB::raw('SUM(order_items.quantity) as total_sold'),
-                DB::raw('SUM(order_items.quantity * order_items.price) as revenue')
+                DB::raw('SUM(order_items.quantity * order_items.unit_price) as revenue')
             )
-            ->groupBy('products.id', 'products.name')
+            ->groupBy('products.id', 'product_translations.name', 'products.is_active')
             ->orderByDesc('total_sold')
             ->limit($limit)
             ->get();

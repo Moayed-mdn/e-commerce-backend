@@ -27,9 +27,9 @@ return new class extends Migration
             $table->decimal('total', 12, 2);
             $table->string('currency', 3)->default('USD');
             
-            // Status enums
-            $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'])->default('pending');
-            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])->default('pending');
+            // Status strings (enforced via PHP Enums)
+            $table->string('status')->default('pending');
+            $table->string('payment_status')->default('pending');
             
             // Payment
             $table->string('payment_intent_id')->nullable(); // Stripe payment intent ID

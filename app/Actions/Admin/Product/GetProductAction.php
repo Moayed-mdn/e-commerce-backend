@@ -19,13 +19,13 @@ class GetProductAction
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
-        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN)) {
+        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN->value)) {
             if (!$authUser->stores()->where('store_id', $dto->storeId)->exists()) {
                 throw new UnauthorizedStoreAccessException();
             }
         }
 
         return $this->repository->findInStore($dto->productId, $dto->storeId)
-            ->load(['category', 'variants.attributeValues', 'translations', 'media', 'tags']);
+            ->load(['category', 'variants.attributeValues', 'variants.images', 'translations', 'tags']);
     }
 }

@@ -3,6 +3,8 @@
 
 namespace App\Models;
 
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -44,7 +46,9 @@ class Order extends Model
         'total'                 => 'decimal:2',
         'shipped_at'            => 'datetime',
         'delivered_at'          => 'datetime',
-        'shipping_address_data' => 'array',     // ← NEW
+        'shipping_address_data' => 'array',
+        'status'                => OrderStatusEnum::class,
+        'payment_status'        => PaymentStatusEnum::class,
     ];
 
     // ── Relationships ──────────────────────────────────────────
@@ -104,14 +108,14 @@ class Order extends Model
 
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, ['pending', 'processing']);
+        return in_array($this->status, [OrderStatusEnum::PENDING, OrderStatusEnum::PROCESSING]);
     }
 
     public function markAsPaid(?string $paymentIntentId = null): void
     {
         $this->update([
-            'payment_status'    => 'paid',
-            'status'            => 'processing',
+            'payment_status'    => PaymentStatusEnum::PAID,
+            'status'            => OrderStatusEnum::PROCESSING,
             'payment_intent_id' => $paymentIntentId,
         ]);
     }
@@ -119,8 +123,8 @@ class Order extends Model
     public function markAsFailed(): void
     {
         $this->update([
-            'payment_status' => 'failed',
-            'status'         => 'cancelled',
+            'payment_status' => PaymentStatusEnum::FAILED,
+            'status'         => OrderStatusEnum::CANCELLED,
         ]);
     }
 }

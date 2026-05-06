@@ -38,10 +38,10 @@ class PermissionSeeder extends Seeder
         }
 
         // Create all roles from RoleEnum
-        $superAdmin = Role::firstOrCreate(['name' => RoleEnum::SUPER_ADMIN]);
-        $storeAdmin = Role::firstOrCreate(['name' => RoleEnum::STORE_ADMIN]);
-        $staff = Role::firstOrCreate(['name' => RoleEnum::STAFF]);
-        $customer = Role::firstOrCreate(['name' => RoleEnum::CUSTOMER]);
+        $superAdmin = Role::firstOrCreate(['name' => RoleEnum::SUPER_ADMIN->value]);
+        $storeAdmin = Role::firstOrCreate(['name' => RoleEnum::STORE_ADMIN->value]);
+        $staff = Role::firstOrCreate(['name' => RoleEnum::STAFF->value]);
+        $customer = Role::firstOrCreate(['name' => RoleEnum::CUSTOMER->value]);
 
         // Assign permissions to super_admin (ALL permissions)
         $superAdmin->syncPermissions([

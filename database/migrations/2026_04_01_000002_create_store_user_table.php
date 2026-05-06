@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
-            $table->enum('role', ['store_admin', 'staff']);
+            $table->string('role');
             $table->timestamps();
 
             $table->unique(['store_id', 'user_id']);

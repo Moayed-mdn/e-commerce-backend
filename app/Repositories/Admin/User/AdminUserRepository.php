@@ -3,6 +3,7 @@
 namespace App\Repositories\Admin\User;
 
 use App\Enums\RoleEnum;
+use App\Enums\User\UserStatusEnum;
 use App\Exceptions\User\UserNotFoundException;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -12,9 +13,10 @@ class AdminUserRepository
     /**
      * List users belonging to a specific store (via store_user pivot)
      */
-    public function listForStore(int $storeId, ?string $search = null, ?string $status = null, int $perPage = 15): LengthAwarePaginator
+    public function listForStore(int $storeId, ?string $search = null, ?string $status = null, ?string $role = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = User::query()
+            ->with('roles')
             ->join('store_user', 'users.id', '=', 'store_user.user_id')
             ->where('store_user.store_id', $storeId)
             ->select('users.*');
@@ -26,10 +28,16 @@ class AdminUserRepository
             });
         }
 
-        if ($status === 'active') {
+        if ($status === UserStatusEnum::ACTIVE->value) {
             $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
+        } elseif ($status === UserStatusEnum::INACTIVE->value) {
             $query->where('is_active', false);
+        }
+
+        if ($role) {
+            $query->whereHas('roles', function ($q) use ($role) {
+                $q->where('name', $role);
+            });
         }
 
         return $query->paginate($perPage);

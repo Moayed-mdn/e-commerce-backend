@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
@@ -17,9 +18,14 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'has_password'      => !is_null($this->password),
             'has_google_linked' => !is_null($this->google_id),
-            'role'              => $this->roles->first()?->name,
-            'store_id'          => $this->whenLoaded('stores',
-                fn() => $this->stores->first()?->id
+            'stores'            => $this->whenLoaded('stores',
+                fn() => $this->stores->map(fn($store) => [
+                    'id'   => $store->id,
+                    'name' => $store->name,
+                    'slug' => $store->slug,
+                    'role' => $store->pivot?->role
+                        ?? RoleEnum::SUPER_ADMIN->value,
+                ])
             ),
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,

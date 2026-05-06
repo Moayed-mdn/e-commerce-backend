@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Address\AddressTypeEnum;
 use App\Notifications\CustomResetPassword;
 use App\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -32,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'google_id',
         'avatar',
+        'is_active',
     ];
 
     /**
@@ -54,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -86,12 +89,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function shippingAddresses()
     {
-        return $this->addresses()->where('type', 'shipping');
+        return $this->addresses()->where('type', AddressTypeEnum::SHIPPING);
     }
 
     public function billingAddresses()
     {
-        return $this->addresses()->where('type', 'billing');
+        return $this->addresses()->where('type', AddressTypeEnum::BILLING);
     }
 
     public function defaultShippingAddress()

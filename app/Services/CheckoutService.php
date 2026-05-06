@@ -3,6 +3,8 @@
 
 namespace App\Services;
 
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Exceptions\Order\OutOfStockException;
 use App\Exceptions\Payment\StripeServiceException;
 use App\Models\Cart;
@@ -187,8 +189,8 @@ class CheckoutService
                 'discount_amount'  => 0,
                 'total'            => $total,
                 'currency'         => 'usd',
-                'status'           => 'pending',
-                'payment_status'   => 'pending',
+                'status'           => OrderStatusEnum::PENDING,
+                'payment_status'   => PaymentStatusEnum::PENDING,
                 'shipping_method'  => 'free',
             ]);
 
@@ -314,7 +316,7 @@ class CheckoutService
         }
 
         // Prevent double processing
-        if ($order->payment_status === 'paid') {
+        if ($order->payment_status === PaymentStatusEnum::PAID) {
             Log::info('Stripe webhook: order already paid', ['order_id' => $orderId]);
             return;
         }
@@ -392,7 +394,7 @@ class CheckoutService
 
         $order = Order::find($orderId);
 
-        if ($order && $order->payment_status === 'pending') {
+        if ($order && $order->payment_status === PaymentStatusEnum::PENDING) {
             $order->markAsFailed();
 
             Log::info('Checkout session expired, order cancelled', [

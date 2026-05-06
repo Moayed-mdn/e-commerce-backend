@@ -1,4 +1,61 @@
 ---
+## Super Admin Gets All Stores at Login — 2026-05-05
+### What I Did:
+- Updated LoginUserAction to load all active stores for super admin
+- Updated GetMeAction to load all active stores for super admin
+- Updated RegisterUserAction to confirm stores loaded after register
+- Updated UserResource to handle missing pivot (super admin case)
+- Removed ->load('stores') from AuthController (moved to Actions)
+
+### Files Modified:
+- `app/Actions/Auth/LoginUserAction.php` — super admin gets all stores
+- `app/Actions/Auth/GetMeAction.php` — super admin gets all stores
+- `app/Actions/Auth/RegisterUserAction.php` — confirmed stores loaded
+- `app/Http/Resources/UserResource.php` — handle missing pivot
+- `app/Http/Controllers/Api/Auth/AuthController.php` — removed load('stores')
+
+### Files Created:
+- None
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: super admin login returns ALL active stores
+- confirm: regular user login returns only their pivot stores
+- confirm: super admin stores have role: 'super_admin'
+- confirm: regular stores have role from pivot
+- confirm: pivot->role uses null-safe operator (?->)
+- confirm: RoleEnum::SUPER_ADMIN used — no hardcoded strings
+- confirm: AuthController no longer calls ->load('stores')
+
+---
+## Fix UserResource to Match Frontend Contract — 2026-05-05
+### What I Did:
+- Removed role flat field from UserResource
+- Removed store_id flat field from UserResource
+- Added stores[] array with id, name, slug, role from pivot
+- Verified AuthController loads stores in login, register, me
+
+### Files Modified:
+- `app/Http/Resources/UserResource.php` — removed role/store_id,
+  added stores[] with pivot role
+- `app/Http/Controllers/Api/Auth/AuthController.php` — confirmed
+  stores eager loaded in all three auth methods
+
+### Files Created:
+- None
+
+### Migrations Created:
+- None
+
+### Notes:
+- confirm: UserResource no longer returns role or store_id
+- confirm: UserResource returns stores[] with pivot role
+- confirm: AuthController loads stores before UserResource
+- confirm: stores[] matches UserStore type: {id, name, slug, role}
+
+---
 ## Add domain, currency, timezone to stores — 2026-05-03
 ### What I Did:
 - Created migration to add domain, currency, timezone columns to stores table

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Auth;
 
 use App\DTOs\Auth\GetMeDTO;
+use App\Enums\RoleEnum;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,6 +21,17 @@ class GetMeAction
             abort(401, 'Unauthenticated.');
         }
 
-        return $user->load(['stores', 'roles']);
+        $user->load('roles');
+
+        if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
+            $user->setRelation(
+                'stores',
+                Store::where('is_active', true)->get()
+            );
+        } else {
+            $user->load('stores');
+        }
+
+        return $user;
     }
 }

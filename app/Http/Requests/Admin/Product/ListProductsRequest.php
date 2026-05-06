@@ -2,14 +2,16 @@
 
 namespace App\Http\Requests\Admin\Product;
 
+use App\Enums\Product\ProductStatusEnum;
 use App\Enums\RoleEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ListProductsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN) 
+        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN->value) 
             || $this->user()->hasPermissionTo('product.view', $this->route('store'));
     }
 
@@ -17,7 +19,7 @@ class ListProductsRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', 'in:active,inactive'],
+            'status' => ['nullable', 'string', Rule::in(ProductStatusEnum::values())],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];

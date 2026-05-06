@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Order;
 
 use App\DTOs\Order\CancelOrderDTO;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Exceptions\Order\OrderCancellationException;
 use App\Exceptions\Payment\PaymentFailedException;
 use App\Models\Order;
@@ -39,7 +40,7 @@ class CancelOrderAction
             $this->orderRepository->restoreProductVariants($order);
 
             // Issue Stripe refund (if paid)
-            if ($order->payment_status === 'paid' && $order->payment_intent_id) {
+            if ($order->payment_status === PaymentStatusEnum::PAID && $order->payment_intent_id) {
                 try {
                     Refund::create([
                         'payment_intent' => $order->payment_intent_id,

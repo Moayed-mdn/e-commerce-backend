@@ -21,7 +21,7 @@ class RestoreProductAction
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
-        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN)) {
+        if (!$authUser->hasRole(RoleEnum::SUPER_ADMIN->value)) {
             if (!$authUser->stores()->where('store_id', $dto->storeId)->exists()) {
                 throw new UnauthorizedStoreAccessException();
             }

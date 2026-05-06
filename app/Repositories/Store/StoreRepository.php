@@ -4,6 +4,7 @@ namespace App\Repositories\Store;
 
 use App\DTOs\Store\CreateStoreDTO;
 use App\DTOs\Store\UpdateStoreDTO;
+use App\Enums\Store\StoreRoleEnum;
 use App\Models\Store;
 use App\Exceptions\Store\StoreNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class StoreRepository
                 'owner_id' => $dto->ownerId,
             ]);
 
-            $store->users()->attach($dto->ownerId, ['role' => 'store_admin']);
+            $store->users()->attach($dto->ownerId, ['role' => StoreRoleEnum::STORE_ADMIN->value]);
 
             return $store;
         });

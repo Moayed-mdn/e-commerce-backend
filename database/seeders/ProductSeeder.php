@@ -10,6 +10,7 @@ use App\Models\Image;
 use App\Models\ProductVariant;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use App\Models\Store;
 use App\Models\VariantAttributeValue;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -312,6 +313,7 @@ class ProductSeeder extends Seeder
                 $product = Product::create([
                     'category_id' => $category->id,
                     'brand_id'    => $brandId,
+                    'store_id' => Store::first()->id,
                     'is_active'   => true,
                 ]);
 

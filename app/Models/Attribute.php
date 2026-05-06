@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Attribute\AttributeTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,6 +15,17 @@ class Attribute extends Model
 
     protected $fillable = [
         'code',
+        'type',
+        'is_filterable',
+        'is_visible_on_product',
+        'sort_order',
+    ];
+
+    protected $casts = [
+        'type'                 => AttributeTypeEnum::class,
+        'is_filterable'        => 'boolean',
+        'is_visible_on_product' => 'boolean',
+        'sort_order'           => 'integer',
     ];
 
     public function translations()

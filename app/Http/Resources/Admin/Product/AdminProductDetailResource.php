@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin\Product;
 
+use App\Enums\Product\ProductStatusEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AdminProductDetailResource extends JsonResource
@@ -38,7 +39,7 @@ class AdminProductDetailResource extends JsonResource
             'name'             => $this->name,
             'slug'             => $this->slug ?? '',
             'description'      => $this->description ?? null,
-            'status'           => $this->is_active ? 'active' : 'draft',
+            'status'           => $this->is_active ? ProductStatusEnum::ACTIVE->value : ProductStatusEnum::DRAFT->value,
             'price'            => $defaultVariant
                 ? (float) $defaultVariant->price
                 : 0,

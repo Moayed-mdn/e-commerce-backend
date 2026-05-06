@@ -9,7 +9,7 @@ class RestoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN) 
+        return $this->user()->hasRole(RoleEnum::SUPER_ADMIN->value) 
             || $this->user()->hasPermissionTo('product.restore', $this->route('store'));
     }
 

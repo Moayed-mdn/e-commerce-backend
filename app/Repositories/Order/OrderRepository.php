@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Order;
 
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Models\Order;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -47,8 +49,8 @@ class OrderRepository
     public function cancel(Order $order): Order
     {
         $order->update([
-            'status' => 'cancelled',
-            'payment_status' => 'refunded'
+            'status' => OrderStatusEnum::CANCELLED,
+            'payment_status' => PaymentStatusEnum::REFUNDED
         ]);
         return $order->fresh();
     }

@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Admin\User;
 
+use App\Enums\Store\StoreRoleEnum;
+use App\Enums\User\UserStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ListUsersRequest extends FormRequest
 {
@@ -25,7 +28,8 @@ class ListUsersRequest extends FormRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'status' => ['sometimes', 'nullable', 'in:active,inactive,all'],
+            'status' => ['sometimes', 'nullable', 'string', Rule::in([...UserStatusEnum::values(), 'all'])],
+            'role' => ['sometimes', 'nullable', 'string', Rule::in([...StoreRoleEnum::values(), 'all'])],
         ];
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Order;
 
 use App\DTOs\Order\CreateOrderDTO;
+use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Order\PaymentStatusEnum;
 use App\Exceptions\System\UnprocessableContentException;
 use App\Models\Cart;
 use App\Models\Order;
@@ -47,8 +49,8 @@ class CreateOrderAction
                 'tax_amount' => $taxAmount,
                 'total' => $total,
                 'shipping_method' => $dto->shippingMethod,
-                'status' => 'pending',
-                'payment_status' => 'pending',
+                'status' => OrderStatusEnum::PENDING,
+                'payment_status' => PaymentStatusEnum::PENDING,
             ], $dto->storeId);
 
             foreach ($cart->items as $cartItem) {

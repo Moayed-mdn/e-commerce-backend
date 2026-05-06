@@ -2,10 +2,15 @@
 
 namespace App\Enums;
 
-class RoleEnum
+enum RoleEnum: string
 {
-    public const SUPER_ADMIN  = 'super_admin';
-    public const STORE_ADMIN  = 'store_admin';
-    public const STAFF        = 'staff';
-    public const CUSTOMER     = 'customer';
+    case SUPER_ADMIN  = 'super_admin';
+    case STORE_ADMIN  = 'store_admin';
+    case STAFF        = 'staff';
+    case CUSTOMER     = 'customer';
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 }

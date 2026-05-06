@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin\Order;
 
+use App\Enums\Order\OrderStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ListOrdersRequest extends FormRequest
 {
@@ -24,7 +26,7 @@ class ListOrdersRequest extends FormRequest
         return [
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
-            'status' => ['sometimes', 'nullable', 'string'],
+            'status' => ['sometimes', 'nullable', 'string', Rule::in(OrderStatusEnum::values())],
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
         ];
     }

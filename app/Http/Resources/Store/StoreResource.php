@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Store;
 
+use App\Enums\User\UserStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class StoreResource extends JsonResource
             'domain'     => $this->domain,
             'currency'   => $this->currency ?? 'USD',
             'timezone'   => $this->timezone ?? 'UTC',
-            'status'     => $this->is_active ? 'active' : 'inactive',
+            'status'     => $this->is_active ? UserStatusEnum::ACTIVE->value : UserStatusEnum::INACTIVE->value,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
