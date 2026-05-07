@@ -51,14 +51,13 @@ class AuthController extends Controller
 
     public function login(LoginUserRequest $request): JsonResponse
     {
-        $result = $this->loginUserAction->execute(
+        $user = $this->loginUserAction->execute(
             LoginUserDTO::fromRequest($request)
         );
 
         return $this->success(
             [
-                'token' => $result->token,
-                'user' => new UserResource($result->user),
+                'user' => new UserResource($user),
             ],
             __('auth.login_successful')
         );

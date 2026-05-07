@@ -39,6 +39,7 @@ class SocialAuthService
         $user = $this->findOrCreateUser($googleUser);
 
         Auth::login($user);
+        request()->session()->regenerate();
 
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 

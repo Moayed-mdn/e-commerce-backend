@@ -23,6 +23,7 @@ class RegisterUserAction
         event(new Registered($user));
 
         Auth::login($user);
+        request()->session()->regenerate();
 
         $user->load('stores');
 

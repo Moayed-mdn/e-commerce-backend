@@ -30,11 +30,11 @@ class AuthService
 
         event(new Registered($user));
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        \Illuminate\Support\Facades\Auth::login($user);
+        request()->session()->regenerate();
 
         return [
             'user' => $user,
-            'token' => $token,
         ];
     }
 
@@ -53,20 +53,23 @@ class AuthService
             throw new UnauthorizedException(__('auth.verify_email_before_login'));
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        \Illuminate\Support\Facades\Auth::login($user);
+        request()->session()->regenerate();
 
         return [
             'user' => $user,
-            'token' => $token,
         ];
     }
 
     /**
-     * Logout a user by deleting current token.
+     * Logout a user by invalidating the session.
      */
-    public function logout(User $user): void
+    public function logout(Request $request): void
     {
-        $user->currentAccessToken()->delete();
+        \Illuminate\Support\Facades\Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 
     /**

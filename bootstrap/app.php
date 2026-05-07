@@ -15,9 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
+
+        $middleware->api(prepend: [
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+
         $middleware->api(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+
         $middleware->alias([
             'store.context' => \App\Http\Middleware\StoreContext::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,

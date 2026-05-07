@@ -1716,7 +1716,7 @@ SANCTUM_STATEFUL_DOMAINS=localhost:3000,localhost:8000
 
 - NEVER use auth:web on API routes
 - ALWAYS use auth:sanctum on API routes
-- HasApiTokens MUST remain on User model
+- HasApiTokens removed from User model (SPA cookie auth only)
 - Auth::attempt() in LoginUserAction — never createToken()
 - Auth::guard('web')->logout() + session invalidate in LogoutUserAction
 - statefulApi() MUST be first in withMiddleware block
