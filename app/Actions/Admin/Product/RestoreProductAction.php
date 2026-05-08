@@ -33,6 +33,8 @@ class RestoreProductAction
             throw new BaseApiException(__('admin.product_not_found'), 404, ErrorCode::PRD_002->value);
         }
 
-        return $this->repository->restore($product);
+        return $this->repository->refreshEditorProduct(
+            $this->repository->restore($product)
+        );
     }
 }

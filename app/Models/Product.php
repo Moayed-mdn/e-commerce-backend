@@ -47,6 +47,36 @@ class Product extends Model
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
+    /**
+     * Get the primary/default variant for this product.
+     * Returns explicitly set default, or first active variant, or any variant.
+     */
+    public function primaryVariant(): ?ProductVariant
+    {
+        // Try explicitly set default first
+        if ($this->product_variant_id && $this->defaultVariant) {
+            return $this->defaultVariant;
+        }
+
+        // Fall back to first active variant
+        $active = $this->activeVariants->first();
+        if ($active) {
+            return $active;
+        }
+
+        // Last resort: any variant
+        return $this->variants->first();
+    }
+
+    /**
+     * Get SKU from primary variant (backward compatibility).
+     * @deprecated Access via primaryVariant()->sku instead.
+     */
+    public function getSkuAttribute(): ?string
+    {
+        return $this->primaryVariant()?->sku;
+    }
+
     public function brand()
     {
         return $this->belongsTo(Brand::class);
@@ -139,9 +169,9 @@ class Product extends Model
 
     // ── Display Helpers ────────────────────────────────────────
 
-    public function getDisplayVariantAttribute()
+    public function getDisplayVariantAttribute(): ?ProductVariant
     {
-        return $this->defaultVariant ?? $this->activeVariants->first();
+        return $this->primaryVariant();
     }
 
       // ── Search Helpers ─────────────────────────────────────────

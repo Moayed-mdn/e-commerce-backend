@@ -25,7 +25,6 @@ class GetProductAction
             }
         }
 
-        return $this->repository->findInStore($dto->productId, $dto->storeId)
-            ->load(['category', 'variants.attributeValues', 'variants.images', 'translations', 'tags']);
+        return $this->repository->findEditorProductInStore($dto->productId, $dto->storeId);
     }
 }

@@ -6,10 +6,26 @@ use App\Enums\Product\ProductStatusEnum;
 use App\Exceptions\Product\ProductNotFoundException;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class AdminProductRepository
 {
+    /**
+     * Relations required by the admin product editor response.
+     *
+     * @return list<string>
+     */
+    private function editorRelations(): array
+    {
+        return [
+            'category',
+            'variants.attributeValues.attribute.translations',
+            'variants.attributeValues.translations',
+            'variants.images',
+            'translations',
+            'tags',
+        ];
+    }
+
     /**
      * List products for a specific store with pagination
      */
@@ -41,6 +57,24 @@ class AdminProductRepository
     public function findInStore(int $productId, int $storeId): Product
     {
         $product = Product::query()
+            ->where('store_id', $storeId)
+            ->where('id', $productId)
+            ->first();
+
+        if (!$product) {
+            throw new ProductNotFoundException();
+        }
+
+        return $product;
+    }
+
+    /**
+     * Find a product in a specific store with admin editor relations loaded.
+     */
+    public function findEditorProductInStore(int $productId, int $storeId): Product
+    {
+        $product = Product::query()
+            ->with($this->editorRelations())
             ->where('store_id', $storeId)
             ->where('id', $productId)
             ->first();
@@ -98,20 +132,26 @@ class AdminProductRepository
     }
 
     /**
+     * Reload a product with admin editor relations after a write operation.
+     */
+    public function refreshEditorProduct(Product $product): Product
+    {
+        return $product->fresh($this->editorRelations()) ?? $product->load($this->editorRelations());
+    }
+
+    /**
      * Create product translation
      */
-    public function createTranslation(int $productId, array $translationData): void
+    public function createTranslation(Product $product, array $translationData): void
     {
-        $product = Product::query()->findOrFail($productId);
         $product->translations()->create($translationData);
     }
 
     /**
      * Update or create product translation
      */
-    public function upsertTranslation(int $productId, string $locale, array $translationData): void
+    public function upsertTranslation(Product $product, string $locale, array $translationData): void
     {
-        $product = Product::query()->findOrFail($productId);
         $product->translations()->updateOrCreate(
             ['locale' => $locale],
             $translationData
@@ -121,9 +161,8 @@ class AdminProductRepository
     /**
      * Delete all translations for a product
      */
-    public function deleteTranslations(int $productId): void
+    public function deleteTranslations(Product $product): void
     {
-        $product = Product::query()->findOrFail($productId);
         $product->translations()->delete();
     }
 }

@@ -22,4 +22,12 @@ class AttributeValue extends Model
     {
         return $this->hasMany(AttributeValueTranslation::class);
     }
+
+    public function translation(?string $locale = null): ?AttributeValueTranslation
+    {
+        $locale = $locale ?? app()->getLocale();
+
+        return $this->translations->where('locale', $locale)->first()
+            ?? $this->translations->first();
+    }
 }

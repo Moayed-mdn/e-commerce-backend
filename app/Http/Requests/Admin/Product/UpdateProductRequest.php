@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Product;
 
 use App\Enums\RoleEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -22,9 +23,16 @@ class UpdateProductRequest extends FormRequest
             
             // Translations
             'translations' => ['nullable', 'array', 'min:1'],
-            'translations.*.locale' => ['required_with:translations', 'string', 'size:2'],
+            'translations.*.locale' => [
+                'required_with:translations',
+                'string',
+                'size:2',
+                Rule::in(config('content.editable_locales', config('app.supported_locales', []))),
+            ],
             'translations.*.name' => ['required_with:translations', 'string', 'max:255'],
             'translations.*.description' => ['nullable', 'string'],
+            'translations.*.seo_title' => ['nullable', 'string', 'max:255'],
+            'translations.*.seo_description' => ['nullable', 'string'],
             'translations.*.slug' => ['required_with:translations', 'string', 'max:255'],
             
             // Variants (optional on update, but if provided must be valid)

@@ -1724,3 +1724,244 @@ SANCTUM_STATEFUL_DOMAINS=localhost:3000,localhost:8000
 - same_site MUST be lax for cross-origin SPA
 - NO custom Sanctum::getAccessTokenFromRequestUsing()
 - NO ->cookie() token responses
+
+---
+
+# Appendix: Product-Variant Architecture
+
+## Overview
+
+This system uses a **variant-first ecommerce architecture** where:
+
+| Entity | Role | Purchasable? | Has SKU? | Has Inventory? |
+|--------|------|--------------|----------|----------------|
+| **Product** | Abstract container (name, description, category, brand) | ❌ No | ❌ No (deprecated) | ❌ No |
+| **ProductVariant** | Actual purchasable item | ✅ Yes | ✅ Yes | ✅ Yes |
+
+## Core Principles
+
+### 1. Variant-Owned Fields
+
+The following fields belong **ONLY** to `product_variants`:
+
+- `sku` - Stock Keeping Unit (unique identifier)
+- `price` - Selling price
+- `compare_at_price` - Original/compare price
+- `cost_price` - Cost per item
+- `quantity` - Stock/inventory level
+- `low_stock_threshold` - Alert threshold
+- `track_inventory` - Whether to track stock
+- `manufacture_date` - Batch manufacture date
+- `expiry_date` - Batch expiry date
+- `batch_number` - Batch identifier
+- `weight` - Product weight
+- `weight_unit` - Weight unit
+
+### 2. Product-Owned Fields
+
+The following fields belong to `products`:
+
+- `category_id` - Product categorization
+- `brand_id` - Product brand
+- `store_id` - Multi-tenant store ownership
+- `product_variant_id` - Reference to **default/primary variant**
+- `is_active` - Product visibility status
+- `is_featured` - Featured product flag
+- `sort_order` - Display order
+
+### 3. Default Variant Strategy
+
+Every product MUST have at least one variant. The `product_variant_id` field designates the **default/primary variant**.
+
+```php
+// Getting a product's primary variant
+$product->primaryVariant(); // Returns ProductVariant|null
+
+// Getting SKU (backward compatibility accessor)
+$product->sku; // Returns primary variant's SKU or null
+```
+
+### 4. Inventory Architecture
+
+**Stock belongs ONLY to variants:**
+
+```php
+// CORRECT: Check variant stock
+$variant->quantity;           // Current stock
+$variant->decrement('quantity', $amount);  // Reduce stock
+$variant->increment('quantity', $amount);    // Add stock
+
+// WRONG: Never check product-level stock
+$product->quantity; // This field does not exist on products
+```
+
+**Order items reference variants:**
+
+```php
+// OrderItem captures variant details at order time
+$orderItem->product_variant_id;  // Reference to variant
+$orderItem->sku;                 // SKU snapshot (from variant)
+$orderItem->unit_price;          // Price snapshot (from variant)
+```
+
+### 5. Cart Architecture
+
+Cart items reference **variants**, not products:
+
+```php
+// CartItem model
+'product_variant_id' => 'required|exists:product_variants,id',
+
+// Add to cart DTO
+public int $productVariantId,  // Not product_id
+```
+
+### 6. API Response Structure
+
+**Product responses include variants as nested collection:**
+
+```json
+{
+  "id": 1,
+  "name": "T-Shirt",
+  "category": "Clothing",
+  "variants": [
+    {
+      "id": 101,
+      "sku": "TSHIRT-RED-L",
+      "price": 29.99,
+      "stock": 50,
+      "attributes": [
+        {"name": "Color", "value": "Red"},
+        {"name": "Size", "value": "L"}
+      ]
+    }
+  ]
+}
+```
+
+**Order item responses include variant snapshot:**
+
+```json
+{
+  "product_variant_id": 101,
+  "product_name": "T-Shirt",
+  "sku": "TSHIRT-RED-L",
+  "unit_price": 29.99,
+  "quantity": 2
+}
+```
+
+### 7. Search by SKU
+
+SKU search queries the **variants** table, not products:
+
+```php
+// Search repository - CORRECT
+->orWhereHas('variants', function ($sq) use ($query) {
+    $sq->where('sku', 'LIKE', "%{$query}%");
+})
+```
+
+### 8. Backward Compatibility
+
+For legacy code expecting `$product->sku`:
+
+```php
+// Product model provides computed accessor
+public function getSkuAttribute(): ?string
+{
+    return $this->primaryVariant()?->sku;
+}
+```
+
+**Note:** This accessor is deprecated. New code should use `$product->primaryVariant()->sku`.
+
+## Migration Status
+
+### Completed
+- ✅ Variant-first architecture implemented
+- ✅ Inventory tracked on variants
+- ✅ Order items reference variants
+- ✅ Cart uses variant IDs
+- ✅ Product creation requires at least one variant
+
+### In Progress
+- 🔄 SKU uniqueness validation per store
+- 🔄 Complete variant update logic in admin
+
+### Future
+- ⏳ Remove `products.sku` column (after frontend migration)
+
+## Anti-Patterns to Avoid
+
+### ❌ Never Do This
+
+```php
+// Wrong: Treating product as purchasable entity
+$product->sku;
+$product->price;
+$product->quantity;
+
+// Wrong: Creating products without variants
+Product::create([...]); // Without creating a variant
+
+// Wrong: Flattening variant fields onto product
+[
+    'id' => $product->id,
+    'sku' => $variant->sku,  // Don't flatten - nest under variants
+    'price' => $variant->price,
+]
+```
+
+### ✅ Always Do This
+
+```php
+// Correct: Using primary variant for display
+$product->primaryVariant()?->sku;
+$product->primaryVariant()?->price;
+
+// Correct: Auto-creating default variant
+if (empty($variants)) {
+    $product->variants()->create(['sku' => ..., 'price' => ...]);
+}
+$product->update(['product_variant_id' => $firstVariant->id]);
+
+// Correct: Nesting variant data
+[
+    'id' => $product->id,
+    'name' => $product->name,
+    'variants' => $variants->map(fn($v) => [
+        'id' => $v->id,
+        'sku' => $v->sku,
+        'price' => $v->price,
+    ]),
+]
+```
+
+## Helper Methods
+
+### Product Model
+
+```php
+// Get primary/default variant
+$product->primaryVariant(): ?ProductVariant;
+
+// Get display variant (alias for primaryVariant)
+$product->display_variant: ?ProductVariant;
+
+// Backward compatibility SKU accessor (deprecated)
+$product->sku: ?string;
+```
+
+### ProductVariant Model
+
+```php
+// Standard relationships
+$variant->product(): BelongsTo;
+$variant->images(): MorphMany;
+$variant->attributeValues(): BelongsToMany;
+
+// Primary image helper
+$variant->primary_image: ?Image;
+```

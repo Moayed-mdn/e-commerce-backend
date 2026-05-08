@@ -3,43 +3,34 @@
 namespace App\Http\Resources\Admin\Product;
 
 use App\Enums\Product\ProductStatusEnum;
+use App\Models\ProductVariant;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AdminProductDetailResource extends JsonResource
 {
     public function toArray($request): array
     {
-        $defaultVariant = $this->whenLoaded('variants',
-            fn() => $this->variants
+        $locale = app()->getLocale();
+        $defaultVariant = $this->relationLoaded('variants')
+            ? ($this->variants
                 ->where('is_active', true)
                 ->sortBy('price')
                 ->first()
-                ?? $this->variants->first()
-        );
-
-        $totalStock = $this->whenLoaded('variants',
-            fn() => $this->variants->sum('quantity')
-        );
-
-        $allImages = $this->whenLoaded('variants', function () {
-            return $this->variants->flatMap(function ($variant) {
-                if (!$variant->relationLoaded('images')) return [];
-                return $variant->images->map(fn($img) => [
-                    'id'       => $img->id,
-                    'url'      => asset($img->image_url),
-                    'alt'      => $img->alt_text ?? null,
-                    'position' => $img->position ?? 0,
-                ]);
-            })->values();
-        });
+                ?? $this->variants->first())
+            : null;
+        $totalStock = $this->relationLoaded('variants')
+            ? $this->variants->sum('quantity')
+            : 0;
+        $allImages = $this->buildImages();
 
         return [
-            'id'               => $this->id,
-            'store_id'         => $this->store_id,
-            'name'             => $this->name,
-            'slug'             => $this->slug ?? '',
-            'description'      => $this->description ?? null,
-            'status'           => $this->is_active ? ProductStatusEnum::ACTIVE->value : ProductStatusEnum::DRAFT->value,
+            'id' => $this->id,
+            'store_id' => $this->store_id,
+            'available_locales' => $this->resolveAvailableLocales(),
+            'default_locale' => config('content.default_locale'),
+            'translations' => $this->buildTranslations($request),
+            'status' => $this->is_active ? ProductStatusEnum::ACTIVE->value : ProductStatusEnum::DRAFT->value,
             'price'            => $defaultVariant
                 ? (float) $defaultVariant->price
                 : 0,
@@ -55,32 +46,144 @@ class AdminProductDetailResource extends JsonResource
                 : null,
             'sku'              => $defaultVariant?->sku ?? null,
             'barcode'          => $defaultVariant?->barcode ?? null,
-            'quantity'         => $totalStock ?? 0,
+            'quantity'         => $totalStock,
             'track_quantity'   => true,
             'weight'           => $defaultVariant?->weight ?? null,
             'weight_unit'      => $defaultVariant?->weight_unit ?? null,
-            'images'           => $allImages ?? [],
-            'variants'         => $this->whenLoaded('variants', fn() =>
-                $this->variants->map(fn($v) => [
-                    'id'               => $v->id,
-                    'sku'              => $v->sku,
-                    'price'            => (float) $v->price,
-                    'quantity'         => $v->quantity,
-                    'is_active'        => $v->is_active,
-                    'manufacture_date' => $v->manufacture_date,
-                    'expiry_date'      => $v->expiry_date,
-                    'attributes'       => $v->relationLoaded('attributeValues')
-                        ? $v->attributeValues->map(fn($av) => [
-                            'name'  => $av->attribute->code ?? '',
-                            'value' => $av->code ?? '',
-                        ])
-                        : [],
-                ])
-            ),
+            'images'           => $allImages,
+            'options'          => $this->buildOptions($locale),
+            'variants'         => $this->relationLoaded('variants')
+                ? $this->variants->map(fn($variant) => $this->formatVariant($variant))->values()
+                : [],
             'category_id'      => $this->category_id,
             'brand_id'         => $this->brand_id,
             'created_at'       => $this->created_at,
             'updated_at'       => $this->updated_at,
+        ];
+    }
+
+    private function resolveAvailableLocales(): array
+    {
+        $configuredLocales = config('content.editable_locales', config('app.supported_locales', []));
+        $translationLocales = $this->relationLoaded('translations')
+            ? $this->translations->pluck('locale')->all()
+            : [];
+
+        return collect($configuredLocales)
+            ->merge($translationLocales)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function buildTranslations(Request $request): array
+    {
+        $translations = $this->relationLoaded('translations')
+            ? $this->translations->keyBy('locale')
+            : collect();
+
+        return collect($this->resolveAvailableLocales())
+            ->mapWithKeys(function (string $locale) use ($request, $translations): array {
+                $translation = $translations->get($locale, ['locale' => $locale]);
+
+                return [
+                    $locale => (new AdminProductTranslationResource($translation))->toArray($request),
+                ];
+            })
+            ->all();
+    }
+
+    private function buildImages(): array
+    {
+        if (!$this->relationLoaded('variants')) {
+            return [];
+        }
+
+        return $this->variants->flatMap(function ($variant) {
+            if (!$variant->relationLoaded('images')) {
+                return [];
+            }
+
+            return $variant->images->map(fn($image) => [
+                'id' => $image->id,
+                'url' => asset($image->image_url),
+                'alt' => $image->alt_text ?? null,
+                'position' => $image->position ?? 0,
+            ]);
+        })->values()->all();
+    }
+
+    private function buildOptions(string $locale): array
+    {
+        if (!$this->relationLoaded('variants')) {
+            return [];
+        }
+
+        $attributeMap = collect();
+
+        foreach ($this->variants as $variant) {
+            if (!$variant->relationLoaded('attributeValues')) {
+                continue;
+            }
+
+            foreach ($variant->attributeValues as $attrValue) {
+                $attribute = $attrValue->attribute;
+                if (!$attribute) {
+                    continue;
+                }
+
+                if (!$attributeMap->has($attribute->id)) {
+                    $attributeMap->put($attribute->id, [
+                        'id'         => $attribute->id,
+                        'code'       => $attribute->code,
+                        'name'       => $attribute->translation($locale)?->name ?? $attribute->code,
+                        'type'       => $attribute->type->value,
+                        'sort_order' => $attribute->sort_order ?? 0,
+                        'values'     => collect(),
+                    ]);
+                }
+
+                $existingValues = $attributeMap->get($attribute->id)['values'];
+                if (!$existingValues->contains('id', $attrValue->id)) {
+                    $existingValues->push([
+                        'id'    => $attrValue->id,
+                        'code'  => $attrValue->code,
+                        'label' => $attrValue->translation($locale)?->label ?? $attrValue->code,
+                    ]);
+                }
+            }
+        }
+
+        return $attributeMap
+            ->sortBy('sort_order')
+            ->values()
+            ->map(fn($option) => [
+                'id'     => $option['id'],
+                'code'   => $option['code'],
+                'name'   => $option['name'],
+                'type'   => $option['type'],
+                'values' => $option['values']->values(),
+            ])
+            ->toArray();
+    }
+
+    private function formatVariant(ProductVariant $variant): array
+    {
+        $attributes = $variant->relationLoaded('attributeValues')
+            ? VariantAttributeResource::collection($variant->attributeValues)
+                ->resolve()
+            : [];
+
+        return [
+            'id'               => $variant->id,
+            'sku'              => $variant->sku,
+            'price'            => (float) $variant->price,
+            'quantity'         => $variant->quantity,
+            'is_active'        => $variant->is_active,
+            'manufacture_date' => $variant->manufacture_date,
+            'expiry_date'      => $variant->expiry_date,
+            'attributes'       => $attributes,
         ];
     }
 }

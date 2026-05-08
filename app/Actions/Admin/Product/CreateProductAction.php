@@ -9,7 +9,6 @@ use App\Models\Product;
 use App\Repositories\Admin\Product\AdminProductRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CreateProductAction
 {
@@ -36,7 +35,7 @@ class CreateProductAction
             ]);
 
             foreach ($dto->translations as $translation) {
-                $this->repository->createTranslation($product->id, $translation);
+                $this->repository->createTranslation($product, $translation);
             }
 
             foreach ($dto->variants as $variantData) {
@@ -61,7 +60,13 @@ class CreateProductAction
                 $product->tags()->sync($dto->tags);
             }
 
-            return $product->load(['category', 'variants.attributeValues', 'translations']);
+            // Set first variant as default for the product
+            $firstVariant = $product->variants->first();
+            if ($firstVariant) {
+                $product->update(['product_variant_id' => $firstVariant->id]);
+            }
+
+            return $this->repository->refreshEditorProduct($product);
         });
     }
 }

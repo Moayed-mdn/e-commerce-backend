@@ -23,9 +23,16 @@ class CreateProductRequest extends FormRequest
             
             // Translations (at least one required)
             'translations' => ['required', 'array', 'min:1'],
-            'translations.*.locale' => ['required', 'string', 'size:2'],
+            'translations.*.locale' => [
+                'required',
+                'string',
+                'size:2',
+                Rule::in(config('content.editable_locales', config('app.supported_locales', []))),
+            ],
             'translations.*.name' => ['required', 'string', 'max:255'],
             'translations.*.description' => ['nullable', 'string'],
+            'translations.*.seo_title' => ['nullable', 'string', 'max:255'],
+            'translations.*.seo_description' => ['nullable', 'string'],
             'translations.*.slug' => ['required', 'string', 'max:255'],
             
             // Variants (at least one required)

@@ -37,7 +37,7 @@ class UpdateProductAction
 
             if (!is_null($dto->translations)) {
                 foreach ($dto->translations as $translation) {
-                    $this->repository->upsertTranslation($product->id, $translation['locale'], $translation);
+                    $this->repository->upsertTranslation($product, $translation['locale'], $translation);
                 }
             }
 
@@ -50,7 +50,7 @@ class UpdateProductAction
                 $product->tags()->sync($dto->tags);
             }
 
-            return $product->load(['category', 'variants.attributeValues', 'translations']);
+            return $this->repository->refreshEditorProduct($product);
         });
     }
 }

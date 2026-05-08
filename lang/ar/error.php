@@ -25,4 +25,8 @@ return [
 
     // User Messages
     'user_not_found' => 'المستخدم غير موجود.',
+
+    // Product Messages
+    'product_not_found' => 'المنتج غير موجود.',
+    'product_restore_failed' => 'فشلت استعادة المنتج.',
 ];

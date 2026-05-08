@@ -12,6 +12,8 @@ class ProductTranslation extends Model
         'locale',
         'name',
         'description',
+        'seo_title',
+        'seo_description',
         'slug',
     ];
 

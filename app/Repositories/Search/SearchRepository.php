@@ -22,7 +22,9 @@ class SearchRepository
                     $sq->where('name', 'LIKE', "%{$query}%")
                       ->orWhere('description', 'LIKE', "%{$query}%");
                 })
-                ->orWhere('sku', 'LIKE', "%{$query}%");
+                ->orWhereHas('variants', function ($sq) use ($query) {
+                    $sq->where('sku', 'LIKE', "%{$query}%");
+                });
             })
             ->paginate($limit, ['*'], 'page', $page);
     }
@@ -50,7 +52,9 @@ class SearchRepository
                     $sq->where('name', 'LIKE', "%{$query}%")
                       ->orWhere('description', 'LIKE', "%{$query}%");
                 })
-                ->orWhere('sku', 'LIKE', "%{$query}%");
+                ->orWhereHas('variants', function ($sq) use ($query) {
+                    $sq->where('sku', 'LIKE', "%{$query}%");
+                });
             })
             ->limit($adjustedLimit)
             ->get();

@@ -25,4 +25,8 @@ return [
 
     // User Messages
     'user_not_found' => 'User not found.',
+
+    // Product Messages
+    'product_not_found' => 'Product not found.',
+    'product_restore_failed' => 'Product restore failed.',
 ];
