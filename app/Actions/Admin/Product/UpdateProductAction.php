@@ -6,7 +6,6 @@ use App\DTOs\Admin\Product\UpdateProductDTO;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
 use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Repositories\Admin\Product\AdminProductRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -44,14 +43,7 @@ class UpdateProductAction
 
             if (!is_null($dto->variants)) {
                 // Sync variants: delete existing and create new ones (full replacement strategy)
-                $existingVariantIds = $product->variants()->pluck('id');
-                foreach ($existingVariantIds as $variantId) {
-                    $variant = ProductVariant::find($variantId);
-                    if ($variant) {
-                        $variant->attributeValues()->detach();
-                        $this->repository->deleteVariant($variant);
-                    }
-                }
+                $this->repository->deleteAllVariants($product);
 
                 foreach ($dto->variants as $variantData) {
                     $variant = $this->repository->createVariant($product, [
@@ -70,14 +62,15 @@ class UpdateProductAction
                 }
 
                 // Set first variant as default for the product
-                $firstVariant = $product->variants->first();
+                $product->refresh();
+                $firstVariant = $product->variants()->first();
                 if ($firstVariant) {
-                    $product->update(['product_variant_id' => $firstVariant->id]);
+                    $this->repository->update($product, ['product_variant_id' => $firstVariant->id]);
                 }
             }
 
             if (!is_null($dto->tags)) {
-                $product->tags()->sync($dto->tags);
+                $this->repository->syncTags($product, $dto->tags);
             }
 
             return $this->repository->refreshEditorProduct($product);

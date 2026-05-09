@@ -38,9 +38,9 @@ class UpdateProductRequest extends FormRequest
             // Variants (optional on update, but if provided must be valid)
             'variants' => ['nullable', 'array'],
             'variants.*.id' => ['nullable', 'exists:product_variants,id'],
-            'variants.*.sku' => ['nullable', 'string', 'max:100'],
-            'variants.*.price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.quantity' => ['nullable', 'integer', 'min:0'],
+            'variants.*.sku' => ['required', 'string', 'max:100'],
+            'variants.*.price' => ['required', 'numeric', 'min:0'],
+            'variants.*.quantity' => ['required', 'integer', 'min:0'],
             'variants.*.is_active' => ['nullable', 'boolean'],
             'variants.*.manufacture_date' => ['nullable', 'date'],
             'variants.*.expiry_date' => ['nullable', 'date', 'after_or_equal:manufacture_date'],

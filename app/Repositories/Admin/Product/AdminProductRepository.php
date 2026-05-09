@@ -167,6 +167,21 @@ class AdminProductRepository
         $product->translations()->delete();
     }
 
+    public function deleteAllVariants(Product $product): void
+    {
+        $variants = $product->variants()->get();
+
+        foreach ($variants as $variant) {
+            $variant->attributeValues()->detach();
+            $this->deleteVariant($variant);
+        }
+    }
+
+    public function syncTags(Product $product, array $tags): void
+    {
+        $product->tags()->sync($tags);
+    }
+
     /**
      * Create a product variant
      */
