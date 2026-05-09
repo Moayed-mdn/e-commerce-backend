@@ -22,12 +22,36 @@ class UpdateProductDTO
         return new self(
             storeId: $storeId,
             productId: $productId,
-            categoryId: $request->integer('category_id'),
-            brandId: $request->integer('brand_id'),
-            isActive: $request->boolean('is_active'),
+            categoryId: self::nullableInteger($request, 'category_id'),
+            brandId: self::nullableInteger($request, 'brand_id'),
+            isActive: self::optionalBoolean($request, 'is_active'),
             translations: $request->input('translations'),
             variants: $request->input('variants'),
             tags: $request->input('tags'),
         );
+    }
+
+    private static function nullableInteger(UpdateProductRequest $request, string $key): ?int
+    {
+        if (!$request->exists($key)) {
+            return null;
+        }
+
+        $value = $request->input($key);
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
+    }
+
+    private static function optionalBoolean(UpdateProductRequest $request, string $key): ?bool
+    {
+        if (!$request->exists($key)) {
+            return null;
+        }
+
+        return $request->boolean($key);
     }
 }

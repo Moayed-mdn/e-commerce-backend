@@ -14,6 +14,9 @@ class AdminProductDetailResourceTest extends TestCase
 {
     public function test_it_returns_editor_translations_for_all_available_locales(): void
     {
+        config()->set('content.editable_locales', ['ar', 'en', 'hi']);
+        config()->set('content.default_locale', 'ar');
+
         $product = new Product([
             'store_id' => 5,
             'category_id' => 12,
