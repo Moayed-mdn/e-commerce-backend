@@ -6,6 +6,7 @@ use App\DTOs\Admin\Product\UpdateProductDTO;
 use App\Enums\RoleEnum;
 use App\Exceptions\Store\UnauthorizedStoreAccessException;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Repositories\Admin\Product\AdminProductRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,8 +43,37 @@ class UpdateProductAction
             }
 
             if (!is_null($dto->variants)) {
-                // For simplicity in this audit pass, we assume full variant replacement or specific logic
-                // Real implementation might be more complex (syncing variants)
+                // Sync variants: delete existing and create new ones (full replacement strategy)
+                $existingVariantIds = $product->variants()->pluck('id');
+                foreach ($existingVariantIds as $variantId) {
+                    $variant = ProductVariant::find($variantId);
+                    if ($variant) {
+                        $variant->attributeValues()->detach();
+                        $this->repository->deleteVariant($variant);
+                    }
+                }
+
+                foreach ($dto->variants as $variantData) {
+                    $variant = $this->repository->createVariant($product, [
+                        'sku' => $variantData['sku'],
+                        'price' => $variantData['price'],
+                        'quantity' => $variantData['quantity'],
+                        'is_active' => $variantData['is_active'] ?? true,
+                        'manufacture_date' => $variantData['manufacture_date'] ?? null,
+                        'expiry_date' => $variantData['expiry_date'] ?? null,
+                        'batch_number' => $variantData['batch_number'] ?? null,
+                    ]);
+
+                    if (!empty($variantData['attributes'])) {
+                        $this->repository->syncVariantAttributes($variant, $variantData['attributes']);
+                    }
+                }
+
+                // Set first variant as default for the product
+                $firstVariant = $product->variants->first();
+                if ($firstVariant) {
+                    $product->update(['product_variant_id' => $firstVariant->id]);
+                }
             }
 
             if (!is_null($dto->tags)) {

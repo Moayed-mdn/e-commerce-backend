@@ -5,6 +5,7 @@ namespace App\Repositories\Admin\Product;
 use App\Enums\Product\ProductStatusEnum;
 use App\Exceptions\Product\ProductNotFoundException;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AdminProductRepository
@@ -164,5 +165,40 @@ class AdminProductRepository
     public function deleteTranslations(Product $product): void
     {
         $product->translations()->delete();
+    }
+
+    /**
+     * Create a product variant
+     */
+    public function createVariant(Product $product, array $variantData): ProductVariant
+    {
+        return $product->variants()->create($variantData);
+    }
+
+    /**
+     * Update a product variant
+     */
+    public function updateVariant(ProductVariant $variant, array $data): ProductVariant
+    {
+        $variant->update($data);
+        return $variant->fresh();
+    }
+
+    /**
+     * Delete a product variant
+     */
+    public function deleteVariant(ProductVariant $variant): void
+    {
+        $variant->delete();
+    }
+
+    /**
+     * Sync variant attributes (pivot table)
+     */
+    public function syncVariantAttributes(ProductVariant $variant, array $attributes): void
+    {
+        $variant->attributeValues()->sync(
+            collect($attributes)->pluck('attribute_value_id')->toArray()
+        );
     }
 }
