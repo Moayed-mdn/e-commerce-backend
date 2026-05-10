@@ -1,1 +1,10 @@
-(empty)
+```php
+/vendor/
+/node_modules/
+.env
+.env.local
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+```

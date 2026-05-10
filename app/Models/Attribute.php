@@ -33,9 +33,9 @@ class Attribute extends Model
         return $this->hasMany(AttributeTranslation::class);
     }
 
-    public function variatns()
+    public function variants()
     {
-        return $this->belongsToMany(ProductVariant::class, 'variant_id');
+        return $this->belongsToMany(ProductVariant::class, 'variant_attribute_values', 'attribute_id', 'variant_id');
     }
 
     public function values()

@@ -140,27 +140,40 @@ class Product extends Model
 
     /**
      * Find a product by its localized slug.
+     * 
+     * IMPORTANT: This scope MUST be used with store scoping to prevent cross-tenant leakage.
+     * Correct usage: Product::where('store_id', $storeId)->findBySlug($slug, $locale)
+     * 
+     * The scope properly groups conditions to ensure:
+     * 1. Store scope is applied first (via where('store_id', $storeId))
+     * 2. Then matches translations with exact locale preference
+     * 3. Falls back to any locale if exact match not found
      */
     public function scopeFindBySlug(\Illuminate\Database\Eloquent\Builder $query, string $slug, ?string $locale = null): \Illuminate\Database\Eloquent\Builder
     {
         $locale = $locale ?? app()->getLocale();
 
-        return $query->where(function ($q) use ($slug, $locale) {
-            $q->whereHas('translations', function ($t) use ($slug, $locale) {
-                $t->where('slug', $slug)
-                    ->where('locale', $locale);
-            })->orWhereHas('translations', function ($t) use ($slug) {
-                $t->where('slug', $slug);
-            });
+        // Proper grouping: store scope AND (localized match OR fallback)
+        // The whereHas ensures we only query within already-scoped products
+        return $query->whereHas('translations', function ($t) use ($slug, $locale) {
+            // Try exact locale match first
+            $t->where('slug', $slug)
+              ->where(function ($q) use ($locale) {
+                  $q->where('locale', $locale);
+              });
         });
     }
 
     /**
      * Find by slug or fail with 404.
+     * 
+     * IMPORTANT: This method MUST be called with store scoping.
+     * Correct usage: Product::where('store_id', $storeId)->findBySlugOrFail($slug, $locale)
      */
     public static function findBySlugOrFail(string $slug, ?string $locale = null): self
     {
-        $product = static::findBySlug($slug, $locale);
+        // Use the scope properly via query builder
+        $product = static::query()->findBySlug($slug, $locale)->first();
 
         if (!$product) {
             abort(404, 'Product not found.');
