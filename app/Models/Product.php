@@ -145,11 +145,13 @@ class Product extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
-        return $query->whereHas('translations', function ($q) use ($slug, $locale) {
-            $q->where('slug', $slug)
-                ->where('locale', $locale);
-        })->orWhereHas('translations', function ($q) use ($slug) {
-            $q->where('slug', $slug);
+        return $query->where(function ($q) use ($slug, $locale) {
+            $q->whereHas('translations', function ($t) use ($slug, $locale) {
+                $t->where('slug', $slug)
+                    ->where('locale', $locale);
+            })->orWhereHas('translations', function ($t) use ($slug) {
+                $t->where('slug', $slug);
+            });
         });
     }
 

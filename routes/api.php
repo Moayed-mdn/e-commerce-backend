@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 
 // Auth (no store context)
 require 'api/v1/users/auth.php';
@@ -37,3 +38,7 @@ require 'api/v1/stores/store-management.php';
 
 // Admin routes
 require 'api/v1/admin/admin.php';
+
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])
+    ->middleware('web');
