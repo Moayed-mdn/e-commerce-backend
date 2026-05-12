@@ -167,16 +167,6 @@ class AdminProductRepository
         $product->translations()->delete();
     }
 
-    public function deleteAllVariants(Product $product): void
-    {
-        $variants = $product->variants()->get();
-
-        foreach ($variants as $variant) {
-            $variant->attributeValues()->detach();
-            $this->deleteVariant($variant);
-        }
-    }
-
     public function syncTags(Product $product, array $tags): void
     {
         $product->tags()->sync($tags);
@@ -196,7 +186,7 @@ class AdminProductRepository
     public function updateVariant(ProductVariant $variant, array $data): ProductVariant
     {
         $variant->update($data);
-        return $variant->fresh();
+        return $variant->refresh();
     }
 
     /**
@@ -210,10 +200,20 @@ class AdminProductRepository
     /**
      * Sync variant attributes (pivot table)
      */
-    public function syncVariantAttributes(ProductVariant $variant, array $attributes): void
-    {
-        $variant->attributeValues()->sync(
-            collect($attributes)->pluck('attribute_value_id')->toArray()
-        );
+    public function syncVariantAttributes(
+        ProductVariant $variant,
+        array $attributes
+    ): void {
+
+        $syncData = [];
+
+        foreach ($attributes as $attribute) {
+
+            $syncData[$attribute['attribute_value_id']] = [
+                'attribute_id' => $attribute['attribute_id'],
+            ];
+        }
+
+        $variant->attributeValues()->sync($syncData);
     }
 }

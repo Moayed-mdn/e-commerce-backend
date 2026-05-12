@@ -41,12 +41,17 @@ class UpdateProductAction
                 }
             }
 
-            if (!is_null($dto->variants)) {
-                // Sync variants: delete existing and create new ones (full replacement strategy)
-                $this->repository->deleteAllVariants($product);
+            if ($dto->syncVariants === true && !is_null($dto->variants)) {
+
+                $existingVariantIds = $product->variants()
+                    ->pluck('id')
+                    ->toArray();
+
+                $processedVariantIds = [];
 
                 foreach ($dto->variants as $variantData) {
-                    $variant = $this->repository->createVariant($product, [
+
+                    $payload = [
                         'sku' => $variantData['sku'],
                         'price' => $variantData['price'],
                         'quantity' => $variantData['quantity'],
@@ -54,18 +59,71 @@ class UpdateProductAction
                         'manufacture_date' => $variantData['manufacture_date'] ?? null,
                         'expiry_date' => $variantData['expiry_date'] ?? null,
                         'batch_number' => $variantData['batch_number'] ?? null,
-                    ]);
+                    ];
 
-                    if (!empty($variantData['attributes'])) {
-                        $this->repository->syncVariantAttributes($variant, $variantData['attributes']);
+                    // UPDATE EXISTING VARIANT
+                    if (!empty($variantData['id'])) {
+
+                        $variant = $product->variants()
+                            ->where('id', $variantData['id'])
+                            ->firstOrFail();
+
+                        $this->repository->updateVariant($variant, $payload);
+                    }
+
+                    // CREATE NEW VARIANT
+                    else {
+
+                        $variant = $this->repository->createVariant(
+                            $product,
+                            $payload
+                        );
+                    }
+
+                    $processedVariantIds[] = $variant->id;
+
+                    if (isset($variantData['attributes'])) {
+                        $this->repository->syncVariantAttributes(
+                            $variant,
+                            $variantData['attributes']
+                        );
                     }
                 }
 
-                // Set first variant as default for the product
+                // SOFT DELETE REMOVED VARIANTS
+                $variantIdsToDelete = array_diff(
+                    $existingVariantIds,
+                    $processedVariantIds
+                );
+
+                if (!empty($variantIdsToDelete)) {
+
+                    $variantsToDelete = $product->variants()
+                        ->whereIn('id', $variantIdsToDelete)
+                        ->get();
+
+                    foreach ($variantsToDelete as $variant) {
+
+                        $variant->attributeValues()->detach();
+
+                        $this->repository->deleteVariant($variant);
+                    }
+                }
+
+                // Ensure default variant still exists
                 $product->refresh();
-                $firstVariant = $product->variants()->first();
-                if ($firstVariant) {
-                    $this->repository->update($product, ['product_variant_id' => $firstVariant->id]);
+
+                $defaultVariantExists = $product->variants()
+                    ->where('id', $product->product_variant_id)
+                    ->exists();
+
+                if (!$defaultVariantExists) {
+
+                    $firstVariant = $product->variants()->first();
+
+                    $this->repository->update($product, [
+                        'product_variant_id' => $firstVariant?->id,
+                    ]);
                 }
             }
 

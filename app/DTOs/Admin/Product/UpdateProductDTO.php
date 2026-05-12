@@ -15,6 +15,7 @@ class UpdateProductDTO
         public ?array $translations = null,
         public ?array $variants = null,
         public ?array $tags = null,
+        public ?bool $syncVariants = null,
     ) {}
 
     public static function fromRequest(UpdateProductRequest $request, int $storeId, int $productId): self
@@ -28,6 +29,7 @@ class UpdateProductDTO
             translations: $request->input('translations'),
             variants: $request->input('variants'),
             tags: $request->input('tags'),
+            syncVariants: self::optionalBoolean($request, 'sync_variants'),
         );
     }
 

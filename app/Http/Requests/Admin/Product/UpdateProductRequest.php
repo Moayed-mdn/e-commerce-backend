@@ -20,6 +20,7 @@ class UpdateProductRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
             'is_active' => ['nullable', 'boolean'],
+            'sync_variants' => ['nullable', 'boolean'],
             
             // Translations
             'translations' => ['nullable', 'array', 'min:1'],
@@ -37,7 +38,7 @@ class UpdateProductRequest extends FormRequest
             
             // Variants (optional on update, but if provided must be valid)
             'variants' => ['nullable', 'array'],
-            'variants.*.id' => ['nullable', 'exists:product_variants,id'],
+            'variants.*.id' => ['nullable', 'integer'],
             'variants.*.sku' => ['required', 'string', 'max:100'],
             'variants.*.price' => ['required', 'numeric', 'min:0'],
             'variants.*.quantity' => ['required', 'integer', 'min:0'],
@@ -47,9 +48,9 @@ class UpdateProductRequest extends FormRequest
             'variants.*.batch_number' => ['nullable', 'string', 'max:100'],
             
             // Variant attributes
-            'variants.*.attributes' => ['nullable', 'array'],
-            'variants.*.attributes.*.attribute_id' => ['required_with:variants.*.attributes', 'exists:attributes,id'],
-            'variants.*.attributes.*.attribute_value_id' => ['required_with:variants.*.attributes', 'exists:attribute_values,id'],
+            'variants.*.attributes' => ['array'],
+            'variants.*.attributes.*.attribute_id' => ['required', 'integer', 'exists:attributes,id'],
+            'variants.*.attributes.*.attribute_value_id' => ['required', 'integer', 'exists:attribute_values,id'],
             
             // Tags
             'tags' => ['nullable', 'array'],

@@ -50,9 +50,10 @@ class CreateProductAction
                 ]);
 
                 if (!empty($variantData['attributes'])) {
-                    foreach ($variantData['attributes'] as $attr) {
-                        $variant->attributeValues()->attach($attr['attribute_value_id']);
-                    }
+                    $this->repository->syncVariantAttributes(
+                        $variant,
+                        $variantData['attributes']
+                    );
                 }
             }
 
