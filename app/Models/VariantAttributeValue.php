@@ -15,19 +15,28 @@ class VariantAttributeValue extends Model
         'attribute_value_id',
     ];
     
-    public function variants()
+    /**
+     * Get the variant that owns this pivot record.
+     */
+    public function variant()
     {
-        return $this->belongsToMany(ProductVariant::class,'variant_id');
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 
-    public function attributes()
+    /**
+     * Get the attribute that this pivot record references.
+     */
+    public function attribute()
     {
-        return $this->belongsToMany(Attribute::class,'attribute_id');
+        return $this->belongsTo(Attribute::class, 'attribute_id');
     }
 
-    public function attributeValues()
+    /**
+     * Get the attribute value that this pivot record references.
+     */
+    public function attributeValue()
     {
-        return $this->belongsToMany(AttributeValue::class,'attribute_value_id');
+        return $this->belongsTo(AttributeValue::class, 'attribute_value_id');
     }
 
 }
