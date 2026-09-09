@@ -115,6 +115,12 @@ jobs:
         run: |
           tailscale ping ${{ secrets.VPS_HOST }}
 
+      - name: Test TCP reachability to VPS:22
+        run: |
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.VPS_HOST }}/22" \
+            && echo "✅ Port 22 reachable" \
+            || echo "❌ Port 22 NOT reachable"
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
