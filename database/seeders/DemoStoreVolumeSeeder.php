@@ -129,10 +129,14 @@ class DemoStoreVolumeSeeder extends Seeder
                     ],
                 ]);
 
+                $price = $productData['price'];
+                $costPrice = round($price * 0.6, 2); // Cost is 60% of selling price
+                
                 $variant = ProductVariant::query()->create([
                     'product_id' => $product->id,
                     'sku' => strtoupper('DEMO-' . $slug . '-' . $product->id),
-                    'price' => $productData['price'],
+                    'price' => $price,
+                    'cost_price' => $costPrice,
                     'quantity' => random_int(8, 120),
                     'track_inventory' => true,
                     'is_active' => true,

@@ -4,6 +4,7 @@
 namespace Database\Seeders;
 
 use Database\Seeders\Concerns\SeedsDemoStore;
+use Database\Seeders\Concerns\SeedsStaticMedia;
 use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Category;
@@ -19,7 +20,7 @@ use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
-    use SeedsDemoStore;
+    use SeedsDemoStore, SeedsStaticMedia;
 
     /**
      * Product name → Brand name mapping.
@@ -403,10 +404,12 @@ class ProductSeeder extends Seeder
                     $finalPrice = max(0.99, $variantPrice + $priceAdjustment);
 
                     // Create variant
+                    $costPrice = round($finalPrice * 0.6, 2); // Cost is 60% of selling price
                     $variant = ProductVariant::create([
                         'product_id'       => $product->id,
                         'sku'              => $sku,
                         'price'            => round($finalPrice, 2),
+                        'cost_price'       => $costPrice,
                         'quantity'         => rand(5, 100),
                         'batch_number'     => 'BATCH-' . date('Ymd') . '-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT),
                         'manufacture_date' => now()->subMonths(rand(1, 6)),
@@ -422,7 +425,7 @@ class ProductSeeder extends Seeder
                     Image::create([
                         'imageable_id'   => $variant->id,
                         'imageable_type' => ProductVariant::class,
-                        'image_url'      => '/storage/variants/default.png',
+                        'image_url'      => $this->seedStaticAsset('default-variant.png', 'variants/default.png'),
                         'is_primary'     => true,
                     ]);
 

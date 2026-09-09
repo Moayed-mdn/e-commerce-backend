@@ -1,23 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\ProductVariant;
-use App\Models\Attribute;
-use App\Models\Image;
-use Illuminate\Support\Arr;
-
-namespace Database\Seeders;
-
+use Database\Seeders\Concerns\SeedsStaticMedia;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Attribute;
 use App\Models\Image;
-use Illuminate\Database\Seeder;
 
 class ProductVariantSeeder extends Seeder
 {
+    use SeedsStaticMedia;
+
     public function run()
     {
         $attributeSets = [
@@ -32,10 +29,14 @@ class ProductVariantSeeder extends Seeder
 
         foreach (Product::all() as $product) {
             for ($i = 0; $i < 3; $i++) {
+                $price = fake()->randomFloat(2, 20, 250);
+                $costPrice = round($price * 0.6, 2); // Cost is 60% of selling price
+                
                 $variant = ProductVariant::create([
                     'product_id' => $product->id,
                     'sku' => strtoupper(fake()->unique()->bothify('SKU-???-###')),
-                    'price' => fake()->randomFloat(2, 20, 250),
+                    'price' => $price,
+                    'cost_price' => $costPrice,
                     'quantity' => fake()->numberBetween(5, 100),
                     'batch_number' => strtoupper(fake()->bothify('BATCH-###')),
                     'manufacture_date' => fake()->dateTimeBetween('-2 years', 'now'),
@@ -57,7 +58,7 @@ class ProductVariantSeeder extends Seeder
                 Image::create([
                     'imageable_id' => $variant->id,
                     'imageable_type' => ProductVariant::class,
-                    'image_url' => '/storage/variants/default.png',
+                    'image_url' => $this->seedStaticAsset('default-variant.png', 'variants/default.png'),
                     'is_primary' => true
                 ]);
             }
