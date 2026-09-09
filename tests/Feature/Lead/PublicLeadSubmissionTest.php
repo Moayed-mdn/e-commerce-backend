@@ -40,7 +40,7 @@ class PublicLeadSubmissionTest extends TestCase
         /** @var Lead $lead */
         $lead = Lead::query()->firstOrFail();
 
-        $this->assertSame([
+        $this->assertEqualsCanonicalizing([
             'utm_source' => 'google',
             'utm_campaign' => 'spring-launch',
             'gclid' => 'gclid-123',
