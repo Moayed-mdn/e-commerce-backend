@@ -70,13 +70,11 @@ jobs:
 
       - name: Run tests
         run: php artisan test
-
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
       - uses: actions/checkout@v5
 
@@ -94,40 +92,38 @@ jobs:
           context: .
           push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
           tags: ghcr.io/moayad-almidani/justshop-api:latest
-  
   deploy:
     #needs:
      # - build-and-push
-  
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  
+
     runs-on: ubuntu-latest
-  
+
     permissions:
+      id-token: write
       contents: read
-  
+
     steps:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
-          ping: 100.106.208.77
-  
-      - name: Test SSH connectivity
+
+      - name: Check VPS connectivity
         run: |
-          nc -vz -w 10 100.106.208.77 22
-  
-      - name: Deploy
+          tailscale ping ${{ secrets.VPS_HOST }}
+
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
-          host: 100.106.208.77
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd ~/projects/full-stack/justshop-multitenant-commerce-platform/laratenant-backend
+            cd ~/projects/docker/justshop-api
+            git pull origin main
             docker compose pull
             docker compose up -d
             docker compose exec -T app php artisan migrate --force
