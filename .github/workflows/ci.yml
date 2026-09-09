@@ -93,7 +93,7 @@ jobs:
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-          tags: ghcr.io/moayed-mdn/justshop-api:latest
+          tags: ghcr.io/moayad-almidani/justshop-api:latest
 
   deploy:
     #needs:
