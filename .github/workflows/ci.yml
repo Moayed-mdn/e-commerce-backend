@@ -130,3 +130,4 @@ jobs:
             cd ~/projects/full-stack/justshop-multitenant-commerce-platform/laratenant-backend
             docker compose pull
             docker compose up -d
+            docker compose exec -T app php artisan migrate --force

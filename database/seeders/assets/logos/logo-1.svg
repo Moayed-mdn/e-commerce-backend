@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 84" width="320" height="84">
+  <defs>
+    <linearGradient id="lgd1429514" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="10" width="64" height="64" rx="18" fill="url(#lgd1429514)"/>
+  <text x="32" y="50" font-family="Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle">JD</text>
+  <text x="80" y="49" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="700" fill="#0F172A">JustShop Demo</text>
+</svg>

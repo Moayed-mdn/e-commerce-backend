@@ -185,7 +185,7 @@ trait GeneratesBrandAssets
      */
     protected function writeBrandAsset(string $relativePath, string $svg): string
     {
-        Storage::disk('public')->put($relativePath, $svg);
+        Storage::put($relativePath, $svg); // بدون disk صريح — يتبع FILESYSTEM_DISK الحالي
 
         return $relativePath;
     }

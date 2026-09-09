@@ -33,6 +33,24 @@ final class MediaUrl
         return Storage::url($normalized);
     }
 
+   
+
+    private static function isOwnStorageUrl(string $value): bool
+    {
+        $host = parse_url($value, PHP_URL_HOST);
+
+        if (!is_string($host)) {
+            return false;
+        }
+
+        $ownHosts = array_filter([
+            parse_url((string) config('filesystems.disks.s3.url'), PHP_URL_HOST),
+            parse_url((string) config('filesystems.disks.s3.endpoint'), PHP_URL_HOST),
+        ]);
+
+        return in_array($host, $ownHosts, true);
+    }
+
     public static function normalizeStorablePath(?string $value): ?string
     {
         if ($value === null) {
@@ -51,8 +69,23 @@ final class MediaUrl
 
         $path = parse_url($value, PHP_URL_PATH);
 
-        if (is_string($path) && preg_match('#^/storage/#', $path) === 1) {
+        if (!is_string($path)) {
+            return $value;
+        }
+
+        if (preg_match('#^/storage/#', $path) === 1) {
             return ltrim((string) preg_replace('#^/?storage/#', '', $path), '/');
+        }
+
+        if (self::isOwnStorageUrl($value)) {
+            $bucket = (string) config('filesystems.disks.s3.bucket');
+            $normalizedPath = ltrim($path, '/');
+
+            if ($bucket !== '' && str_starts_with($normalizedPath, $bucket.'/')) {
+                $normalizedPath = substr($normalizedPath, strlen($bucket) + 1);
+            }
+
+            return $normalizedPath;
         }
 
         return $value;
