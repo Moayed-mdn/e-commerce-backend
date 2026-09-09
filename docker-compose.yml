@@ -63,7 +63,7 @@ services:
       - justshop-network
 
   queue:
-    image: ghcr.io/moayed-almidani/justshop-api:latest
+    image: ghcr.io/moayad-almidani/justshop-api:latest
     container_name: justshop-api-queue
     restart: unless-stopped
     working_dir: /var/www
